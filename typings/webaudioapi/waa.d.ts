@@ -227,7 +227,7 @@ interface webkitAudioContext extends AudioContext {
 }
 
 interface MediaRecorderEvent {
-    data: Float32Array;
+    data: Blob;
 }
 
 interface MediaRecorderCallbackType {
@@ -246,7 +246,11 @@ interface MediaRecorder {
     onstop: MediaRecorderCallbackType;
 }
 
+interface MediaRecorderOptions {
+    mimeType: string;
+}
+
 declare var MediaRecorder: {
-    new (stream: MediaStream): MediaRecorder;
+    new (stream: MediaStream, options?: MediaRecorderOptions): MediaRecorder;
     prototype: MediaRecorder;
 }
