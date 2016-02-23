@@ -14,7 +14,7 @@ let saveBlob = function(blob: Blob, fileName: string) {
         document.body.removeChild(anchorElement);
         window.URL.revokeObjectURL(url);
     }, 100);
-    this.chunks = [];
+    this.blobs = [];
     console.log('saveBlob(): finished!');
 }
 
@@ -25,7 +25,7 @@ export class WebAudioAPI {
     private audioContext: AudioContext;
     private audioGainNode: AudioGainNode;
     mediaRecorder: MediaRecorder;
-    private chunks: Array<Blob>;
+    private blobs: Array<Blob>;
     private source: MediaElementAudioSourceNode;
     private analyser: AnalyserNode;
 
@@ -39,7 +39,7 @@ export class WebAudioAPI {
         console.log('constructor():WebAudioApi');
         this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         this.audioGainNode = this.audioContext.createGain();
-        this.chunks = [];
+        this.blobs = [];
         this.currentVolume = 0;
         this.maxVolume = 0;
         this.monitorRate = 40;
@@ -65,6 +65,7 @@ export class WebAudioAPI {
             })
             .catch(function(error) {
                 console.log('mediaDevices.getUserMedia(): ERROR: ' + error);
+                console.dir(error);
                 alert('MD err 1 ' + error);
             });
     }
@@ -100,19 +101,19 @@ export class WebAudioAPI {
             alert('MD err 2 ' + error.message);
         }
 
-        let chunks: Array<Blob> = this.chunks;
+        let blobs: Array<Blob> = this.blobs;
 
         this.mediaRecorder.ondataavailable = function(event: BlobEvent) {
             console.log('ondataavailable()');
             console.dir(event);
-            chunks.push(event.data);
-            console.log('mediaRecorder.ondataavailable(): chunks.length = ' + chunks.length);
+            blobs.push(event.data);
+            console.log('mediaRecorder.ondataavailable(): blobs.length = ' + blobs.length);
         }
 
         this.mediaRecorder.onstop = function(event: Event) {
             console.log('onStop()');
             console.dir(event);
-            saveBlob(chunks[0], 'woohoo.ogg');
+            saveBlob(blobs[0], 'woohoo.ogg');
         };
     }
 
