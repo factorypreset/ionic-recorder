@@ -52,12 +52,14 @@ export class RecordPage {
     }
 
     toggleRecord() {
+        console.log('PRE: toggleRecord():mediaRecorder.state = '+this.webAudioAPI.mediaRecorder.state);
         if (this.isRecording()) {
             this.pauseRecord();
         }
         else {
             this.startRecord();
         }
+        console.log('POST: toggleRecord():mediaRecorder.state = '+this.webAudioAPI.mediaRecorder.state);
     }
 
     pauseRecord() {
@@ -66,9 +68,11 @@ export class RecordPage {
     }
 
     stopRecord() {
+        console.log('PRE: stopRecord():mediaRecorder.state = '+this.webAudioAPI.mediaRecorder.state);
         this.webAudioAPI.stopRecording();
         this.notYetStarted = true;
         this.recordButtonIcon = 'mic';
+        console.log('POST: stopRecord():mediaRecorder.state = '+this.webAudioAPI.mediaRecorder.state);
     }
 
     startRecord() {

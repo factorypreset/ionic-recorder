@@ -24,7 +24,7 @@ let saveBlob = function(blob: Blob, fileName: string) {
 export class WebAudioAPI {
     private audioContext: AudioContext;
     private audioGainNode: AudioGainNode;
-    private mediaRecorder: MediaRecorder;
+    mediaRecorder: MediaRecorder;
     private chunks: Array<Blob>;
     private source: MediaElementAudioSourceNode;
     private analyser: AnalyserNode;
@@ -102,13 +102,16 @@ export class WebAudioAPI {
 
         let chunks: Array<Blob> = this.chunks;
 
-        this.mediaRecorder.ondataavailable = function(event) {
+        this.mediaRecorder.ondataavailable = function(event: BlobEvent) {
+            console.log('ondataavailable()');
             console.dir(event);
             chunks.push(event.data);
-            console.log('mediaRecorder.ondataavailable(): chunks.length = ' + this.chunks.length);
+            console.log('mediaRecorder.ondataavailable(): chunks.length = ' + chunks.length);
         }
 
-        this.mediaRecorder.onstop = function(event) {
+        this.mediaRecorder.onstop = function(event: Event) {
+            console.log('onStop()');
+            console.dir(event);
             saveBlob(chunks[0], 'woohoo.ogg');
         };
     }
@@ -150,7 +153,7 @@ export class WebAudioAPI {
     }
 
     setGain(gain: number) {
-        // console.log('setting gain to : '+gain);
+        console.log('setting gain to : '+gain);
         this.audioGainNode.gain.value = gain;
     }
 

@@ -226,13 +226,6 @@ interface AudioContext {
 interface webkitAudioContext extends AudioContext {
 }
 
-interface MediaRecorderEvent {
-    data: Blob;
-}
-
-interface MediaRecorderCallbackType {
-    (event: MediaRecorderEvent): void;
-}
 
 interface MediaRecorder {
     start(): void;
@@ -242,8 +235,9 @@ interface MediaRecorder {
     
     state: any;
 
-    ondataavailable: MediaRecorderCallbackType;
-    onstop: MediaRecorderCallbackType;
+    // ondataavailable: MediaRecorderCallbackType;
+    ondataavailable: (event: BlobEvent) => void;
+    onstop: (event: Event) => void;
 }
 
 interface MediaRecorderOptions {
@@ -253,4 +247,8 @@ interface MediaRecorderOptions {
 declare var MediaRecorder: {
     new (stream: MediaStream, options?: MediaRecorderOptions): MediaRecorder;
     prototype: MediaRecorder;
+}
+
+interface BlobEvent extends Event {
+    data: Blob;
 }
