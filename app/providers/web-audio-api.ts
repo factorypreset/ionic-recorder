@@ -47,47 +47,32 @@ export class WebAudioAPI {
         this.nMaxPeaks = 0;
 
         if (navigator.mediaDevices) {
-            console.log('newer audio init');
-            this.newerAudioInit();
-        }
-        else {
-            console.log('older audio init');
-            this.olderAudioInit();
-        }
-    }
-
-    newerAudioInit() {
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then((stream: MediaStream) => {
-                // this.stream = stream;
-                this.initMediaRecorder(stream);
-                this.monitorStream(stream);
-            })
-            .catch(function(error) {
-                console.log('mediaDevices.getUserMedia(): ERROR: ' + error);
-                console.dir(error);
-                alert('MD err 1 ' + error);
-            });
-    }
-
-    olderAudioInit() {
-        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ||
-            navigator.mozGetUserMedia || navigator.msGetUserMedia;
-        if (navigator.getUserMedia) {
-            navigator.getUserMedia({ audio: true },
-                function(stream) {
+            let errorMessage: string;
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then((stream: MediaStream) => {
+                    // this.stream = stream;
                     this.initMediaRecorder(stream);
                     this.monitorStream(stream);
-                },
-                function(error) {
-                    console.log('ERROR: getUserMedia(): ' + JSON.stringify(error));
-                    alert('MD err 3 ' + error.message);
+                })
+                .catch(function(error) {
+                    errorMessage = 'Error: ' + error;
+                    if (error.message) {
+                        errorMessage += ', message: ' + error.message;
+                    }
+                    if (error.name) {
+                        errorMessage += ', name: ' + error.name;
+                    }
+                    alert(errorMessage);
                 });
         }
         else {
-            console.log('ERROR: getUserMedia not supported in this browser.');
-            alert('MD err 4');
+            console.log('MD err 0 - unsupported in this browser');
+            alert('MD err 0 - unsupported in this browser');
         }
+    }
+
+    reportError(error: Error) {
+        
     }
 
     initMediaRecorder(stream: MediaStream) {
@@ -154,7 +139,7 @@ export class WebAudioAPI {
     }
 
     setGain(gain: number) {
-        console.log('setting gain to : '+gain);
+        console.log('setting gain to : ' + gain);
         this.audioGainNode.gain.value = gain;
     }
 

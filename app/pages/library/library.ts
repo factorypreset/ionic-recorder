@@ -11,7 +11,7 @@ export class LibraryPage {
         console.log('constructor():LibraryPage');
         
         // ask for 50 Mb
-        let requestedBytes = 1024 * 1024 * 50;
+        let requestedBytes = 1024 * 1024 * 500;
         let onInitFs = function(x) { console.log('onInitFS x is: '+x); };
         let errorHandler = function(x) {console.log('errorHandler x is: '+x); }
         

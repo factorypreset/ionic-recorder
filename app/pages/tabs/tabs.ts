@@ -5,7 +5,11 @@ import {LibraryPage} from '../library/library';
 
 
 @Page({
-    templateUrl: 'build/pages/tabs/tabs.html'
+    // templateUrl: 'build/pages/tabs/tabs.html'
+    template: ['<ion-tabs id="tabs">',
+        '           <ion-tab [root]="tab1Root" tabTitle="Record"></ion-tab>',
+        '           <ion-tab [root]="tab2Root" tabTitle="Library"></ion-tab>',
+        '       </ion-tabs>'].join('')
 })
 export class TabsPage {
     private tab1Root: Type = RecordPage;

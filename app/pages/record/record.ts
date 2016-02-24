@@ -2,8 +2,21 @@ import {Page, Modal, Alert, NavController, Platform} from 'ionic-framework/ionic
 import {LibraryPage} from '../library/library';
 import {VuGauge} from '../../components/vu-gauge/vu-gauge';
 import {WebAudioAPI} from '../../providers/web-audio-api';
-import {Utils} from '../../providers/utils';
 
+
+function num2str(num: number, nDecimals: number) {
+    let floorNum: number = Math.floor(num),
+        frac: number = num - floorNum,
+        pow10: number = Math.pow(10, nDecimals),
+        wholeFrac: number = Math.round(frac * pow10),
+        fracLen: number = wholeFrac.toString().length,
+        leadingZeros: string = Array(nDecimals - fracLen + 1).join('0');
+    return floorNum.toString() + '.' + leadingZeros + wholeFrac.toString();
+}
+
+function ratio2dB(ratio: number) {
+    return 10.0 * Math.log10(ratio);
+}
 
 @Page({
     templateUrl: 'build/pages/record/record.html',
@@ -18,8 +31,8 @@ export class RecordPage {
     private stopButtonDisabled: boolean;
     private gain: number;
     private dB: string;
-    
-    constructor(private webAudioAPI: WebAudioAPI, private platform: Platform, private utils: Utils) {
+
+    constructor(private webAudioAPI: WebAudioAPI, private platform: Platform) {
         console.log('constructor():RecordPage');
         this.gain = 100;
         this.dB = '0.00 dB';
@@ -37,12 +50,12 @@ export class RecordPage {
 
     onSliderChange($event) {
         this.gain = $event.target.value;
-        let factor: number = this.gain/100.0;
+        let factor: number = this.gain / 100.0;
         if (factor === 0) {
             this.dB = 'Muted'
         }
         else {
-            this.dB = this.utils.num2str(this.utils.ratio2dB(factor), 2)+' dB';        
+            this.dB = num2str(ratio2dB(factor), 2) + ' dB';
         }
         this.webAudioAPI.setGain(factor);
     }
@@ -52,14 +65,14 @@ export class RecordPage {
     }
 
     toggleRecord() {
-        console.log('PRE: toggleRecord():mediaRecorder.state = '+this.webAudioAPI.mediaRecorder.state);
+        console.log('PRE: toggleRecord():mediaRecorder.state = ' + this.webAudioAPI.mediaRecorder.state);
         if (this.isRecording()) {
             this.pauseRecord();
         }
         else {
             this.startRecord();
         }
-        console.log('POST: toggleRecord():mediaRecorder.state = '+this.webAudioAPI.mediaRecorder.state);
+        console.log('POST: toggleRecord():mediaRecorder.state = ' + this.webAudioAPI.mediaRecorder.state);
     }
 
     pauseRecord() {
@@ -68,11 +81,11 @@ export class RecordPage {
     }
 
     stopRecord() {
-        console.log('PRE: stopRecord():mediaRecorder.state = '+this.webAudioAPI.mediaRecorder.state);
+        console.log('PRE: stopRecord():mediaRecorder.state = ' + this.webAudioAPI.mediaRecorder.state);
         this.webAudioAPI.stopRecording();
         this.notYetStarted = true;
         this.recordButtonIcon = 'mic';
-        console.log('POST: stopRecord():mediaRecorder.state = '+this.webAudioAPI.mediaRecorder.state);
+        console.log('POST: stopRecord():mediaRecorder.state = ' + this.webAudioAPI.mediaRecorder.state);
     }
 
     startRecord() {
@@ -85,5 +98,4 @@ export class RecordPage {
         }
         this.recordButtonIcon = 'pause';
     }
-
 }
