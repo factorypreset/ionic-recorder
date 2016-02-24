@@ -1,6 +1,6 @@
 // tabs.scss - styling for tabs across the app
 
-// make tab bar invisible everywhere - menu is enough
+// make tab bar invisible everywhere (app menu has the tabs)
 #tabs ion-tabbar-section {
     display: none;
 }

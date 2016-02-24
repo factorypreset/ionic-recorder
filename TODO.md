@@ -19,3 +19,6 @@
 * Fix gain control issue: gain control shows up correctly in the
   monitor, but does not seem to actually work in a recording test (not
   in real-time anyhow)
+
+## App menu
+* Make highlight (clicked) color less bright
