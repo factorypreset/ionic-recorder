@@ -1,13 +1,21 @@
 # TODO.md
 
-## Dark theme
-* set up dark theme
+## Library page
+* After lots of research: use IndexedDB for music file storage.
 
-## VuGauge sprint
-* add a display to VuGauge (top right) that shows max-value
-* add a display to VuGauge (top left) that shows # of peaks and warns if saturation detected by becoming red 
-* dynamically update VuGauge max-value and peaks-value to monitor in real-time
+## Record page
+* Timer not yet implemented
+
+## Web Audio API
+* Start/stop/pause/resume functions are totally unnecessary and get repeated
+  in record.ts - use MediaRecorder directly for those in record.ts
+* Figure out if to chunk with a time interval
+
+## VuGauge
+* Add red triangles showing max volume instead of the rectangle boundary
+* Add a saturation indicator/detector
 
 ## Slider sprint
-* add to the slider in record.ts a display of gain-control value, either in % or something else (dB?) 
-* add gain-control node to web-audio-interface.ts and hook it up to the slider
+* Fix gain control issue: gain control shows up correctly in the
+  monitor, but does not seem to actually work in a recording test (not
+  in real-time anyhow)
