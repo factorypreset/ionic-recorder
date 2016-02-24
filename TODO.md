@@ -2,6 +2,8 @@
 
 ## Library page
 * After lots of research: use IndexedDB for music file storage.
+* Current question: do we use cordova plugin directly or do we use the webkit
+  stuff?
 
 ## Record page
 * Timer not yet implemented
