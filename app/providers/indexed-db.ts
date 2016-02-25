@@ -13,26 +13,29 @@ export class IndexedDB {
     private openRequest: IDBOpenDBRequest;
 
     constructor() {
+        console.log('constructor():IndexedDB');
         if (!window.indexedDB) {
             alert('Browser does not support a stable version of indexedDB');
         }
     }
 
     openDb() {
-        let request: IDBOpenDBRequest = indexedDB.open(DB_NAME, DB_VERSION);
+        console.log('IndexedDB:openDb() db:' + DB_NAME + ', version:' + DB_VERSION);
+        this.openRequest = indexedDB.open(DB_NAME, DB_VERSION);
 
-        this.openRequest.onsuccess = function(event) {
+        this.openRequest.onsuccess = (event: Event) => {
             this.db = this.openRequest.result;
             console.log('openDb:onsuccess DONE');
         }
 
-        this.openRequest.onerror = function(event) {
-            console.error('openDb:', this.openRequest.errorCode);
+        this.openRequest.onerror = (event: Event) => {
+            console.error('Could not open database');
         }
 
-        this.openRequest.onupgradeneeded = function(event: IDBVersionChangeEvent) {
+        this.openRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
             console.log('openDb:onupgradeended + oldVersion=' +
                 event.oldVersion + ', newVersion=' + event.newVersion);
         }
     }
+
 }

@@ -2,7 +2,7 @@ import {Injectable} from 'angular2/core';
 
 
 // save data into a local file
-let saveBlob = function(blob: Blob, fileName: string) {
+function saveBlob(blob: Blob, fileName: string) {
     let url: string = window.URL.createObjectURL(blob);
     let anchorElement: HTMLAnchorElement = document.createElement('a');
     anchorElement.style.display = 'none';
@@ -10,7 +10,7 @@ let saveBlob = function(blob: Blob, fileName: string) {
     anchorElement.setAttribute('download', fileName);
     document.body.appendChild(anchorElement);
     anchorElement.click();
-    setTimeout(function() {
+    setTimeout(() => {
         document.body.removeChild(anchorElement);
         window.URL.revokeObjectURL(url);
     }, 100);
@@ -18,8 +18,7 @@ let saveBlob = function(blob: Blob, fileName: string) {
     console.log('saveBlob(): finished!');
 }
 
-// Inject class WebAudioAPI into app to use as singleton,
-// via @App({providers: [WebAudioAPI]}
+
 @Injectable()
 export class WebAudioAPI {
     private audioContext: AudioContext;
@@ -54,7 +53,7 @@ export class WebAudioAPI {
                     this.initMediaRecorder(stream);
                     this.monitorStream(stream);
                 })
-                .catch(function(error) {
+                .catch((error) => {
                     errorMessage = 'Error: ' + error;
                     if (error.message) {
                         errorMessage += ', message: ' + error.message;
@@ -72,7 +71,7 @@ export class WebAudioAPI {
     }
 
     reportError(error: Error) {
-        
+
     }
 
     initMediaRecorder(stream: MediaStream) {
@@ -86,19 +85,17 @@ export class WebAudioAPI {
             alert('MD err 2 ' + error.message);
         }
 
-        let blobs: Array<Blob> = this.blobs;
-
-        this.mediaRecorder.ondataavailable = function(event: BlobEvent) {
+        this.mediaRecorder.ondataavailable = (event: BlobEvent) => {
             console.log('ondataavailable()');
             console.dir(event);
-            blobs.push(event.data);
-            console.log('mediaRecorder.ondataavailable(): blobs.length = ' + blobs.length);
+            this.blobs.push(event.data);
+            console.log('mediaRecorder.ondataavailable(): blobs.length = ' + this.blobs.length);
         }
 
-        this.mediaRecorder.onstop = function(event: Event) {
+        this.mediaRecorder.onstop = (event: Event) => {
             console.log('onStop()');
             console.dir(event);
-            saveBlob(blobs[0], 'woohoo.ogg');
+            saveBlob(this.blobs[0], 'woohoo.ogg');
         };
     }
 
