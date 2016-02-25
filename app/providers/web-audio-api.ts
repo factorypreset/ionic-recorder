@@ -22,7 +22,7 @@ function saveBlob(blob: Blob, fileName: string) {
 @Injectable()
 export class WebAudioAPI {
     private audioContext: AudioContext;
-    private audioGainNode: AudioGainNode;
+    audioGainNode: AudioGainNode;
     mediaRecorder: MediaRecorder;
     private blobs: Array<Blob>;
     private source: MediaElementAudioSourceNode;
@@ -70,10 +70,6 @@ export class WebAudioAPI {
         }
     }
 
-    reportError(error: Error) {
-
-    }
-
     initMediaRecorder(stream: MediaStream) {
         try {
             console.log('new MediaRecorder(stream) - options: n/a');
@@ -93,7 +89,10 @@ export class WebAudioAPI {
         }
 
         this.mediaRecorder.onstop = (event: Event) => {
-            console.log('onStop()');
+            console.log('onStop() - # of blobs: ' + this.blobs.length +
+                        ', dir(this.blob) ...');
+            console.dir(this.blobs);
+            console.log('onStop() event: ...');
             console.dir(event);
             saveBlob(this.blobs[0], 'woohoo.ogg');
         };
@@ -134,7 +133,7 @@ export class WebAudioAPI {
             this.currentVolume = bufferMax;
         }, 1000.0 / (1.0 * this.monitorRate));
     }
-
+/*
     setGain(gain: number) {
         console.log('setting gain to : ' + gain);
         this.audioGainNode.gain.value = gain;
@@ -177,4 +176,5 @@ export class WebAudioAPI {
 
         this.mediaRecorder.stop();
     }
+*/
 }

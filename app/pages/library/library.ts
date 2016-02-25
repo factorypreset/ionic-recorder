@@ -7,9 +7,10 @@ import {IndexedDB} from '../../providers/indexed-db';
     templateUrl: 'build/pages/library/library.html'
 })
 export class LibraryPage {
-    constructor(private app: IonicApp, private nav: NavController, private platform: Platform, private idb: IndexedDB) {
-
-        this.idb.openDb();
+    constructor(private app: IonicApp, 
+                private nav: NavController, 
+                private platform: Platform, 
+                private indexedDB: IndexedDB) {
 
     }
 }

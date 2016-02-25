@@ -1,7 +1,8 @@
-import {Page, Modal, Alert, NavController, Platform} from 'ionic-framework/ionic';
+import {Page, Platform} from 'ionic-framework/ionic';
 import {LibraryPage} from '../library/library';
 import {VuGauge} from '../../components/vu-gauge/vu-gauge';
 import {WebAudioAPI} from '../../providers/web-audio-api';
+import {IndexedDB} from '../../providers/indexed-db';
 
 
 function num2str(num: number, nDecimals: number) {
@@ -18,6 +19,7 @@ function ratio2dB(ratio: number) {
     return 10.0 * Math.log10(ratio);
 }
 
+
 @Page({
     templateUrl: 'build/pages/record/record.html',
     directives: [VuGauge]
@@ -32,7 +34,9 @@ export class RecordPage {
     private gain: number;
     private dB: string;
 
-    constructor(private webAudioAPI: WebAudioAPI, private platform: Platform) {
+    constructor(private platform: Platform,
+                private webAudioAPI: WebAudioAPI,
+                private indexedDB: IndexedDB) {
         console.log('constructor():RecordPage');
         this.gain = 100;
         this.dB = '0.00 dB';
@@ -44,7 +48,8 @@ export class RecordPage {
 
     onSliderDrag($event) {
         // Fixes slider not dragging in Firefox, as described in:
-        // https://forum.ionicframework.com/t/range-input-input-type-range-slider-not-dragging-in-firefox/43186
+        // https://forum.ionicframework.com/t/ ...
+        // ... range-input-input-type-range-slider-not-dragging-in-firefox/43186
         $event.stopPropagation();
     }
 
@@ -57,7 +62,8 @@ export class RecordPage {
         else {
             this.dB = num2str(ratio2dB(factor), 2) + ' dB';
         }
-        this.webAudioAPI.setGain(factor);
+       // this.webAudioAPI.setGain(factor);
+       this.webAudioAPI.audioGainNode.gain.value = factor;
     }
 
     isRecording() {
@@ -65,36 +71,50 @@ export class RecordPage {
     }
 
     toggleRecord() {
-        console.log('PRE: toggleRecord():mediaRecorder.state = ' + this.webAudioAPI.mediaRecorder.state);
+        console.log('PRE: toggleRecord():mediaRecorder.state = ' +
+                    this.webAudioAPI.mediaRecorder.state);
         if (this.isRecording()) {
             this.pauseRecord();
         }
         else {
             this.startRecord();
         }
-        console.log('POST: toggleRecord():mediaRecorder.state = ' + this.webAudioAPI.mediaRecorder.state);
+        console.log('POST: toggleRecord():mediaRecorder.state = ' +
+                    this.webAudioAPI.mediaRecorder.state);
     }
 
     pauseRecord() {
-        this.webAudioAPI.pauseRecording();
+        // this.webAudioAPI.pauseRecording();
+        this.webAudioAPI.mediaRecorder.pause();
         this.recordButtonIcon = 'mic';
     }
 
     stopRecord() {
-        console.log('PRE: stopRecord():mediaRecorder.state = ' + this.webAudioAPI.mediaRecorder.state);
-        this.webAudioAPI.stopRecording();
+        console.log('PRE: stopRecord():mediaRecorder.state = ' +
+                    this.webAudioAPI.mediaRecorder.state);
+        // this.webAudioAPI.stopRecording();
+        this.webAudioAPI.mediaRecorder.stop();
         this.notYetStarted = true;
         this.recordButtonIcon = 'mic';
-        console.log('POST: stopRecord():mediaRecorder.state = ' + this.webAudioAPI.mediaRecorder.state);
+        console.log('POST: stopRecord():mediaRecorder.state = ' +
+                    this.webAudioAPI.mediaRecorder.state);
+
+        // save the recording immediately to the database, with some
+        // automatic title, or just untitled.  we'll need to figure
+        // out the recording's duration - if it's 0, don't save
+        // anything. reset things so that we can start again right
+        // away
     }
 
     startRecord() {
         if (this.notYetStarted) {
-            this.webAudioAPI.startRecording();
+            // this.webAudioAPI.startRecording();
+            this.webAudioAPI.mediaRecorder.start();
             this.notYetStarted = false;
         }
         else {
-            this.webAudioAPI.resumeRecording();
+            // this.webAudioAPI.resumeRecording();
+            this.webAudioAPI.mediaRecorder.resume();
         }
         this.recordButtonIcon = 'pause';
     }
