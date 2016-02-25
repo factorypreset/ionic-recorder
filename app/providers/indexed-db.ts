@@ -6,6 +6,7 @@ import {Injectable} from 'angular2/core';
 const DB_NAME = 'ionic-recorder-db';
 const DB_VERSION = 1;
 const DB_STORE_NAME = 'blobs';
+const STORE_KEY_PATH = 'id';
 
 @Injectable()
 export class IndexedDB {
@@ -33,8 +34,14 @@ export class IndexedDB {
         }
 
         this.openRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-            console.log('openDb:onupgradeended + oldVersion=' +
-                event.oldVersion + ', newVersion=' + event.newVersion);
+            console.log('openDb:onupgradeended START');
+            let store = event.currentTarget.result.createObjectStore(
+                DB_STORE_NAME, { keyPath: STORE_KEY_PATH, autoIncrement: true });
+            // create an index to search recordings by title 
+            store.createIndex('title', 'title', { unique: true });
+            // create an index to search recordings by date
+            store.createIndex('date', 'date', { unique: false });
+            console.log('openDb:onupgradeended DONE');
         }
     }
 
