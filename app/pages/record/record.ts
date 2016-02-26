@@ -3,6 +3,17 @@ import {LibraryPage} from '../library/library';
 import {VuGauge} from '../../components/vu-gauge/vu-gauge';
 import {IndexedDB} from '../../providers/indexed-db';
 
+// the volume monitor frequency, in Hz
+const VOLUME_MONITOR_FREQUENCY_HZ = 40;
+
+// derived constants, do not touch!
+const VOLUME_MONITOR_TIMEOUT_MSEC = 1000.0/VOLUME_MONITOR_FREQUENCY_HZ;
+
+// needed to cast at onSliderChange() below to avoid type warnings
+interface RangeInputEventTarget extends EventTarget {
+    value: number;
+}
+
 
 // save data into a local file
 function saveBlob(blob: Blob, fileName: string) {
@@ -24,11 +35,11 @@ function saveBlob(blob: Blob, fileName: string) {
 
 function num2str(num: number, nDecimals: number) {
     let floorNum: number = Math.floor(num),
-        frac: number = num - floorNum,
-        pow10: number = Math.pow(10, nDecimals),
-        wholeFrac: number = Math.round(frac * pow10),
-        fracLen: number = wholeFrac.toString().length,
-        leadingZeros: string = Array(nDecimals - fracLen + 1).join('0');
+    frac: number = num - floorNum,
+    pow10: number = Math.pow(10, nDecimals),
+    wholeFrac: number = Math.round(frac * pow10),
+    fracLen: number = wholeFrac.toString().length,
+    leadingZeros: string = Array(nDecimals - fracLen + 1).join('0');
     return floorNum.toString() + '.' + leadingZeros + wholeFrac.toString();
 }
 
@@ -43,17 +54,17 @@ function ratio2dB(ratio: number) {
 })
 export class RecordPage {
     private audioContext: AudioContext;
-    audioGainNode: AudioGainNode;
-    mediaRecorder: MediaRecorder;
+    private audioGainNode: AudioGainNode;
+    private mediaRecorder: MediaRecorder;
     private blobs: Array<Blob>;
     private source: MediaElementAudioSourceNode;
     private analyser: AnalyserNode;
 
-    monitorRate: number;
-    currentVolume: number;
-    maxVolume: number;
-    nSamplesAnalysed: number;
-    nMaxPeaks: number;
+    private monitorRate: number;
+    private currentVolume: number;
+    private maxVolume: number;
+    private nSamplesAnalysed: number;
+    private nMaxPeaks: number;
 
     private sliderValue: number;
     // private notYetStarted: boolean;
@@ -64,8 +75,12 @@ export class RecordPage {
     private gain: number;
     private dB: string;
 
-    constructor(private platform: Platform,
-        private indexedDB: IndexedDB) {
+    // timer related
+    private date: Date;
+    private monitorStartTime: number;
+    private monitorTotalTime: number;
+    
+    constructor(private platform: Platform, private indexedDB: IndexedDB) {
         console.log('constructor():RecordPage');
         this.gain = 100;
         this.dB = '0.00 dB';
@@ -75,87 +90,86 @@ export class RecordPage {
         this.recordButtonIcon = 'mic';
 
         this.initAudio();
+        
+        this.monitorStartTime = new Date().getTime();
+        this.monitorTotalTime = 0;
     }
 
     initAudio() {
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        this.audioContext = new AudioContext();
+        if (!this.audioContext) {
+            throw Error('AudioContext not available!');
+        }
         this.audioGainNode = this.audioContext.createGain();
         this.blobs = [];
         this.currentVolume = 0;
         this.maxVolume = 0;
-        this.monitorRate = 40;
         this.nSamplesAnalysed = 0;
         this.nMaxPeaks = 0;
 
-        if (navigator.mediaDevices) {
-            let errorMessage: string;
-            navigator.mediaDevices.getUserMedia({ audio: true })
-                .then((stream: MediaStream) => {
-                    // this.stream = stream;
-                    this.initMediaRecorder(stream);
-                    this.monitorStream(stream);
-                })
-                .catch((error) => {
-                    errorMessage = 'Error: ' + error;
-                    if (error.message) {
-                        errorMessage += ', message: ' + error.message;
-                    }
-                    if (error.name) {
-                        errorMessage += ', name: ' + error.name;
-                    }
-                    alert(errorMessage);
-                });
+        if (!navigator.mediaDevices ||
+            !navigator.mediaDevices.getUserMedia) {
+            throw Error('mediaDevices.getUserMedia not available!');
         }
-        else {
-            console.log('MD err 0 - unsupported in this browser');
-            alert('MD err 0 - unsupported in this browser');
-        }
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then((stream: MediaStream) => {
+                this.initMediaRecorder(stream);
+                this.monitorStream(stream);
+            })
+            .catch((error) => {
+                throw Error('getUserMedia error!');
+            });
     }
 
     initMediaRecorder(stream: MediaStream) {
         try {
             console.log('new MediaRecorder(stream) - options: n/a');
             this.mediaRecorder = new MediaRecorder(stream);
+            console.dir(this.mediaRecorder);
             console.log('initMedia(): SUCCESS! mediaRecorder == ' + this.mediaRecorder);
         }
         catch (error) {
-            console.log('ERROR: Cannot instantiate a MediaRecorder object: ' + error.message);
-            alert('MD err 2 ' + error.message);
+            throw Error('MediaRecorder not available!');
         }
 
         this.mediaRecorder.ondataavailable = (event: BlobEvent) => {
             console.log('ondataavailable()');
-            console.dir(event);
             this.blobs.push(event.data);
-            console.log('mediaRecorder.ondataavailable(): blobs.length = ' + this.blobs.length);
         }
-
+        
         this.mediaRecorder.onstop = (event: Event) => {
-            console.log('onStop() - # of blobs: ' + this.blobs.length +
-                ', dir(this.blob) ...');
+            console.log('onStop()');
+            if (this.blobs.length !== 1) {
+                throw Error('More than 1 blobs!');
+            }
+            let blob: Blob = this.blobs[0];
+            console.log('size: ' + blob.size);
+            console.log('type: ' + blob.type);
+            console.log('timestamp: ' + event.timeStamp);
             console.dir(this.blobs);
-            console.log('onStop() event: ...');
             console.dir(event);
-            saveBlob(this.blobs[0], 'woohoo.ogg');
-        };
+            // saveBlob(this.blobs[0], 'woohoo.ogg');
+            this.blobs = [];
+        }
     }
 
     monitorStream(stream: MediaStream) {
         this.source = this.audioContext.createMediaStreamSource(stream);
-                
+
         // this next line repeats microphone input to speaker output
         // this.audioGainNode.connect(this.audioContext.destination);
-        
+
         let analyser: AnalyserNode = this.audioContext.createAnalyser();
         analyser.fftSize = 2048;
         let bufferLength: number = analyser.frequencyBinCount;
         let dataArray: Uint8Array = new Uint8Array(bufferLength);
-        
+
         // this.source.connect(analyser);
         this.source.connect(this.audioGainNode);
         this.audioGainNode.connect(analyser);
 
-        setInterval(() => {
+        let repeat:Function = () => {
+            this.monitorTotalTime += VOLUME_MONITOR_TIMEOUT_MSEC;
             analyser.getByteTimeDomainData(dataArray);
             let bufferMax: number = 0;
             for (let i: number = 0; i < bufferLength; i++) {
@@ -173,18 +187,20 @@ export class RecordPage {
                 this.maxVolume = bufferMax;
             }
             this.currentVolume = bufferMax;
-        }, 1000.0 / (1.0 * this.monitorRate));
+            let deltaTime: number = new Date().getTime() - 
+                this.monitorStartTime - this.monitorTotalTime;
+            setTimeout(repeat, VOLUME_MONITOR_TIMEOUT_MSEC-deltaTime);            
+        };
+        setTimeout(repeat, VOLUME_MONITOR_TIMEOUT_MSEC);
     }
 
     onSliderDrag(event: Event) {
-        // Fixes slider not dragging in Firefox, as described in:
-        // https://forum.ionicframework.com/t/ ...
-        // ... range-input-input-type-range-slider-not-dragging-in-firefox/43186
+        // Fixes slider not dragging in Firefox, as described in wiki
         event.stopPropagation();
     }
 
     onSliderChange(event: Event) {
-        this.gain = event.target.value;
+        this.gain = (<RangeInputEventTarget>event.target).value;
         let factor: number = this.gain / 100.0;
         if (factor === 0) {
             this.dB = 'Muted'
@@ -197,7 +213,7 @@ export class RecordPage {
 
     onClickStartPauseButton() {
         console.log('PRE: toggleRecord():mediaRecorder.state = ' +
-            this.mediaRecorder.state);
+                    this.mediaRecorder.state);
         if (this.mediaRecorder.state === 'recording') {
             this.mediaRecorder.pause();
             this.recordButtonIcon = 'mic';
@@ -212,16 +228,15 @@ export class RecordPage {
             this.recordButtonIcon = 'pause';
         }
         console.log('POST: toggleRecord():mediaRecorder.state = ' +
-            this.mediaRecorder.state);
+                    this.mediaRecorder.state);
     }
 
     onClickStopButton() {
         console.log('PRE: stopRecord():mediaRecorder.state = ' +
-            this.mediaRecorder.state);
+                    this.mediaRecorder.state);
         this.mediaRecorder.stop();
         this.recordButtonIcon = 'mic';
         console.log('POST: stopRecord():mediaRecorder.state = ' +
-            this.mediaRecorder.state);
-        // TODO: save blob to DB
+                    this.mediaRecorder.state);
     }
 }

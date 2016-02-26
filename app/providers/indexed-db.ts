@@ -1,7 +1,5 @@
 import {Injectable} from 'angular2/core';
 
-// based on example at: 
-// https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
 
 const DB_NAME = 'ionic-recorder-db';
 const DB_VERSION = 1;
