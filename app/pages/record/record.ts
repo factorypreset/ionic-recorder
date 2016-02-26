@@ -54,9 +54,9 @@ export class RecordPage {
     maxVolume: number;
     nSamplesAnalysed: number;
     nMaxPeaks: number;
-    
+
     private sliderValue: number;
-    private notYetStarted: boolean;
+    // private notYetStarted: boolean;
     private recordingTime: string;
     private recordButtonIcon: string;
     private stopButtonIcon: string;
@@ -65,20 +65,20 @@ export class RecordPage {
     private dB: string;
 
     constructor(private platform: Platform,
-                private indexedDB: IndexedDB) {
+        private indexedDB: IndexedDB) {
         console.log('constructor():RecordPage');
         this.gain = 100;
         this.dB = '0.00 dB';
         this.sliderValue = 100;
-        this.notYetStarted = true;
+        // this.notYetStarted = true;
         this.recordingTime = "00:00:00:00";
         this.recordButtonIcon = 'mic';
-        
+
         this.initAudio();
     }
 
     initAudio() {
-                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         this.audioGainNode = this.audioContext.createGain();
         this.blobs = [];
         this.currentVolume = 0;
@@ -132,7 +132,7 @@ export class RecordPage {
 
         this.mediaRecorder.onstop = (event: Event) => {
             console.log('onStop() - # of blobs: ' + this.blobs.length +
-                        ', dir(this.blob) ...');
+                ', dir(this.blob) ...');
             console.dir(this.blobs);
             console.log('onStop() event: ...');
             console.dir(event);
@@ -175,7 +175,7 @@ export class RecordPage {
             this.currentVolume = bufferMax;
         }, 1000.0 / (1.0 * this.monitorRate));
     }
-    
+
     onSliderDrag(event: Event) {
         // Fixes slider not dragging in Firefox, as described in:
         // https://forum.ionicframework.com/t/ ...
@@ -192,60 +192,36 @@ export class RecordPage {
         else {
             this.dB = num2str(ratio2dB(factor), 2) + ' dB';
         }
-       // this.webAudioAPI.setGain(factor);
-       this.audioGainNode.gain.value = factor;
+        this.audioGainNode.gain.value = factor;
     }
 
-    isRecording() {
-        return this.recordButtonIcon === 'pause';
-    }
-
-    toggleRecord() {
+    onClickStartPauseButton() {
         console.log('PRE: toggleRecord():mediaRecorder.state = ' +
-                    this.mediaRecorder.state);
-        if (this.isRecording()) {
-            this.pauseRecord();
+            this.mediaRecorder.state);
+        if (this.mediaRecorder.state === 'recording') {
+            this.mediaRecorder.pause();
+            this.recordButtonIcon = 'mic';
         }
         else {
-            this.startRecord();
+            if (this.mediaRecorder.state === 'inactive') {
+                this.mediaRecorder.start();
+            }
+            else {
+                this.mediaRecorder.resume();
+            }
+            this.recordButtonIcon = 'pause';
         }
         console.log('POST: toggleRecord():mediaRecorder.state = ' +
-                    this.mediaRecorder.state);
+            this.mediaRecorder.state);
     }
 
-    pauseRecord() {
-        // this.webAudioAPI.pauseRecording();
-        this.mediaRecorder.pause();
-        this.recordButtonIcon = 'mic';
-    }
-
-    stopRecord() {
+    onClickStopButton() {
         console.log('PRE: stopRecord():mediaRecorder.state = ' +
-                    this.mediaRecorder.state);
-        // this.webAudioAPI.stopRecording();
+            this.mediaRecorder.state);
         this.mediaRecorder.stop();
-        this.notYetStarted = true;
         this.recordButtonIcon = 'mic';
         console.log('POST: stopRecord():mediaRecorder.state = ' +
-                    this.mediaRecorder.state);
-
-        // save the recording immediately to the database, with some
-        // automatic title, or just untitled.  we'll need to figure
-        // out the recording's duration - if it's 0, don't save
-        // anything. reset things so that we can start again right
-        // away
-    }
-
-    startRecord() {
-        if (this.notYetStarted) {
-            // this.webAudioAPI.startRecording();
-            this.mediaRecorder.start();
-            this.notYetStarted = false;
-        }
-        else {
-            // this.webAudioAPI.resumeRecording();
-            this.mediaRecorder.resume();
-        }
-        this.recordButtonIcon = 'pause';
+            this.mediaRecorder.state);
+        // TODO: save blob to DB
     }
 }
