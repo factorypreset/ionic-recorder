@@ -77,7 +77,6 @@ export class RecordPage {
     private dB: string;
 
     // time related
-    private date: Date;
     private monitorStartTime: number;
     private monitorTotalTime: number;
     private recordStartTime: number;
@@ -101,12 +100,9 @@ export class RecordPage {
             throw Error('AudioContext not available!');
         }
         this.audioGainNode = this.audioContext.createGain();
+        this.currentVolume =  this.maxVolume = this.nSamplesAnalysed = 
+            this.nMaxPeaks = 0;
         this.blobs = [];
-        this.currentVolume = 0;
-        this.maxVolume = 0;
-        this.nSamplesAnalysed = 0;
-        this.nMaxPeaks = 0;
-
         if (!navigator.mediaDevices ||
             !navigator.mediaDevices.getUserMedia) {
             throw Error('mediaDevices.getUserMedia not available!');
@@ -164,11 +160,8 @@ export class RecordPage {
         this.source.connect(this.audioGainNode);
         this.audioGainNode.connect(analyser);
 
-        this.totalPauseTime = 0;
-        this.monitorTotalTime = 0;
-        this.recordTotalTime = 0;
-        this.lastPauseTime = 0;
-        this.totalPauseTime = 0;
+        this.totalPauseTime = this.monitorTotalTime = this.recordTotalTime =
+            this.lastPauseTime = this.totalPauseTime = 0;
         this.monitorStartTime = new Date().getTime();
 
         let repeat: Function = () => {
