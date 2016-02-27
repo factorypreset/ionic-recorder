@@ -14,15 +14,14 @@ export class IndexedDB {
     constructor() {
         console.log('constructor():IndexedDB');
         if (!indexedDB) {
-            throw()
-            alert('Browser does not support a stable version of indexedDB');
+            throw Error('Browser does not support indexedDB');
         }
         this.openDb();
     }
 
     openDb() {
         console.log('IndexedDB:openDb() db:' + DB_NAME +
-            ', version:' + DB_VERSION);
+                    ', version:' + DB_VERSION);
         this.openRequest = indexedDB.open(DB_NAME, DB_VERSION);
         console.dir(this.openRequest);
         this.openRequest.onsuccess = (event: Event) => {
@@ -42,7 +41,7 @@ export class IndexedDB {
             let store: IDBObjectStore = this.db.createObjectStore(
                 DB_STORE_NAME,
                 { keyPath: STORE_KEY_PATH, autoIncrement: true });
-            // index to search recordings by title 
+            // index to search recordings by title
             store.createIndex('title', 'title', { unique: true });
             // index to search recordings by date
             store.createIndex('date', 'date', { unique: false });
@@ -53,7 +52,7 @@ export class IndexedDB {
     addBlob(blob: Blob, title: string) {
         let transaction: IDBTransaction = this.db.transaction(
             DB_STORE_NAME, 'readwrite'),
-            store: IDBObjectStore = transaction.objectStore(DB_STORE_NAME);
+        store: IDBObjectStore = transaction.objectStore(DB_STORE_NAME);
         try {
             let addRequest: IDBRequest = store.add({
                 blob: blob,
@@ -62,7 +61,7 @@ export class IndexedDB {
             });
         }
         catch (error) {
-            alert('Error trying to add a blob to the DB');
+            throw Error('Could not add blob to DB');
         }
     }
 }
