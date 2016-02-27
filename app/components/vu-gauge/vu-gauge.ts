@@ -53,7 +53,6 @@ export class VuGauge {
         this.ledRects = [];
         this.maxValue = 0;
         this.maxValueIndex = 0;
-        this.refreshTimeoutMsec = 1000.0 / this.rate;
     }
 
     resetInterval() {
@@ -82,6 +81,8 @@ export class VuGauge {
             });
         }
         this.valueStep = (1.0 * (this.max - this.min)) / (this.nbars - 1.0);
+        this.refreshTimeoutMsec = 1000.0 / this.rate;
+        this.resetInterval();
     }
 
     ngOnChanges(changeRecord) {
@@ -108,9 +109,6 @@ export class VuGauge {
                         (this.value - this.min) / this.valueStep);
                 }
                 this.ledRects[this.maxValueIndex].strokeWidth = "1";
-            }
-            else if (change === 'rate') {
-                this.resetInterval();
             }
         }
     }
