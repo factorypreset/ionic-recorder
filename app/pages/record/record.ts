@@ -17,6 +17,7 @@ interface RangeInputEventTarget extends EventTarget {
     value: number;
 }
 
+// not efficient but sufficient and clear
 function num2str(num: number, nDecimals: number) {
     let floorNum: number = Math.floor(num),
         frac: number = num - floorNum,
@@ -27,6 +28,18 @@ function num2str(num: number, nDecimals: number) {
     return floorNum.toString() + '.' + leadingZeros + wholeFrac.toString();
 }
 
+// not efficient but sufficient and clear
+function msec2time(msec: number) {
+    let addZero = (n: number) => { return (n < 10) ? '0' : ''; },
+        totalSec: number = Math.floor(msec / 1000),
+        totalMin: number = Math.floor(totalSec / 60),
+        hr: number = Math.floor(totalMin / 60),
+        min: number = totalMin - hr * 60,
+        sec: number = totalSec - totalMin * 60,
+        secFrac: number = Math.floor((msec - totalSec * 1000) / 10),
+    return [addZero(hr), hr, ':', addZero(min), min, ':',
+        addZero(sec), sec, '.', secFrac, addZero(secFrac)].join('');
+}
 
 @Page({
     templateUrl: 'build/pages/record/record.html',
@@ -56,7 +69,6 @@ export class RecordPage {
     private monitorStartTime: number;
     private monitorTotalTime: number;
     private recordStartTime: number;
-    private recordTotalTime: number;
     private lastPauseTime: number;
     private totalPauseTime: number;
 
@@ -65,7 +77,7 @@ export class RecordPage {
         this.gain = 100;
         this.dB = '0.00 dB';
         this.sliderValue = 100;
-        this.recordingTime = "00:00:00:00";
+        this.recordingTime = msec2time(0);
         this.recordButtonIcon = START_RESUME_ICON;
         this.initAudio();
     }
@@ -76,7 +88,7 @@ export class RecordPage {
             throw Error('AudioContext not available!');
         }
         this.audioGainNode = this.audioContext.createGain();
-        this.currentVolume =  this.maxVolume = this.nSamplesAnalysed = 
+        this.currentVolume = this.maxVolume = this.nSamplesAnalysed =
             this.nMaxPeaks = 0;
         this.blobs = [];
         if (!navigator.mediaDevices ||
@@ -136,8 +148,7 @@ export class RecordPage {
         this.source.connect(this.audioGainNode);
         this.audioGainNode.connect(analyser);
 
-        this.totalPauseTime = this.monitorTotalTime = this.recordTotalTime =
-            this.lastPauseTime = this.totalPauseTime = 0;
+        this.totalPauseTime = this.monitorTotalTime = this.lastPauseTime = 0;
         this.monitorStartTime = Date.now();
 
         let repeat: Function = () => {
@@ -163,9 +174,8 @@ export class RecordPage {
                 timeoutError: number = currentTime -
                     this.monitorStartTime - this.monitorTotalTime;
             if (this.mediaRecorder.state === MEDIA_RECORDER_RECORDING_STATE) {
-                this.recordTotalTime = currentTime - this.recordStartTime -
-                    this.totalPauseTime;
-                console.log(this.recordTotalTime);
+                this.recordingTime = msec2time(currentTime - 
+                    this.recordStartTime - this.totalPauseTime);
             }
             setTimeout(repeat, MONITOR_TIMEOUT_MSEC - timeoutError);
         };
@@ -203,8 +213,7 @@ export class RecordPage {
             }
             else {
                 this.mediaRecorder.resume();
-                this.totalPauseTime +=
-                    Date.now() - this.lastPauseTime;
+                this.totalPauseTime += Date.now() - this.lastPauseTime;
             }
             this.recordButtonIcon = PAUSE_ICON;
         }
@@ -213,6 +222,7 @@ export class RecordPage {
     onClickStopButton() {
         this.mediaRecorder.stop();
         this.totalPauseTime = 0;
+        this.recordingTime = msec2time(0);
         this.recordButtonIcon = START_RESUME_ICON;
     }
 }

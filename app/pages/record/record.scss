@@ -9,6 +9,8 @@ p.item-label {
 .recording-time {
     text-align: center;
     font-size: 2.3em;
+    // font-family: "Lucida Console", Monaco, monospace;
+    font-family: "Courier New", Courier, monospace;
     padding-bottom: 0.4em;
     color: map-get($colors, light);
 }
