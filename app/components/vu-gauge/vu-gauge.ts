@@ -1,22 +1,24 @@
-import {Component, Input, ChangeDetectionStrategy, ChangeDetectorRef, OnChanges} from 'angular2/core';
+import {Component, Input, ChangeDetectorRef, OnChanges} from 'angular2/core';
 
 
 /**
  * @name VuGauge
  * @description
- * An LED lights display that light up to monitor a changing signal in real-time.
- * This display is a width:100% horizontal rectangle willed with small vertical
- * rectangles that are the LEDs.  Thes LEDs show up either dark state or lit up,
- * depending on the input value.
+ * An LED lights display that light up to monitor a changing signal in
+ * real-time.  This display is a width:100% horizontal rectangle
+ * willed with small vertical rectangles that are the LEDs.  Thes LEDs
+ * show up either dark state or lit up, depending on the input value.
  */
 @Component({
-    // using OnPush strategy to keep a big chunk of the change-detection tree
-    // disabled most of the time, since this component depends only on its
-    // input properties and they are all immutable - this component can
-    // change if and only if any of its input properties change.
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    // using OnPush strategy to keep a big chunk of the
+    // change-detection tree disabled most of the time, since this
+    // component depends only on its input properties and they are all
+    // immutable - this component can change if and only if any of its
+    // input properties change.  TODO: do we need this next line?
+    // changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'vu-gauge',
-    template: ['<svg fill="rgba(0,0,0,0)" width="100%" [attr.height]="height">',
+    template: ['<svg fill="rgba(0,0,0,0)" width="100%"',
+        '     [attr.height]="height">',
         '           <rect width="100%" [attr.height]="height" />',
         '           <rect *ngFor="#led of ledRects"',
         '                 [attr.width]="ledWidth"',
@@ -28,7 +30,8 @@ import {Component, Input, ChangeDetectionStrategy, ChangeDetectorRef, OnChanges}
         '      </svg>'].join('')
 })
 export class VuGauge {
-    // TODO: height, nbars, min are all to be set only once - remove data binding on them
+    // TODO: height, nbars, min are all to be set only once - remove
+    // data binding on them
     @Input() private height: string;
     @Input() private nbars: number;
     @Input() private min: number;
@@ -36,24 +39,33 @@ export class VuGauge {
     @Input() private value: number;
     @Input() private rate: number;
     private ledWidth: string;
-    private ledRects: Array<{x: string, fill: string, strokeWidth: string}>;
+    private ledRects: Array<{ x: string, fill: string, strokeWidth: string }>;
     private hStep: number;
     private valueStep: number;
     private maxValue: number;
     private maxValueIndex: number;
+    private refreshTimeoutMsec: number;
+    private totalTime: number;
+    private startTime: number;
 
     constructor(private ref: ChangeDetectorRef) {
         console.log('constructor():VuGauge');
         this.ledRects = [];
         this.maxValue = 0;
         this.maxValueIndex = 0;
+        this.refreshTimeoutMsec = 1000.0 / this.rate;
     }
 
     resetInterval() {
-        let intervalMsec: number = 1000.0 / (1.0 * this.rate);
-        setInterval(() => {
+        this.totalTime = 0;
+        this.startTime = new Date().getTime();
+        let repeat: Function = () => {
+            this.totalTime += this.refreshTimeoutMsec;
+            let deltaTime: number = new Date().getTime() - this.startTime;
             this.ref.markForCheck();
-        }, intervalMsec);
+            setTimeout(repeat, this.refreshTimeoutMsec - deltaTime);
+        }
+        setTimeout(repeat, this.refreshTimeoutMsec);
     }
 
     ngOnInit() {
@@ -64,7 +76,8 @@ export class VuGauge {
         for (let i: number = 0; i < this.nbars; i++) {
             this.ledRects.push({
                 x: (i * xStep) + '%',
-                fill: ['hsl(', 120.0 - i * this.hStep, ', 100%, 15%)'].join(''),
+                fill: ['hsl(', 120.0 - i * this.hStep,
+                    ', 100%, 15%)'].join(''),
                 strokeWidth: "0"
             });
         }
@@ -79,21 +92,22 @@ export class VuGauge {
                     let strokeWidth: string;
 
                     if (this.min + this.valueStep * i < this.value) {
-                        fill = ['hsl(', 120.0 - i * this.hStep, ', 100%, 50%)'].join('');
+                        fill = ['hsl(', 120.0 - i * this.hStep,
+                            ', 100%, 50%)'].join('');
                     }
                     else {
-                        fill = ['hsl(', 120.0 - i * this.hStep, ', 100%, 15%)'].join('');
+                        fill = ['hsl(', 120.0 - i * this.hStep,
+                            ', 100%, 15%)'].join('');
                     }
                     this.ledRects[i].fill = fill;
                     this.ledRects[i].strokeWidth = "0";
                 }
                 if (this.value >= this.maxValue) {
                     this.maxValue = this.value;
-                    this.maxValueIndex = Math.floor((this.value - this.min) / this.valueStep);
+                    this.maxValueIndex = Math.floor(
+                        (this.value - this.min) / this.valueStep);
                 }
                 this.ledRects[this.maxValueIndex].strokeWidth = "1";
-            }
-            else if (change === 'max') {
             }
             else if (change === 'rate') {
                 this.resetInterval();

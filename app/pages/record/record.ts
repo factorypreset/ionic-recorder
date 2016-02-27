@@ -4,10 +4,13 @@ import {VuGauge} from '../../components/vu-gauge/vu-gauge';
 import {IndexedDB} from '../../providers/indexed-db';
 
 // the volume monitor frequency, in Hz
-const VOLUME_MONITOR_FREQUENCY_HZ = 40;
+const MONITOR_FREQUENCY_HZ: number = 40;
+const START_RESUME_ICON: string = 'mic';
+const PAUSE_ICON: string = 'pause';
 
 // derived constants, do not touch!
-const VOLUME_MONITOR_TIMEOUT_MSEC = 1000.0/VOLUME_MONITOR_FREQUENCY_HZ;
+const MONITOR_TIMEOUT_MSEC: number = 1000.0 / MONITOR_FREQUENCY_HZ;
+
 
 // needed to cast at onSliderChange() below to avoid type warnings
 interface RangeInputEventTarget extends EventTarget {
@@ -32,14 +35,13 @@ function saveBlob(blob: Blob, fileName: string) {
     console.log('saveBlob(): finished!');
 }
 
-
 function num2str(num: number, nDecimals: number) {
     let floorNum: number = Math.floor(num),
-    frac: number = num - floorNum,
-    pow10: number = Math.pow(10, nDecimals),
-    wholeFrac: number = Math.round(frac * pow10),
-    fracLen: number = wholeFrac.toString().length,
-    leadingZeros: string = Array(nDecimals - fracLen + 1).join('0');
+        frac: number = num - floorNum,
+        pow10: number = Math.pow(10, nDecimals),
+        wholeFrac: number = Math.round(frac * pow10),
+        fracLen: number = wholeFrac.toString().length,
+        leadingZeros: string = Array(nDecimals - fracLen + 1).join('0');
     return floorNum.toString() + '.' + leadingZeros + wholeFrac.toString();
 }
 
@@ -67,32 +69,28 @@ export class RecordPage {
     private nMaxPeaks: number;
 
     private sliderValue: number;
-    // private notYetStarted: boolean;
     private recordingTime: string;
     private recordButtonIcon: string;
-    private stopButtonIcon: string;
-    private stopButtonDisabled: boolean;
     private gain: number;
     private dB: string;
 
-    // timer related
+    // time related
     private date: Date;
     private monitorStartTime: number;
     private monitorTotalTime: number;
-    
+    private recordStartTime: number;
+    private recordTotalTime: number;
+    private lastPauseTime: number;
+    private totalPauseTime: number;
+
     constructor(private platform: Platform, private indexedDB: IndexedDB) {
         console.log('constructor():RecordPage');
         this.gain = 100;
         this.dB = '0.00 dB';
         this.sliderValue = 100;
-        // this.notYetStarted = true;
         this.recordingTime = "00:00:00:00";
-        this.recordButtonIcon = 'mic';
-
+        this.recordButtonIcon = START_RESUME_ICON;
         this.initAudio();
-        
-        this.monitorStartTime = new Date().getTime();
-        this.monitorTotalTime = 0;
     }
 
     initAudio() {
@@ -117,26 +115,22 @@ export class RecordPage {
                 this.monitorStream(stream);
             })
             .catch((error) => {
-                throw Error('getUserMedia error!');
+                throw Error('in getUserMedia()');
             });
     }
 
     initMediaRecorder(stream: MediaStream) {
-        try {
-            console.log('new MediaRecorder(stream) - options: n/a');
-            this.mediaRecorder = new MediaRecorder(stream);
-            console.dir(this.mediaRecorder);
-            console.log('initMedia(): SUCCESS! mediaRecorder == ' + this.mediaRecorder);
-        }
-        catch (error) {
+        if (!MediaRecorder) {
             throw Error('MediaRecorder not available!');
         }
+
+        this.mediaRecorder = new MediaRecorder(stream);
 
         this.mediaRecorder.ondataavailable = (event: BlobEvent) => {
             console.log('ondataavailable()');
             this.blobs.push(event.data);
         }
-        
+
         this.mediaRecorder.onstop = (event: Event) => {
             console.log('onStop()');
             if (this.blobs.length !== 1) {
@@ -168,8 +162,15 @@ export class RecordPage {
         this.source.connect(this.audioGainNode);
         this.audioGainNode.connect(analyser);
 
-        let repeat:Function = () => {
-            this.monitorTotalTime += VOLUME_MONITOR_TIMEOUT_MSEC;
+        this.totalPauseTime = 0;
+        this.monitorTotalTime = 0;
+        this.recordTotalTime = 0;
+        this.lastPauseTime = 0;
+        this.totalPauseTime = 0;
+        this.monitorStartTime = new Date().getTime();
+
+        let repeat: Function = () => {
+            this.monitorTotalTime += MONITOR_TIMEOUT_MSEC;
             analyser.getByteTimeDomainData(dataArray);
             let bufferMax: number = 0;
             for (let i: number = 0; i < bufferLength; i++) {
@@ -187,11 +188,17 @@ export class RecordPage {
                 this.maxVolume = bufferMax;
             }
             this.currentVolume = bufferMax;
-            let deltaTime: number = new Date().getTime() - 
-                this.monitorStartTime - this.monitorTotalTime;
-            setTimeout(repeat, VOLUME_MONITOR_TIMEOUT_MSEC-deltaTime);            
+            let currentTime: number = new Date().getTime(),
+                deltaTime: number = currentTime -
+                    this.monitorStartTime - this.monitorTotalTime;
+            if (this.mediaRecorder.state === 'recording') {
+                this.recordTotalTime = currentTime - this.recordStartTime -
+                    this.totalPauseTime;
+                console.log(this.recordTotalTime);
+            }
+            setTimeout(repeat, MONITOR_TIMEOUT_MSEC - deltaTime);
         };
-        setTimeout(repeat, VOLUME_MONITOR_TIMEOUT_MSEC);
+        setTimeout(repeat, MONITOR_TIMEOUT_MSEC);
     }
 
     onSliderDrag(event: Event) {
@@ -212,31 +219,28 @@ export class RecordPage {
     }
 
     onClickStartPauseButton() {
-        console.log('PRE: toggleRecord():mediaRecorder.state = ' +
-                    this.mediaRecorder.state);
         if (this.mediaRecorder.state === 'recording') {
             this.mediaRecorder.pause();
-            this.recordButtonIcon = 'mic';
+            this.lastPauseTime = new Date().getTime();
+            this.recordButtonIcon = START_RESUME_ICON;
         }
         else {
             if (this.mediaRecorder.state === 'inactive') {
                 this.mediaRecorder.start();
+                this.recordStartTime = new Date().getTime();
             }
             else {
                 this.mediaRecorder.resume();
+                this.totalPauseTime +=
+                    new Date().getTime() - this.lastPauseTime;
             }
-            this.recordButtonIcon = 'pause';
+            this.recordButtonIcon = PAUSE_ICON;
         }
-        console.log('POST: toggleRecord():mediaRecorder.state = ' +
-                    this.mediaRecorder.state);
     }
 
     onClickStopButton() {
-        console.log('PRE: stopRecord():mediaRecorder.state = ' +
-                    this.mediaRecorder.state);
         this.mediaRecorder.stop();
-        this.recordButtonIcon = 'mic';
-        console.log('POST: stopRecord():mediaRecorder.state = ' +
-                    this.mediaRecorder.state);
+        this.totalPauseTime = 0;
+        this.recordButtonIcon = START_RESUME_ICON;
     }
 }
