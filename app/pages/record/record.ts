@@ -138,7 +138,7 @@ export class RecordPage {
 
         this.totalPauseTime = this.monitorTotalTime = this.recordTotalTime =
             this.lastPauseTime = this.totalPauseTime = 0;
-        this.monitorStartTime = new Date().getTime();
+        this.monitorStartTime = Date.now();
 
         let repeat: Function = () => {
             this.monitorTotalTime += MONITOR_TIMEOUT_MSEC;
@@ -159,7 +159,7 @@ export class RecordPage {
                 this.maxVolume = bufferMax;
             }
             this.currentVolume = bufferMax;
-            let currentTime: number = new Date().getTime(),
+            let currentTime: number = Date.now(),
                 timeoutError: number = currentTime -
                     this.monitorStartTime - this.monitorTotalTime;
             if (this.mediaRecorder.state === MEDIA_RECORDER_RECORDING_STATE) {
@@ -193,18 +193,18 @@ export class RecordPage {
     onClickStartPauseButton() {
         if (this.mediaRecorder.state === MEDIA_RECORDER_RECORDING_STATE) {
             this.mediaRecorder.pause();
-            this.lastPauseTime = new Date().getTime();
+            this.lastPauseTime = Date.now();
             this.recordButtonIcon = START_RESUME_ICON;
         }
         else {
             if (this.mediaRecorder.state === MEDIA_RECORDER_INACTIVE_STATE) {
                 this.mediaRecorder.start();
-                this.recordStartTime = new Date().getTime();
+                this.recordStartTime = Date.now();
             }
             else {
                 this.mediaRecorder.resume();
                 this.totalPauseTime +=
-                    new Date().getTime() - this.lastPauseTime;
+                    Date.now() - this.lastPauseTime;
             }
             this.recordButtonIcon = PAUSE_ICON;
         }
