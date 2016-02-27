@@ -7,6 +7,8 @@ import {IndexedDB} from '../../providers/indexed-db';
 const MONITOR_FREQUENCY_HZ: number = 40;
 const START_RESUME_ICON: string = 'mic';
 const PAUSE_ICON: string = 'pause';
+const MEDIA_RECORDER_RECORDING_STATE: string = 'recording';
+const MEDIA_RECORDER_INACTIVE_STATE: string = 'inactive';
 
 // derived constants, do not touch!
 const MONITOR_TIMEOUT_MSEC: number = 1000.0 / MONITOR_FREQUENCY_HZ;
@@ -189,14 +191,14 @@ export class RecordPage {
             }
             this.currentVolume = bufferMax;
             let currentTime: number = new Date().getTime(),
-                deltaTime: number = currentTime -
+                timeoutError: number = currentTime -
                     this.monitorStartTime - this.monitorTotalTime;
-            if (this.mediaRecorder.state === 'recording') {
+            if (this.mediaRecorder.state === MEDIA_RECORDER_RECORDING_STATE) {
                 this.recordTotalTime = currentTime - this.recordStartTime -
                     this.totalPauseTime;
                 console.log(this.recordTotalTime);
             }
-            setTimeout(repeat, MONITOR_TIMEOUT_MSEC - deltaTime);
+            setTimeout(repeat, MONITOR_TIMEOUT_MSEC - timeoutError);
         };
         setTimeout(repeat, MONITOR_TIMEOUT_MSEC);
     }
@@ -219,13 +221,13 @@ export class RecordPage {
     }
 
     onClickStartPauseButton() {
-        if (this.mediaRecorder.state === 'recording') {
+        if (this.mediaRecorder.state === MEDIA_RECORDER_RECORDING_STATE) {
             this.mediaRecorder.pause();
             this.lastPauseTime = new Date().getTime();
             this.recordButtonIcon = START_RESUME_ICON;
         }
         else {
-            if (this.mediaRecorder.state === 'inactive') {
+            if (this.mediaRecorder.state === MEDIA_RECORDER_INACTIVE_STATE) {
                 this.mediaRecorder.start();
                 this.recordStartTime = new Date().getTime();
             }

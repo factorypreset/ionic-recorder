@@ -60,9 +60,10 @@ export class VuGauge {
         this.startTime = new Date().getTime();
         let repeat: Function = () => {
             this.totalTime += this.refreshTimeoutMsec;
-            let deltaTime: number = new Date().getTime() - this.startTime;
+            let timeoutError: number =
+                new Date().getTime() - this.startTime - this.totalTime;
             this.ref.markForCheck();
-            setTimeout(repeat, this.refreshTimeoutMsec - deltaTime);
+            setTimeout(repeat, this.refreshTimeoutMsec - timeoutError);
         }
         setTimeout(repeat, this.refreshTimeoutMsec);
     }
