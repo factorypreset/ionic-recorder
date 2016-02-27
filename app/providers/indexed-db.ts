@@ -14,6 +14,7 @@ export class IndexedDB {
     constructor() {
         console.log('constructor():IndexedDB');
         if (!indexedDB) {
+            throw()
             alert('Browser does not support a stable version of indexedDB');
         }
         this.openDb();
