@@ -9,32 +9,12 @@ const START_RESUME_ICON: string = 'mic';
 const PAUSE_ICON: string = 'pause';
 const MEDIA_RECORDER_RECORDING_STATE: string = 'recording';
 const MEDIA_RECORDER_INACTIVE_STATE: string = 'inactive';
-
 // derived constants, do not touch!
 const MONITOR_TIMEOUT_MSEC: number = 1000.0 / MONITOR_FREQUENCY_HZ;
-
 
 // needed to cast at onSliderChange() below to avoid type warnings
 interface RangeInputEventTarget extends EventTarget {
     value: number;
-}
-
-
-// save data into a local file
-function saveBlob(blob: Blob, fileName: string) {
-    let url: string = window.URL.createObjectURL(blob);
-    let anchorElement: HTMLAnchorElement = document.createElement('a');
-    anchorElement.style.display = 'none';
-    anchorElement.href = url;
-    anchorElement.setAttribute('download', fileName);
-    document.body.appendChild(anchorElement);
-    anchorElement.click();
-    setTimeout(() => {
-        document.body.removeChild(anchorElement);
-        window.URL.revokeObjectURL(url);
-    }, 100);
-    this.blobs = [];
-    console.log('saveBlob(): finished!');
 }
 
 function num2str(num: number, nDecimals: number) {
@@ -45,10 +25,6 @@ function num2str(num: number, nDecimals: number) {
         fracLen: number = wholeFrac.toString().length,
         leadingZeros: string = Array(nDecimals - fracLen + 1).join('0');
     return floorNum.toString() + '.' + leadingZeros + wholeFrac.toString();
-}
-
-function ratio2dB(ratio: number) {
-    return 10.0 * Math.log10(ratio);
 }
 
 
@@ -208,7 +184,8 @@ export class RecordPage {
             this.dB = 'Muted'
         }
         else {
-            this.dB = num2str(ratio2dB(factor), 2) + ' dB';
+            // convert factor (a number in [0, 1]) to decibels
+            this.dB = num2str(10.0 * Math.log10(factor), 2) + ' dB';
         }
         this.audioGainNode.gain.value = factor;
     }
