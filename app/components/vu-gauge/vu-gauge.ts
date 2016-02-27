@@ -18,7 +18,7 @@ import {Component, Input, ChangeDetectorRef, OnChanges} from 'angular2/core';
     // changeDetection: ChangeDetectionStrategy.OnPush,
     selector: 'vu-gauge',
     template: ['<svg fill="rgba(0,0,0,0)" width="100%"',
-        '     [attr.height]="height">',
+        '            [attr.height]="height">',
         '           <rect width="100%" [attr.height]="height" />',
         '           <rect *ngFor="#led of ledRects"',
         '                 [attr.width]="ledWidth"',
