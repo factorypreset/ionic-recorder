@@ -36,7 +36,7 @@ function msec2time(msec: number) {
         hr: number = Math.floor(totalMin / 60),
         min: number = totalMin - hr * 60,
         sec: number = totalSec - totalMin * 60,
-        secFrac: number = Math.floor((msec - totalSec * 1000) / 10),
+        secFrac: number = Math.floor((msec - totalSec * 1000) / 10);
     return [addZero(hr), hr, ':', addZero(min), min, ':',
         addZero(sec), sec, '.', secFrac, addZero(secFrac)].join('');
 }
