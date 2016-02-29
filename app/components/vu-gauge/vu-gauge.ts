@@ -55,7 +55,7 @@ export class VuGauge {
         this.maxValueIndex = 0;
     }
 
-    resetInterval() {
+    continuousUpdate() {
         this.totalTime = 0;
         this.startTime = new Date().getTime();
         let repeat: Function = () => {
@@ -83,7 +83,7 @@ export class VuGauge {
         }
         this.valueStep = (1.0 * (this.max - this.min)) / (this.nbars - 1.0);
         this.refreshTimeoutMsec = 1000.0 / this.rate;
-        this.resetInterval();
+        this.continuousUpdate();
     }
 
     ngOnChanges(changeRecord: Array<String>) {
