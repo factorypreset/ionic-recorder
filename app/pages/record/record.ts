@@ -9,7 +9,7 @@ const START_RESUME_ICON: string = 'mic';
 const PAUSE_ICON: string = 'pause';
 const MEDIA_RECORDER_RECORDING_STATE: string = 'recording';
 const MEDIA_RECORDER_INACTIVE_STATE: string = 'inactive';
-// derived constants, do not touch!
+// derived constants, please do not touch the constants below:
 const MONITOR_TIMEOUT_MSEC: number = 1000.0 / MONITOR_FREQUENCY_HZ;
 
 // needed to cast at onSliderChange() below to avoid type warnings
@@ -40,6 +40,7 @@ function msec2time(msec: number) {
     return [addZero(hr), hr, ':', addZero(min), min, ':',
         addZero(sec), sec, '.', secFrac, addZero(secFrac)].join('');
 }
+
 
 @Page({
     templateUrl: 'build/pages/record/record.html',
@@ -174,7 +175,7 @@ export class RecordPage {
                 timeoutError: number = currentTime -
                     this.monitorStartTime - this.monitorTotalTime;
             if (this.mediaRecorder.state === MEDIA_RECORDER_RECORDING_STATE) {
-                this.recordingTime = msec2time(currentTime - 
+                this.recordingTime = msec2time(currentTime -
                     this.recordStartTime - this.totalPauseTime);
             }
             setTimeout(repeat, MONITOR_TIMEOUT_MSEC - timeoutError);

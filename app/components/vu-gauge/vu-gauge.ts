@@ -86,13 +86,12 @@ export class VuGauge {
         this.resetInterval();
     }
 
-    ngOnChanges(changeRecord) {
+    ngOnChanges(changeRecord: Array<String>) {
         for (var change in changeRecord) {
             if (change === 'value' && this.ledRects.length > 0) {
                 for (let i: number = 0; i < this.nbars; i++) {
                     let fill: string;
-                    let strokeWidth: string;
-
+                    
                     if (this.min + this.valueStep * i < this.value) {
                         fill = ['hsl(', 120.0 - i * this.hStep,
                             ', 100%, 50%)'].join('');
@@ -102,14 +101,14 @@ export class VuGauge {
                             ', 100%, 15%)'].join('');
                     }
                     this.ledRects[i].fill = fill;
-                    this.ledRects[i].strokeWidth = "0";
+                    this.ledRects[i].strokeWidth = '0';
                 }
                 if (this.value >= this.maxValue) {
                     this.maxValue = this.value;
                     this.maxValueIndex = Math.floor(
                         (this.value - this.min) / this.valueStep);
                 }
-                this.ledRects[this.maxValueIndex].strokeWidth = "1";
+                this.ledRects[this.maxValueIndex].strokeWidth = '1';
             }
         }
     }
