@@ -7,12 +7,14 @@
         Library
     </ion-title>
 
-    <ion-buttons end>
-        <button (click)="presentFilter()">
-            <ion-icon ios="ios-funnel-outline" md="md-funnel"></ion-icon>
-        </button>
-    </ion-buttons>
 </ion-navbar>
 
 <ion-content [class]="platform.platforms()">
+    <ion-list>
+        <ion-item-divider sticky>
+            {{currentFolder.title}}
+        </ion-item-divider>
+        <ion-item *ngFor="#folderItem of getFolderItems()">
+        </ion-item>
+    </ion-list>
 </ion-content>

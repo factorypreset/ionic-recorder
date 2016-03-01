@@ -15,6 +15,13 @@ interface IDBEvent extends Event {
     target: IDBEventTarget;
 }
 
+export class BlobData {
+    title: string;
+    duration: number;
+    timestamp: number;
+    blob: Blob;
+}
+
 
 @Injectable()
 export class IndexedDB {
