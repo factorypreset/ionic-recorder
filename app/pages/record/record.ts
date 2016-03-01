@@ -72,6 +72,7 @@ export class RecordPage {
     private recordStartTime: number;
     private lastPauseTime: number;
     private totalPauseTime: number;
+    private durationMsec: number;
 
     constructor(private platform: Platform, private indexedDB: IndexedDB) {
         console.log('constructor():RecordPage');
@@ -126,9 +127,18 @@ export class RecordPage {
             let blob: Blob = this.blobs[0];
             console.log('size: ' + blob.size);
             console.log('type: ' + blob.type);
-            console.log('timestamp: ' + event.timeStamp);
+            console.log('durationMsec: ' + this.durationMsec);
+            console.log('date: ' + Date.now());
             console.dir(this.blobs);
             console.dir(event);
+            this.indexedDB.addBlobData(blob, 'test', this.durationMsec,
+                Date.now(), (key: number) => { 
+                    console.log('yeah! add()');
+                    this.indexedDB.getBlobData(key, (result: Object) => {
+                        console.log('yeah! get() - dir(result):');
+                        console.dir(result);
+                    }) 
+                });
             // saveBlob(this.blobs[0], 'woohoo.ogg');
             this.blobs = [];
         }
@@ -175,8 +185,9 @@ export class RecordPage {
                 timeoutError: number = currentTime -
                     this.monitorStartTime - this.monitorTotalTime;
             if (this.mediaRecorder.state === MEDIA_RECORDER_RECORDING_STATE) {
-                this.recordingTime = msec2time(currentTime -
-                    this.recordStartTime - this.totalPauseTime);
+                this.durationMsec = currentTime - this.recordStartTime -
+                    this.totalPauseTime;
+                this.recordingTime = msec2time(this.durationMsec);
             }
             setTimeout(repeat, MONITOR_TIMEOUT_MSEC - timeoutError);
         };
