@@ -11,7 +11,6 @@ import {Component, Input, OnChanges, SimpleChange} from 'angular2/core';
     selector: 'vu-gauge',
     template: ['<svg fill="rgba(0,0,0,0)" width="100%"',
         '            [attr.height]="height">',
-        '           <rect width="100%" [attr.height]="height" />',
         '           <rect *ngFor="#led of leds"',
         '                 [attr.width]="ledWidth"',
         '                 [attr.height]="height"',
