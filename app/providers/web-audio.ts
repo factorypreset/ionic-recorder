@@ -111,28 +111,28 @@ export class WebAudio {
 
     startRecording() {
         if (!this.mediaRecorder) {
-            throw Error('MediaRecorder not initialized!')
+            throw Error('MediaRecorder not initialized! (1)');
         }
         this.mediaRecorder.start();
     }
 
     pauseRecording() {
         if (!this.mediaRecorder) {
-            throw Error('MediaRecorder not initialized!')
+            throw Error('MediaRecorder not initialized! (2)');
         }
         this.mediaRecorder.pause();
     }
 
     resumeRecording() {
         if (!this.mediaRecorder) {
-            throw Error('MediaRecorder not initialized!')
+            throw Error('MediaRecorder not initialized! (3)');
         }
         this.mediaRecorder.resume();
     }
 
     stopRecording() {
         if (!this.mediaRecorder) {
-            throw Error('MediaRecorder not initialized!')
+            throw Error('MediaRecorder not initialized! (4)');
         }
         this.mediaRecorder.stop();
     }

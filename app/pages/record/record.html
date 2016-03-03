@@ -23,7 +23,7 @@
         <button logo-red (click)="onClickStartPauseButton()">
             <ion-icon [name]="recordButtonIcon"></ion-icon>
         </button>
-        <button logo-orange [disabled]="mediaRecorder && mediaRecorder.state === 'inactive'" 
+        <button logo-orange [disabled]="webAudio.isInactive()" 
                 (click)="onClickStopButton()">
             <ion-icon name="square"></ion-icon>
         </button>
