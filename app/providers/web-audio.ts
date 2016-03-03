@@ -93,6 +93,9 @@ export class WebAudio {
     }
 
     setGainFactor(factor: number) {
+        if (!this.audioGainNode) {
+            throw Error('GainNode not initialized!')
+        }
         this.audioGainNode.gain.value = factor;
     }
 
@@ -107,18 +110,30 @@ export class WebAudio {
     }
 
     startRecording() {
+        if (!this.mediaRecorder) {
+            throw Error('MediaRecorder not initialized!')
+        }
         this.mediaRecorder.start();
     }
 
     pauseRecording() {
+        if (!this.mediaRecorder) {
+            throw Error('MediaRecorder not initialized!')
+        }
         this.mediaRecorder.pause();
     }
 
     resumeRecording() {
+        if (!this.mediaRecorder) {
+            throw Error('MediaRecorder not initialized!')
+        }
         this.mediaRecorder.resume();
     }
 
     stopRecording() {
+        if (!this.mediaRecorder) {
+            throw Error('MediaRecorder not initialized!')
+        }
         this.mediaRecorder.stop();
     }
 }
