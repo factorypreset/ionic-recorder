@@ -10,11 +10,6 @@ import {Component, Input, OnChanges, SimpleChange} from 'angular2/core';
  * show up either dark state or lit up, depending on the input value.
  */
 @Component({
-    // using OnPush strategy to keep a big chunk of the
-    // change-detection tree disabled most of the time, since this
-    // component depends only on its input properties and they are all
-    // immutable - this component can change if and only if any of its
-    // input properties change.
     selector: 'vu-gauge',
     template: ['<svg fill="rgba(0,0,0,0)" width="100%"',
         '            [attr.height]="height">',
