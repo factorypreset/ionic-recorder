@@ -7,10 +7,14 @@ export class WebAudio {
     private audioGainNode: AudioGainNode;
     private mediaRecorder: MediaRecorder;
     private analyserNode: AnalyserNode;
+    private analyserBuffer: Uint8Array;
+    private analyserBufferLength: number;
     private sourceNode: MediaElementAudioSourceNode;
     private blobs: Blob[];
+    onStop: (blob: Blob) => void;
 
     constructor() {
+        console.log('constructor():WebAudio');
         this.blobs = [];
         this.initAudio();
     }
@@ -51,7 +55,10 @@ export class WebAudio {
             if (this.blobs.length !== 1) {
                 throw Error('More than 1 blobs!');
             }
-            let blob: Blob = this.blobs[0];
+            if (!this.onStop) {
+                throw Error('WebAudio:onStop() not set!');
+            }
+            this.onStop(this.blobs[0]);
             this.blobs = [];
         }
     }
@@ -62,22 +69,56 @@ export class WebAudio {
         // this.audioGainNode.connect(this.audioContext.destination);
         this.analyserNode = this.audioContext.createAnalyser();
         this.analyserNode.fftSize = 2048;
+        this.analyserBufferLength = this.analyserNode.frequencyBinCount;
+        this.analyserBuffer = new Uint8Array(this.analyserBufferLength);
         // this.sourceNode.connect(analyser);
         this.sourceNode.connect(this.audioGainNode);
         this.audioGainNode.connect(this.analyserNode);
     }
 
-    getMaxVolume() {
-        let bufferLength: number = this.analyserNode.frequencyBinCount,
-            dataArray: Uint8Array = new Uint8Array(bufferLength),
-            i: number, bufferMax: number = 0, absValue: number;
-        this.analyserNode.getByteTimeDomainData(dataArray);
-        for (i = 0; i < bufferLength; i++) {
-            absValue = Math.abs(dataArray[i] - 128.0);
+    getBufferMaxVolume() {
+        if (!this.analyserNode) {
+            return 0;
+        }
+
+        let i: number, bufferMax: number = 0, absValue: number;
+        this.analyserNode.getByteTimeDomainData(this.analyserBuffer);
+        for (i = 0; i < this.analyserBufferLength; i++) {
+            absValue = Math.abs(this.analyserBuffer[i] - 128.0);
             if (absValue > bufferMax) {
                 bufferMax = absValue;
             }
         }
         return bufferMax;
+    }
+
+    setGainFactor(factor: number) {
+        this.audioGainNode.gain.value = factor;
+    }
+
+    isRecording() {
+        return this.mediaRecorder &&
+            (this.mediaRecorder.state === 'recording');
+    }
+
+    isInactive() {
+        return !this.mediaRecorder ||
+            this.mediaRecorder.state === 'inactive';
+    }
+
+    startRecording() {
+        this.mediaRecorder.start();
+    }
+
+    pauseRecording() {
+        this.mediaRecorder.pause();
+    }
+
+    resumeRecording() {
+        this.mediaRecorder.resume();
+    }
+
+    stopRecording() {
+        this.mediaRecorder.stop();
     }
 }

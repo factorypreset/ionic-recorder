@@ -40,7 +40,7 @@ export class LocalDB {
         console.log('IndexedDB:openDb() db:' + DB_NAME +
             ', version:' + DB_VERSION);
         this.openRequest = indexedDB.open(DB_NAME, DB_VERSION);
-        console.dir(this.openRequest);
+        // console.dir(this.openRequest);
         this.openRequest.onsuccess = (event: Event) => {
             this.db = this.openRequest.result;
             console.log('openDb:onsuccess DONE');
