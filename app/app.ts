@@ -1,13 +1,14 @@
 import {App, IonicApp, Platform} from 'ionic-angular';
 import {Type, enableProdMode} from 'angular2/core';
 import {TabsPage} from './pages/tabs/tabs';
+import {WebAudio} from './providers/web-audio';
 import {IndexedDB} from './providers/indexed-db';
 
 // enableProdMode();
 
 @App({
     templateUrl: 'build/app.html',
-    providers: [IndexedDB],
+    providers: [WebAudio, IndexedDB],
     config: {
         backButtonText: ''
     }

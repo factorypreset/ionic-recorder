@@ -36,22 +36,25 @@ export class VuGauge implements OnChanges {
     private maxValueIndex: number;
 
     constructor() {
-        console.log('constructor():VuGauge');
         this.ledRects = [];
         this.maxValue = 0;
         this.maxValueIndex = 0;
     }
 
+    fillColor(ledIndex: number, lightness: string) {
+        return ['hsl(', 120.0 - ledIndex * this.hStep,
+            ',100%,', lightness, ')'].join('');
+    }
+
     ngOnInit() {
-        let percentWidth: number = 100.0 / (2 * this.nbars - 1);
+        let percentWidth: number = 100.0 / (2 * this.nbars - 1),
+            xStep: number = 2.0 * percentWidth, i: number;
         this.ledWidth = percentWidth + '%';
-        let xStep: number = 2.0 * percentWidth;
         this.hStep = 120.0 / (this.nbars - 1.0);
-        for (let i: number = 0; i < this.nbars; i++) {
+        for (i = 0; i < this.nbars; i++) {
             this.ledRects.push({
                 x: (i * xStep) + '%',
-                fill: ['hsl(', 120.0 - i * this.hStep,
-                    ', 100%, 15%)'].join(''),
+                fill: this.fillColor(i, '15%'),
                 strokeWidth: "0"
             });
         }
@@ -63,12 +66,10 @@ export class VuGauge implements OnChanges {
             let fill: string, i: number;
             for (i = 0; i < this.nbars; i++) {
                 if (this.min + this.valueStep * i < this.value) {
-                    fill = ['hsl(', 120.0 - i * this.hStep,
-                        ', 100%, 50%)'].join('');
+                    fill = this.fillColor(i, '50%');
                 }
                 else {
-                    fill = ['hsl(', 120.0 - i * this.hStep,
-                        ', 100%, 15%)'].join('');
+                    fill = this.fillColor(i, '15%');
                 }
                 this.ledRects[i].fill = fill;
                 this.ledRects[i].strokeWidth = '0';
