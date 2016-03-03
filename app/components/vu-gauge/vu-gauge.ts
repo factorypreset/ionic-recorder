@@ -1,5 +1,4 @@
-import {Component, Input, OnInit, OnChanges, SimpleChange}
-from 'angular2/core';
+import {Component, Input, OnChanges, SimpleChange} from 'angular2/core';
 
 
 /**

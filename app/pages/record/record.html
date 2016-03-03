@@ -7,7 +7,8 @@
 
 <ion-content padding [class]="platform.platforms()">
     <p class="item-label">Mic Volume: 
-        <span *ngIf="maxVolume > 1">{{nMaxPeaks}} peaks at max</span>
+        <!--span *ngIf="maxVolume > 1">{{peaksAtMax}} peaks at max</span-->
+        <span>{{peaksAtMax}} peaks at max</span>
     </p>
     <vu-gauge bgcolor="#fff" height="2.5em" nbars="55" min="0" max="128" rate="20" 
               [value]="currentVolume"></vu-gauge>

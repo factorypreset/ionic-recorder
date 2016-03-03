@@ -25,7 +25,7 @@ interface RangeInputEventTarget extends EventTarget {
 export class RecordPage {
     private currentVolume: number;
     private maxVolume: number;
-    private nMaxPeaks: number;
+    private peaksAtMax: number;
 
     private sliderValue: number;
     private recordingTime: string;
@@ -47,21 +47,10 @@ export class RecordPage {
         this.gain = 100;
         this.dB = '0.00 dB';
         this.sliderValue = 100;
+        this.maxVolume = 0;
+        this.peaksAtMax = 1;
         this.recordingTime = msec2time(0);
         this.recordButtonIcon = START_RESUME_ICON;
-
-        /*
-        let repeat: Function = () => {
-            this.monitorTotalTime += MONITOR_TIMEOUT_MSEC;
-            this.currentVolume = Math.random()*100;
-            // console.log(this.currentVolume);
-            let timeNow: number = Date.now(),
-                timeoutError: number = timeNow -
-                    this.monitorStartTime - this.monitorTotalTime;
-            setTimeout(repeat, MONITOR_TIMEOUT_MSEC - timeoutError);
-        };
-        setTimeout(repeat, MONITOR_TIMEOUT_MSEC);
-        */
 
         webAudio.onStop = (blob: Blob) => {
             console.log('size: ' + blob.size);
@@ -91,15 +80,17 @@ export class RecordPage {
         let repeat: Function = () => {
             this.monitorTotalTime += MONITOR_TIMEOUT_MSEC;
             bufferMax = this.webAudio.getBufferMaxVolume();
-            if (bufferMax > this.maxVolume) {
-                this.nMaxPeaks = 1;
+            if (bufferMax === this.maxVolume) {
+                this.peaksAtMax += 1;
+            }
+            else if (bufferMax > this.maxVolume) {
+                this.peaksAtMax = 1;
                 this.maxVolume = bufferMax;
             }
             this.currentVolume = bufferMax;
-            // console.log(this.currentVolume);
-            timeNow = Date.now(),
-            timeoutError = timeNow -
-                this.monitorStartTime - this.monitorTotalTime;
+            timeNow = Date.now();
+            timeoutError = timeNow - this.monitorStartTime -
+                this.monitorTotalTime;
             if (this.webAudio.isRecording()) {
                 this.recordingDuration = timeNow - this.recordStartTime -
                     this.totalPauseTime;
