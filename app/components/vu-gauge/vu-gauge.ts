@@ -12,7 +12,7 @@ import {Component, Input, OnChanges, SimpleChange} from 'angular2/core';
     template: ['<svg fill="rgba(0,0,0,0)" width="100%"',
         '            [attr.height]="height">',
         '           <rect width="100%" [attr.height]="height" />',
-        '           <rect *ngFor="#led of ledRects"',
+        '           <rect *ngFor="#led of leds"',
         '                 [attr.width]="ledWidth"',
         '                 [attr.height]="height"',
         '                 [attr.x]="led.x"',
@@ -29,14 +29,14 @@ export class VuGauge implements OnChanges {
     @Input() private value: number;
     @Input() private rate: number;
     private ledWidth: string;
-    private ledRects: { x: string, fill: string, strokeWidth: string }[];
+    private leds: { x: string, fill: string, strokeWidth: string }[];
     private hStep: number;
     private valueStep: number;
     private maxValue: number;
     private maxValueIndex: number;
 
     constructor() {
-        this.ledRects = [];
+        this.leds = [];
         this.maxValue = 0;
         this.maxValueIndex = 0;
     }
@@ -52,7 +52,7 @@ export class VuGauge implements OnChanges {
         this.ledWidth = percentWidth + '%';
         this.hStep = 120.0 / (this.nbars - 1.0);
         for (i = 0; i < this.nbars; i++) {
-            this.ledRects.push({
+            this.leds.push({
                 x: (i * xStep) + '%',
                 fill: this.fillColor(i, '15%'),
                 strokeWidth: '0'
@@ -62,7 +62,7 @@ export class VuGauge implements OnChanges {
     }
 
     ngOnChanges(changeRecord: { [propertyName: string]: SimpleChange }) {
-        if ((this.ledRects.length > 0) && (changeRecord['value'])) {
+        if ((this.leds.length > 0) && (changeRecord['value'])) {
             let fill: string, i: number;
             for (i = 0; i < this.nbars; i++) {
                 if (this.min + this.valueStep * i < this.value) {
@@ -71,15 +71,15 @@ export class VuGauge implements OnChanges {
                 else {
                     fill = this.fillColor(i, '15%');
                 }
-                this.ledRects[i].fill = fill;
-                this.ledRects[i].strokeWidth = '0';
+                this.leds[i].fill = fill;
+                this.leds[i].strokeWidth = '0';
             }
             if (this.value >= this.maxValue) {
                 this.maxValue = this.value;
                 this.maxValueIndex = Math.floor(
                     (this.value - this.min) / this.valueStep);
             }
-            this.ledRects[this.maxValueIndex].strokeWidth = '1';
+            this.leds[this.maxValueIndex].strokeWidth = '1';
         }
     }
 }
