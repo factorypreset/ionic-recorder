@@ -67,6 +67,19 @@ export class IndexedDB {
         }
     }
 
+    clearObjectStore() {
+        let transaction: IDBTransaction = this.db.transaction(
+            DB_STORE_NAME, 'readwrite'),
+            store: IDBObjectStore = transaction.objectStore(DB_STORE_NAME),
+            clearRequest = store.clear();
+        clearRequest.onsuccess = function(event: Event) {
+            console.log('IndexedDB Store cleared');
+        }
+        clearRequest.onerror = function(event: Event) {
+            console.log('Error clearing IndexedDB Store');
+        }
+    }
+
     addBlobData(blob: Blob, title: string, durationMsec: number, date: number,
         successCallback: Function) {
         let transaction: IDBTransaction = this.db.transaction(

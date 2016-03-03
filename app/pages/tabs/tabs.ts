@@ -1,4 +1,4 @@
-import {Page} from 'ionic-framework/ionic';
+import {Page} from 'ionic-angular';
 import {Type} from 'angular2/core';
 import {RecordPage} from '../record/record';
 import {LibraryPage} from '../library/library';

@@ -1,4 +1,4 @@
-import {Page, Platform} from 'ionic-framework/ionic';
+import {Page, Platform} from 'ionic-angular';
 import {LibraryPage} from '../library/library';
 import {VuGauge} from '../../components/vu-gauge/vu-gauge';
 import {IndexedDB} from '../../providers/indexed-db';
@@ -57,7 +57,6 @@ export class RecordPage {
     private monitorRate: number;
     private currentVolume: number;
     private maxVolume: number;
-    private nSamplesAnalysed: number;
     private nMaxPeaks: number;
 
     private sliderValue: number;
@@ -90,8 +89,7 @@ export class RecordPage {
             throw Error('AudioContext not available!');
         }
         this.audioGainNode = this.audioContext.createGain();
-        this.currentVolume = this.maxVolume = this.nSamplesAnalysed =
-            this.nMaxPeaks = 0;
+        this.currentVolume = this.maxVolume = this.nMaxPeaks = 0;
         this.blobs = [];
         if (!navigator.mediaDevices ||
             !navigator.mediaDevices.getUserMedia) {
@@ -131,6 +129,7 @@ export class RecordPage {
             console.log('date: ' + Date.now());
             console.dir(this.blobs);
             console.dir(event);
+            this.indexedDB.clearObjectStore();
             this.indexedDB.addBlobData(blob, 'test', this.durationMsec,
                 Date.now(), (key: number) => { 
                     console.log('yeah! add()');
@@ -174,7 +173,6 @@ export class RecordPage {
                 else if (absValue > bufferMax) {
                     bufferMax = absValue;
                 }
-                this.nSamplesAnalysed += 1;
             }
             if (bufferMax > this.maxVolume) {
                 this.nMaxPeaks = 1;
