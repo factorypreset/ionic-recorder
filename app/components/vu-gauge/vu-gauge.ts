@@ -55,7 +55,7 @@ export class VuGauge implements OnChanges {
             this.ledRects.push({
                 x: (i * xStep) + '%',
                 fill: this.fillColor(i, '15%'),
-                strokeWidth: "0"
+                strokeWidth: '0'
             });
         }
         this.valueStep = (this.max - this.min) / (this.nbars - 1.0);
