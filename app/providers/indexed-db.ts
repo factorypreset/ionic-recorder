@@ -80,6 +80,7 @@ export class IndexedDB {
         }
     }
 
+
     addBlobData(blob: Blob, title: string, durationMsec: number, date: number,
         successCallback: Function) {
         let transaction: IDBTransaction = this.db.transaction(
