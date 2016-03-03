@@ -80,7 +80,7 @@ export class IndexedDB {
         }
     }
 
-    addBlobData(blob: Blob, title: string, durationMsec: number, date: number,
+    addBlobData(blob: Blob, title: string, duration: number, date: number,
         successCallback: Function) {
         let transaction: IDBTransaction = this.db.transaction(
             DB_STORE_NAME, 'readwrite'),
@@ -88,9 +88,9 @@ export class IndexedDB {
         try {
             let addRequest: IDBRequest = store.add({
                 blob: blob,
-                title: title,
-                durationMsec: durationMsec,
-                date: date
+                duration: duration,
+                date: date,
+                title: title
             });
             addRequest.onsuccess = function(event: IDBEvent) {
                 console.log('Success adding to DB, key=' + event.target.result);

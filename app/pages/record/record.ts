@@ -50,7 +50,8 @@ export class RecordPage {
     private audioContext: AudioContext;
     private audioGainNode: AudioGainNode;
     private mediaRecorder: MediaRecorder;
-    private blobs: Array<Blob>;
+    // private blobs: Array<Blob>;
+    private blobs: Blob[];
     private source: MediaElementAudioSourceNode;
     private analyser: AnalyserNode;
 
@@ -71,7 +72,7 @@ export class RecordPage {
     private recordStartTime: number;
     private lastPauseTime: number;
     private totalPauseTime: number;
-    private durationMsec: number;
+    private duration: number;
 
     constructor(private platform: Platform, private indexedDB: IndexedDB) {
         console.log('constructor():RecordPage');
@@ -81,6 +82,18 @@ export class RecordPage {
         this.recordingTime = msec2time(0);
         this.recordButtonIcon = START_RESUME_ICON;
         this.initAudio();
+
+        let repeat: Function = () => {
+            this.monitorTotalTime += MONITOR_TIMEOUT_MSEC;
+            this.currentVolume = Math.random()*100;
+            // console.log(this.currentVolume);
+            let currentTime: number = Date.now(),
+                timeoutError: number = currentTime -
+                    this.monitorStartTime - this.monitorTotalTime;
+            setTimeout(repeat, MONITOR_TIMEOUT_MSEC - timeoutError);
+        };
+        setTimeout(repeat, MONITOR_TIMEOUT_MSEC);
+
     }
 
     initAudio() {
@@ -125,12 +138,12 @@ export class RecordPage {
             let blob: Blob = this.blobs[0];
             console.log('size: ' + blob.size);
             console.log('type: ' + blob.type);
-            console.log('durationMsec: ' + this.durationMsec);
+            console.log('duration: ' + this.duration);
             console.log('date: ' + Date.now());
             console.dir(this.blobs);
             console.dir(event);
             this.indexedDB.clearObjectStore();
-            this.indexedDB.addBlobData(blob, 'test', this.durationMsec,
+            this.indexedDB.addBlobData(blob, 'test', this.duration,
                 Date.now(), (key: number) => { 
                     console.log('yeah! add()');
                     this.indexedDB.getBlobData(key, (result: Object) => {
@@ -144,6 +157,7 @@ export class RecordPage {
     }
 
     monitorStream(stream: MediaStream) {
+/*
         this.source = this.audioContext.createMediaStreamSource(stream);
 
         // this next line repeats microphone input to speaker output
@@ -166,7 +180,7 @@ export class RecordPage {
             analyser.getByteTimeDomainData(dataArray);
             let bufferMax: number = 0;
             for (let i: number = 0; i < bufferLength; i++) {
-                let absValue: number = Math.abs(dataArray[i] - 128.0);
+                let absValue: number = Math.abs(dataArray[i] - 127.0);
                 if (absValue === this.maxVolume && this.maxVolume > 1) {
                     this.nMaxPeaks += 1;
                 }
@@ -179,18 +193,19 @@ export class RecordPage {
                 this.maxVolume = bufferMax;
             }
             this.currentVolume = bufferMax;
+            // console.log(this.currentVolume);
             let currentTime: number = Date.now(),
                 timeoutError: number = currentTime -
                     this.monitorStartTime - this.monitorTotalTime;
             if (this.mediaRecorder.state === MEDIA_RECORDER_RECORDING_STATE) {
-                this.durationMsec = currentTime - this.recordStartTime -
+                this.duration = currentTime - this.recordStartTime -
                     this.totalPauseTime;
-                this.recordingTime = msec2time(this.durationMsec);
+                this.recordingTime = msec2time(this.duration);
             }
             setTimeout(repeat, MONITOR_TIMEOUT_MSEC - timeoutError);
         };
         setTimeout(repeat, MONITOR_TIMEOUT_MSEC);
-    }
+  */  }
 
     onSliderDrag(event: Event) {
         // Fixes slider not dragging in Firefox, as described in wiki
@@ -211,6 +226,7 @@ export class RecordPage {
     }
 
     onClickStartPauseButton() {
+        this.currentVolume += Math.abs(Math.random()*10);
         if (this.mediaRecorder.state === MEDIA_RECORDER_RECORDING_STATE) {
             this.mediaRecorder.pause();
             this.lastPauseTime = Date.now();
