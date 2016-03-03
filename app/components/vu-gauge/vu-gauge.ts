@@ -59,7 +59,7 @@ export class VuGauge implements OnChanges {
                 strokeWidth: "0"
             });
         }
-        this.valueStep = (1.0 * (this.max - this.min)) / (this.nbars - 1.0);
+        this.valueStep = (this.max - this.min) / (this.nbars - 1.0);
     }
 
     ngOnChanges(changeRecord: { [propertyName: string]: SimpleChange }) {
