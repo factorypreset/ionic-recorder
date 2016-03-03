@@ -4,10 +4,8 @@ import {Component, Input, OnChanges, SimpleChange} from 'angular2/core';
 /**
  * @name VuGauge
  * @description
- * An LED lights display that light up to monitor a changing signal in
- * real-time.  This display is a width:100% horizontal rectangle
- * willed with small vertical rectangles that are the LEDs.  Thes LEDs
- * show up either dark state or lit up, depending on the input value.
+ * An LED lights display. LEDs are displayed either dark (off) or lit up
+ * (on), depending on where 'value' is in the interval ['min', 'max'].
  */
 @Component({
     selector: 'vu-gauge',
@@ -36,8 +34,6 @@ export class VuGauge implements OnChanges {
     private valueStep: number;
     private maxValue: number;
     private maxValueIndex: number;
-    private totalTime: number;
-    private startTime: number;
 
     constructor() {
         console.log('constructor():VuGauge');
