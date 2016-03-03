@@ -29,8 +29,6 @@ import {Component, Input, OnChanges, SimpleChange} from 'angular2/core';
         '      </svg>'].join('')
 })
 export class VuGauge implements OnChanges {
-    // TODO: height, nbars, min are all to be set only once - remove
-    // data binding on them
     @Input() private height: string;
     @Input() private nbars: number;
     @Input() private min: number;
