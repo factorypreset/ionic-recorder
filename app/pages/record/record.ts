@@ -1,7 +1,7 @@
 import {Page, Platform} from 'ionic-angular';
 import {LibraryPage} from '../library/library';
 import {VuGauge} from '../../components/vu-gauge/vu-gauge';
-import {IndexedDB} from '../../providers/indexed-db';
+import {LocalDB} from '../../providers/local-db';
 
 // the volume monitor frequency, in Hz
 const MONITOR_FREQUENCY_HZ: number = 40;
@@ -74,7 +74,7 @@ export class RecordPage {
     private totalPauseTime: number;
     private duration: number;
 
-    constructor(private platform: Platform, private indexedDB: IndexedDB) {
+    constructor(private platform: Platform, private localDB: LocalDB) {
         console.log('constructor():RecordPage');
         this.gain = 100;
         this.dB = '0.00 dB';
@@ -142,11 +142,11 @@ export class RecordPage {
             console.log('date: ' + Date.now());
             console.dir(this.blobs);
             console.dir(event);
-            this.indexedDB.clearObjectStore();
-            this.indexedDB.addBlobData(blob, 'test', this.duration,
+            this.localDB.clearObjectStore();
+            this.localDB.addBlobData(blob, 'test', this.duration,
                 Date.now(), (key: number) => { 
                     console.log('yeah! add()');
-                    this.indexedDB.getBlobData(key, (result: Object) => {
+                    this.localDB.getBlobData(key, (result: Object) => {
                         console.log('yeah! get() - dir(result):');
                         console.dir(result);
                     }) 

@@ -24,7 +24,7 @@ export class BlobData {
 
 
 @Injectable()
-export class IndexedDB {
+export class LocalDB {
     private db: IDBDatabase;
     private openRequest: IDBOpenDBRequest;
 

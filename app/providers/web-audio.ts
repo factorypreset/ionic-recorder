@@ -7,9 +7,8 @@ export class WebAudio {
     private audioGainNode: AudioGainNode;
     private mediaRecorder: MediaRecorder;
     private analyserNode: AnalyserNode;
-
+    private sourceNode: MediaElementAudioSourceNode;
     private blobs: Blob[];
-    private source: MediaElementAudioSourceNode;
 
     constructor() {
         this.blobs = [];
@@ -29,7 +28,7 @@ export class WebAudio {
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then((stream: MediaStream) => {
                 this.initMediaRecorder(stream);
-                this.initAnalyser(stream);
+                this.connectNodes(stream);
             })
             .catch((error) => {
                 throw Error('in getUserMedia()');
@@ -57,28 +56,28 @@ export class WebAudio {
         }
     }
 
-    initAnalyser(stream: MediaStream) {
-        this.source = this.audioContext.createMediaStreamSource(stream);
+    connectNodes(stream: MediaStream) {
+        this.sourceNode = this.audioContext.createMediaStreamSource(stream);
         // this next line repeats microphone input to speaker output
         // this.audioGainNode.connect(this.audioContext.destination);
         this.analyserNode = this.audioContext.createAnalyser();
         this.analyserNode.fftSize = 2048;
-        // this.source.connect(analyser);
-        this.source.connect(this.audioGainNode);
+        // this.sourceNode.connect(analyser);
+        this.sourceNode.connect(this.audioGainNode);
         this.audioGainNode.connect(this.analyserNode);
     }
 
-    getCurrentMaxVolume() {
+    getMaxVolume() {
         let bufferLength: number = this.analyserNode.frequencyBinCount,
             dataArray: Uint8Array = new Uint8Array(bufferLength),
             i: number, bufferMax: number = 0, absValue: number;
         this.analyserNode.getByteTimeDomainData(dataArray);
-
         for (i = 0; i < bufferLength; i++) {
             absValue = Math.abs(dataArray[i] - 128.0);
             if (absValue > bufferMax) {
                 bufferMax = absValue;
             }
         }
+        return bufferMax;
     }
 }
