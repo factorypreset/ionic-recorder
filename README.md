@@ -26,7 +26,7 @@ To build
 ## Installation
 In a shell, do
 
-    npm install -g cordova ionic
+    npm install -g cordova ionic@beta
     git clone https://github.com/tracktunes/ionic-recorder
     cd ionic-recorder
     npm install
