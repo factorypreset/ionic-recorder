@@ -12,13 +12,13 @@ import {Component, Input, OnChanges, SimpleChange} from 'angular2/core';
     template: ['<svg fill="rgba(0,0,0,0)" width="100%"',
         '            [attr.height]="height">',
         '           <rect *ngFor="#led of leds"',
-        '                 [attr.width]="ledWidth"',
-        '                 [attr.height]="height"',
-        '                 [attr.x]="led.x"',
-        '                 [attr.stroke-width]="led.strokeWidth"',
-        '                 stroke="rgb(255, 255, 255)"',
-        '                 [attr.fill]="led.fill" />',
-        '      </svg>'].join('')
+        '               [attr.width]="ledWidth"',
+        '               [attr.height]="height"',
+        '               [attr.x]="led.x"',
+        '               [attr.stroke-width]="led.strokeWidth"',
+        '               stroke="rgb(255,255,255)"',
+        '               [attr.fill]="led.fill" />',
+        '       </svg>'].join('')
 })
 export class VuGauge implements OnChanges {
     @Input() private height: string;
