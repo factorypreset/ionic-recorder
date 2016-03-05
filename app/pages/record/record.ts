@@ -12,6 +12,13 @@ const PAUSE_ICON: string = 'pause';
 // derived constants, please do not touch the constants below:
 const MONITOR_TIMEOUT_MSEC: number = 1000.0 / MONITOR_FREQUENCY_HZ;
 
+// local db
+const DB_NAME = 'ionic-recorder-db';
+const DB_VERSION = 2;
+const DB_STORE_NAME = 'blobTree';
+const UNFILED_FOLDER_NAME = 'Unfiled';
+
+
 // needed to cast at onSliderChange() below to avoid type warnings
 interface RangeInputEventTarget extends EventTarget {
     value: number;
@@ -23,6 +30,8 @@ interface RangeInputEventTarget extends EventTarget {
     directives: [VuGauge]
 })
 export class RecordPage {
+    private localDB: LocalDB;
+
     private currentVolume: number;
     private maxVolume: number;
     private peaksAtMax: number;
@@ -41,8 +50,7 @@ export class RecordPage {
     private totalPauseTime: number;
     private recordingDuration: number;
 
-    constructor(private platform: Platform, private webAudio: WebAudio,
-        private localDB: LocalDB) {
+    constructor(private platform: Platform, private webAudio: WebAudio) {
         console.log('constructor():RecordPage');
         this.gain = 100;
         this.dB = '0.00 dB';
@@ -52,18 +60,12 @@ export class RecordPage {
         this.recordingTime = msec2time(0);
         this.recordButtonIcon = START_RESUME_ICON;
 
-        webAudio.onStop = (blob: Blob) => {
-            console.log('size: ' + blob.size);
-            console.log('type: ' + blob.type);
-            console.log('duration: ' + this.recordingDuration);
-            console.log('date: ' + Date.now());
+        this.localDB = new LocalDB(DB_NAME, DB_VERSION, DB_STORE_NAME);
 
+        webAudio.onStop = (blob: Blob) => {
             this.localDB.clearObjectStore();
-            this.localDB.addItem('testAdd', 0, blob, (key: number) => {
-                console.log('recorder:added item with key=' + key);
+            this.localDB.addItem('', 0, blob, (key: number) => {
                 this.localDB.getItem(key, (data: any) => {
-                    console.log('recorder:got item with key=' + key);
-                    console.log('...and we got the blob back! dir:');
                     console.dir(data);
                 });
             });
