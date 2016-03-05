@@ -11,10 +11,11 @@ export function num2str(num: number, nDecimals: number) {
     return floorNum.toString() + '.' + leadingZeros + wholeFrac.toString();
 }
 
+const addZero = (n: number) => { return (n < 10) ? '0' : ''; }
+
 // not efficient but sufficient and clear
 export function msec2time(msec: number) {
-    let addZero = (n: number) => { return (n < 10) ? '0' : ''; },
-        totalSec: number = Math.floor(msec / 1000),
+    let totalSec: number = Math.floor(msec / 1000),
         totalMin: number = Math.floor(totalSec / 60),
         hr: number = Math.floor(totalMin / 60),
         min: number = totalMin - hr * 60,

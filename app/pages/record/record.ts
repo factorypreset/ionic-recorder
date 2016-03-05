@@ -62,12 +62,14 @@ export class RecordPage {
         // function that gets called with a newly created blob when
         // we hit the stop button - saves blob to local db
         webAudio.onStop = (blob: Blob) => {
+            let now = new Date(),
+                name = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
             this.localDB.getItemByName(UNFILED_FOLDER_NAME, (item: any) => {
                 if (item) {
                     console.log('unfiled folder already exists');
                     // unfiled folder already exists
                     let folderKey: number = item.id;
-                    this.localDB.addItem('', folderKey, blob,
+                    this.localDB.addItem(name, folderKey, blob,
                         (itemKey: number) => {
                             console.log('adding item ' + itemKey +
                                 ' to folder ' + folderKey);
@@ -78,8 +80,8 @@ export class RecordPage {
                     console.log('unfiled folder does not yet exist');
                     this.localDB.addItem(UNFILED_FOLDER_NAME, 0, null,
                         (folderKey: number) => {
-                            this.localDB.addItem('', folderKey, blob,
-                                (itemKey: number) => {
+                            this.localDB.addItem(name,
+                                folderKey, blob, (itemKey: number) => {
                                     console.log('adding item ' + itemKey +
                                         ' to folder ' + folderKey);
                                 });

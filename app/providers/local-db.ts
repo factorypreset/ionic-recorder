@@ -70,8 +70,7 @@ export class LocalDB {
         console.log(this.dbStoreName);
         console.log('clearObjectStore() db.transaction: ' +
             this.db.transaction(this.dbStoreName, 'readwrite'));
-        
-        //console.dir(this.db);
+
         try {
             let clearRequest: IDBRequest = this.db.transaction(
                 this.dbStoreName, 'readwrite').objectStore(
@@ -96,7 +95,7 @@ export class LocalDB {
     // be a parent to other items), otherwise it's a data node (a leaf node). 
     addItem(name: string, parentKey: number, data?: any,
         callback?: (key: number) => void) {
-        console.log('addItem(' + name + ', ' + parentKey + ')');
+        console.log('addItem(name:' + name + ', parentKey:' + parentKey + ')');
         try {
             let addRequest: IDBRequest = this.db.transaction(this.dbStoreName,
                 'readwrite').objectStore(this.dbStoreName).add({
@@ -106,9 +105,7 @@ export class LocalDB {
                     date: Date.now()
                 });
             addRequest.onsuccess = (event: IDBEvent) => {
-                console.log('addItem:onsuccess');
-                console.log('Success adding item to DB, key=' +
-                    addRequest.result);
+                console.log('    success: key = ' + addRequest.result);
                 callback && callback(addRequest.result);
             }
 
@@ -148,7 +145,6 @@ export class LocalDB {
             if (typeof (getRequest.result) === 'undefined') {
                 console.log('item by name: ' + name + ' not found!')
             }
-            console.dir(event);
             callback(event.target.result);
         }
 
