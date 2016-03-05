@@ -1,6 +1,7 @@
 import {Page, Platform} from 'ionic-angular';
 import {LibraryPage} from '../library/library';
 import {VuGauge} from '../../components/vu-gauge/vu-gauge';
+import {AppState} from '../../providers/app-state';
 import {WebAudio} from '../../providers/web-audio';
 import {LocalDB} from '../../providers/local-db';
 import {num2str, msec2time} from '../../providers/utils';
@@ -11,12 +12,6 @@ const START_RESUME_ICON: string = 'mic';
 const PAUSE_ICON: string = 'pause';
 // derived constants, please do not touch the constants below:
 const MONITOR_TIMEOUT_MSEC: number = 1000.0 / MONITOR_FREQUENCY_HZ;
-
-// local db
-const DB_NAME: string = 'ionic-recorder-db';
-const DB_VERSION: number = 15;
-const DB_STORE_NAME: string = 'blobTree';
-const UNFILED_FOLDER_NAME = 'Unfiled';
 
 
 @Page({
@@ -44,7 +39,8 @@ export class RecordPage {
     private totalPauseTime: number;
     private recordingDuration: number;
 
-    constructor(private platform: Platform, private webAudio: WebAudio) {
+    constructor(private platform: Platform, private webAudio: WebAudio,
+        private appState: AppState) {
         console.log('constructor():RecordPage');
         this.gain = 100;
         this.dB = '0.00 dB';
@@ -53,7 +49,8 @@ export class RecordPage {
         this.peaksAtMax = 1;
         this.recordingTime = msec2time(0);
         this.recordButtonIcon = START_RESUME_ICON;
-        this.localDB = new LocalDB(DB_NAME, DB_VERSION, DB_STORE_NAME);
+        this.localDB = new LocalDB(this.appState.dbName,
+            this.appState.dbVersion, this.appState.dbTreeStoreName);
 
         if (!this.localDB) {
             throw Error('no local DB!');
@@ -62,35 +59,48 @@ export class RecordPage {
         // function that gets called with a newly created blob when
         // we hit the stop button - saves blob to local db
         webAudio.onStop = (blob: Blob) => {
-            let now = new Date(),
-                name = now.toLocaleDateString() + ' ' +
+            let now: Date = new Date(),
+                name: string = now.toLocaleDateString() + ' ' +
                     now.toLocaleTimeString();
-            this.localDB.getItemByName(UNFILED_FOLDER_NAME, (item: any) => {
-                if (item) {
-                    console.log('unfiled folder already exists, key = ' +
-                        item.id);
-                    // unfiled folder already exists
-                    let parentKey: number = item.id;
-                    this.localDB.addItem(
-                        name, parentKey, blob, (itemKey: number) => {
-                            console.log('adding item ' + itemKey +
-                                ' to folder ' + parentKey);
-                        });
-                }
-                else {
-                    // unfiled folder does not yet exist
-                    console.log('unfiled folder does not yet exist, key = 0');
-                    this.localDB.addItem(
-                        UNFILED_FOLDER_NAME, 0, null, (folderKey: number) => {
-                            this.localDB.addItem(
-                                name, folderKey, blob, (itemKey: number) => {
-                                    console.log('adding item ' + itemKey +
-                                        ' to folder ' + folderKey);
-                                });
-                        });
-                }
-            });
-        };
+            this.localDB.getItemByName(
+                this.appState.unfiledFolderName,
+                (item: any) => {
+                    if (item) {
+                        console.log('unfiled exists, key = ' +
+                            item.id);
+                        // unfiled folder already exists
+                        let parentKey: number = item.id;
+                        this.localDB.addItem(
+                            name,
+                            parentKey,
+                            blob,
+                            (itemKey: number) => {
+                                console.log('adding item ' + itemKey +
+                                    ' to folder ' + parentKey);
+                            });
+                    }
+                    else {
+                        // unfiled folder does not yet exist
+                        console.log('creating new Unfiled folder');
+                        this.localDB.addItem(
+                            this.appState.unfiledFolderName,
+                            0,
+                            null,
+                            (folderKey: number) => {
+                                this.localDB.addItem(
+                                    name,
+                                    folderKey,
+                                    blob,
+                                    (itemKey: number) => {
+                                        console.log('adding item ' + itemKey +
+                                            ' to folder ' + folderKey);
+                                    });
+                            });
+                    }
+                });
+        } // webAudio.onStop = (blob: Blob) => { ...
+        
+        // start volume monitoring infinite loop
         this.monitorVolume();
     }
 
