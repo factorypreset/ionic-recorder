@@ -105,7 +105,7 @@ export class LocalDB {
                     date: Date.now()
                 });
             addRequest.onsuccess = (event: IDBEvent) => {
-                console.log('    success: key = ' + addRequest.result);
+                // console.log('    success: key = ' + addRequest.result);
                 callback && callback(addRequest.result);
             }
 
@@ -141,10 +141,6 @@ export class LocalDB {
             'readonly').objectStore(this.dbStoreName).index('name').get(name);
 
         getRequest.onsuccess = (event: IDBEvent) => {
-            console.log('Success getting an item with name=' + name);
-            if (typeof (getRequest.result) === 'undefined') {
-                console.log('item by name: ' + name + ' not found!')
-            }
             callback(event.target.result);
         }
 
