@@ -49,8 +49,9 @@ export class RecordPage {
         this.peaksAtMax = 1;
         this.recordingTime = msec2time(0);
         this.recordButtonIcon = START_RESUME_ICON;
-        this.localDB = new LocalDB(this.appState.dbName,
-            this.appState.dbVersion, this.appState.dbTreeStoreName);
+        // this.localDB = new LocalDB(this.appState.dbName,
+        //     this.appState.dbVersion, this.appState.dbTreeStoreName);
+        this.localDB = this.appState.db;
 
         if (!this.localDB) {
             throw Error('no local DB!');
