@@ -59,15 +59,13 @@ export class RecordPage {
             console.log('date: ' + Date.now());
 
             this.localDB.clearObjectStore();
-            this.localDB.addBlobData(blob, 'test', this.recordingDuration,
-                Date.now(), (key: number) => {
-                    console.log('yeah! add()');
-                    this.localDB.getBlobData(key, (result: Object) => {
-                        console.log('yeah! get() - dir(result):');
-                        console.dir(result);
-                    })
+            this.localDB.addItem('testAdd', 0, blob, (key: number) => {
+                this.localDB.getBlob(key, (blob: Blob) => {
+                    console.log('...and we got the blob back! dir:');
+                    console.dir(blob);
                 });
-        }
+            });
+        };
         this.monitorVolume();
     }
 

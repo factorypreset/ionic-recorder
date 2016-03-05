@@ -5,28 +5,12 @@ const DB_NAME = 'ionic-recorder-db';
 const DB_VERSION = 1;
 const DB_STORE_NAME = 'blobs';
 const STORE_KEY_PATH = 'id';
-
-// needed to cast at onSliderChange() below to avoid type warnings
-interface IDBEventTarget extends EventTarget {
-    result: number;
-}
-
-interface IDBEvent extends Event {
-    target: IDBEventTarget;
-}
-
-export class BlobData {
-    title: string;
-    duration: number;
-    timestamp: number;
-    blob: Blob;
-}
+const UNFILED_FOLDER_NAME = 'Unfiled';
 
 
 @Injectable()
 export class LocalDB {
     private db: IDBDatabase;
-    private openRequest: IDBOpenDBRequest;
 
     constructor() {
         console.log('constructor():IndexedDB');
@@ -39,28 +23,28 @@ export class LocalDB {
     openDb() {
         console.log('IndexedDB:openDb() db:' + DB_NAME +
             ', version:' + DB_VERSION);
-        this.openRequest = indexedDB.open(DB_NAME, DB_VERSION);
-        // console.dir(this.openRequest);
-        this.openRequest.onsuccess = (event: Event) => {
-            this.db = this.openRequest.result;
+        let openRequest: IDBOpenDBRequest = indexedDB.open(
+            DB_NAME, DB_VERSION);
+
+        openRequest.onsuccess = (event: Event) => {
+            this.db = openRequest.result;
             console.log('openDb:onsuccess DONE');
         }
 
-        this.openRequest.onerror = (event: Event) => {
-            console.error('Could not open database');
+        openRequest.onerror = (event: IDBErrorEvent) => {
+            throw Error('Error in indexedDB.open(), errorCode: ' +
+                event.target.errorCode);
         }
 
-        // NOTE: this function will only fire once the first time you create
-        // the database
-        this.openRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
+        // This function is called when the database doesn't exist
+        openRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
             console.log('openDb:onupgradeended START');
-            this.db = this.openRequest.result;
-            // create an object store to hold saved recording blobs
+            this.db = openRequest.result;
             let store: IDBObjectStore = this.db.createObjectStore(
                 DB_STORE_NAME,
                 { keyPath: STORE_KEY_PATH, autoIncrement: true });
-            // index to search recordings by title
-            // store.createIndex('title', 'title', { unique: true });
+            // index to search recordings by name
+            // store.createIndex('name', 'name', { unique: true });
             // index to search recordings by date
             // store.createIndex('date', 'date', { unique: false });
             console.log('openDb:onupgradeended DONE');
@@ -72,47 +56,57 @@ export class LocalDB {
             DB_STORE_NAME, 'readwrite'),
             store: IDBObjectStore = transaction.objectStore(DB_STORE_NAME),
             clearRequest = store.clear();
+
         clearRequest.onsuccess = function(event: Event) {
             console.log('IndexedDB Store cleared');
         }
-        clearRequest.onerror = function(event: Event) {
-            console.log('Error clearing IndexedDB Store');
+
+        clearRequest.onerror = (event: IDBErrorEvent) => {
+            throw Error('Error in store.clear(), errorCode: ' +
+                event.target.errorCode);
         }
     }
-
-    addBlobData(blob: Blob, title: string, duration: number, date: number,
-        successCallback: Function) {
+    
+    // Adds an item to the tree as a child of parent with key 'parentKey'
+    // If 'blob' is not supplied, then the added item is a folder (and can
+    // be a parent to other items), otherwise it's a blob (a leaf node). 
+    addItem(name: string, parentKey: number, blob?: Blob,
+        callback?: (key: number) => void) {
         let transaction: IDBTransaction = this.db.transaction(
             DB_STORE_NAME, 'readwrite'),
-            store: IDBObjectStore = transaction.objectStore(DB_STORE_NAME);
-        try {
-            let addRequest: IDBRequest = store.add({
+            store: IDBObjectStore = transaction.objectStore(DB_STORE_NAME),
+            addRequest: IDBRequest = store.add({
+                name: name,
+                parentKey: parentKey,
                 blob: blob,
-                duration: duration,
-                date: date,
-                title: title
+                date: Date.now()
             });
-            addRequest.onsuccess = function(event: IDBEvent) {
-                console.log('Success adding to DB, key=' + event.target.result);
-                successCallback(event.target.result);
-            }
-            addRequest.onerror = function() {
-                console.log('Error writing blob data to DB');
-            }
+
+        addRequest.onsuccess = (event: IDBEvent) => {
+            console.log('Success adding folder to DB, key=' +
+                event.target.result);
+            callback && callback(event.target.result);
         }
-        catch (error) {
-            throw Error('Could not add blob to DB');
+
+        addRequest.onerror = (event: IDBErrorEvent) => {
+            throw Error('Error in store.add(), errorCode: ' +
+                event.target.errorCode);
         }
     }
 
-    getBlobData(key: number, successCallback: Function) {
-        let request: IDBRequest = this.db.transaction(DB_STORE_NAME,
+    getBlob(key: number, callback: (blob: Blob) => void) {
+        let getRequest: IDBRequest = this.db.transaction(DB_STORE_NAME,
             'readonly').objectStore(DB_STORE_NAME).get(key);
-        request.onsuccess = (event: IDBEvent) => {
-            let result: Object = event.target.result;
-            if (result) {
-                successCallback(result);
-            }
+
+        getRequest.onsuccess = (event: IDBEvent) => {
+            console.log('Success getting a blob with key=' + key);
+            callback(getRequest.result);
+        }
+
+        getRequest.onerror = (event: IDBErrorEvent) => {
+            throw Error('Error in store.get(), errorCode: ' +
+                event.target.errorCode);
         }
     }
+
 }
