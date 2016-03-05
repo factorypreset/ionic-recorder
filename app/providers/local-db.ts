@@ -149,6 +149,7 @@ export class LocalDB {
             };
         }
         else {
+            // no data, this is a folder
             this.addItemToTree(name, parentKey, DB_NO_KEY, callback);
         }
     }

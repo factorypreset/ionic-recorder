@@ -84,7 +84,7 @@ export class RecordPage {
                         console.log('creating new Unfiled folder');
                         this.localDB.addItem(
                             this.appState.unfiledFolderName,
-                            0,
+                            this.localDB.dbNoKey,
                             null,
                             (folderKey: number) => {
                                 this.localDB.addItem(
