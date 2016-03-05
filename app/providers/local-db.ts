@@ -50,9 +50,7 @@ export class LocalDB {
                     this.dbStoreName,
                     { keyPath: this.storeKeyPath, autoIncrement: true });
                 // index to search recordings by name
-                store.createIndex('name', 'name', { unique: true });
-                // index to search recordings by date
-                // store.createIndex('date', 'date', { unique: true });
+                store.createIndex('name', 'name', { unique: false });
             }
             catch (error) {
                 let ex: DOMException = error;

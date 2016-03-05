@@ -70,7 +70,7 @@ export class RecordPage {
                     this.localDB.addItem('', folderKey, blob,
                         (itemKey: number) => {
                             console.log('adding item ' + itemKey +
-                                'to folder ' + folderKey);
+                                ' to folder ' + folderKey);
                         });
                 }
                 else {
