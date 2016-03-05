@@ -34,8 +34,8 @@ export class WebAudio {
                 this.initMediaRecorder(stream);
                 this.connectNodes(stream);
             })
-            .catch((error) => {
-                throw Error('in getUserMedia()');
+            .catch((error: any) => {
+                throw Error('getUserMedia() - ' + error.name);
             });
     }
 

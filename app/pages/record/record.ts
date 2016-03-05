@@ -13,16 +13,10 @@ const PAUSE_ICON: string = 'pause';
 const MONITOR_TIMEOUT_MSEC: number = 1000.0 / MONITOR_FREQUENCY_HZ;
 
 // local db
-const DB_NAME = 'ionic-recorder-db';
-const DB_VERSION = 2;
-const DB_STORE_NAME = 'blobTree';
+const DB_NAME: string = 'ionic-recorder-db';
+const DB_VERSION: number = 15;
+const DB_STORE_NAME: string = 'blobTree';
 const UNFILED_FOLDER_NAME = 'Unfiled';
-
-
-// needed to cast at onSliderChange() below to avoid type warnings
-interface RangeInputEventTarget extends EventTarget {
-    value: number;
-}
 
 
 @Page({
@@ -59,15 +53,38 @@ export class RecordPage {
         this.peaksAtMax = 1;
         this.recordingTime = msec2time(0);
         this.recordButtonIcon = START_RESUME_ICON;
-
         this.localDB = new LocalDB(DB_NAME, DB_VERSION, DB_STORE_NAME);
 
+        if (!this.localDB) {
+            throw Error('no local DB!');
+        }
+        
+        // function that gets called with a newly created blob when
+        // we hit the stop button - saves blob to local db
         webAudio.onStop = (blob: Blob) => {
-            this.localDB.clearObjectStore();
-            this.localDB.addItem('', 0, blob, (key: number) => {
-                this.localDB.getItem(key, (data: any) => {
-                    console.dir(data);
-                });
+            this.localDB.getItemByName(UNFILED_FOLDER_NAME, (item: any) => {
+                if (item) {
+                    console.log('unfiled folder already exists');
+                    // unfiled folder already exists
+                    let folderKey: number = item.id;
+                    this.localDB.addItem('', folderKey, blob,
+                        (itemKey: number) => {
+                            console.log('adding item ' + itemKey +
+                                'to folder ' + folderKey);
+                        });
+                }
+                else {
+                    // unfiled folder does not yet exist
+                    console.log('unfiled folder does not yet exist');
+                    this.localDB.addItem(UNFILED_FOLDER_NAME, 0, null,
+                        (folderKey: number) => {
+                            this.localDB.addItem('', folderKey, blob,
+                                (itemKey: number) => {
+                                    console.log('adding item ' + itemKey +
+                                        ' to folder ' + folderKey);
+                                });
+                        });
+                }
             });
         };
         this.monitorVolume();

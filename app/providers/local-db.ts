@@ -1,12 +1,15 @@
 import {Injectable} from 'angular2/core';
 
+const STORE_EXISTS_ERROR_CODE = 0;
 
 @Injectable()
 export class LocalDB {
     private db: IDBDatabase;
 
-    constructor(private dbName: string, private dbVersion: number,
-                private dbStoreName, private storeKeyPath: string = 'id') {
+    constructor(private dbName: string,
+        private dbVersion: number,
+        private dbStoreName: string,
+        private storeKeyPath: string = 'id') {
         console.log('constructor():IndexedDB');
         if (!indexedDB) {
             throw Error('Browser does not support indexedDB');
@@ -42,13 +45,24 @@ export class LocalDB {
         openRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
             console.log('openDb:onupgradeended START');
             this.db = openRequest.result;
-            let store: IDBObjectStore = this.db.createObjectStore(
-                this.dbStoreName,
-                { keyPath: this.storeKeyPath, autoIncrement: true });
-            // index to search recordings by name
-            // store.createIndex('name', 'name', { unique: true });
-            // index to search recordings by date
-            // store.createIndex('date', 'date', { unique: false });
+            try {
+                let store: IDBObjectStore = this.db.createObjectStore(
+                    this.dbStoreName,
+                    { keyPath: this.storeKeyPath, autoIncrement: true });
+                // index to search recordings by name
+                store.createIndex('name', 'name', { unique: true });
+                // index to search recordings by date
+                // store.createIndex('date', 'date', { unique: true });
+            }
+            catch (error) {
+                let ex: DOMException = error;
+                if (ex.code !== STORE_EXISTS_ERROR_CODE) {
+                    // we ignore the error that says store already exists,
+                    // just throw any other error
+                    throw Error('Error(' + ex.code + '): ' + ex.message);
+                }
+            }
+
             console.log('openDb:onupgradeended DONE');
         }
     }
@@ -63,7 +77,7 @@ export class LocalDB {
         try {
             let clearRequest: IDBRequest = this.db.transaction(
                 this.dbStoreName, 'readwrite').objectStore(
-                    this.dbStoreName).clear();
+                this.dbStoreName).clear();
 
             clearRequest.onsuccess = function(event: Event) {
                 console.log('IndexedDB Store cleared');
@@ -84,7 +98,7 @@ export class LocalDB {
     // be a parent to other items), otherwise it's a data node (a leaf node). 
     addItem(name: string, parentKey: number, data?: any,
         callback?: (key: number) => void) {
-        console.log('addItem()');
+        console.log('addItem(' + name + ', ' + parentKey + ')');
         try {
             let addRequest: IDBRequest = this.db.transaction(this.dbStoreName,
                 'readwrite').objectStore(this.dbStoreName).add({
@@ -100,24 +114,44 @@ export class LocalDB {
                 callback && callback(addRequest.result);
             }
 
-            addRequest.onerror = (event: IDBErrorEvent) => {
-                console.log('addItem:onerror');
-                throw Error('Error in store.add(), errorCode: ' +
-                    event.target.errorCode);
+            addRequest.onerror = (event: IDBEvent) => {
+                // assume unique constraint violation in 'name' index
+                throw Error('addItem(): unique constraint violation on ' +
+                    "'name' field");
             }
         }
         catch (error) {
+            console.log('addItem: Error!');
             throw Error(error.message);
         }
     }
 
-    getItem(key: number, callback: (data: any) => void) {
+    getItemByKey(key: number, callback: (data: any) => void) {
         let getRequest: IDBRequest = this.db.transaction(this.dbStoreName,
             'readonly').objectStore(this.dbStoreName).get(key);
 
         getRequest.onsuccess = (event: IDBEvent) => {
             console.log('Success getting an item with key=' + key);
             callback(getRequest.result);
+        }
+
+        getRequest.onerror = (event: IDBErrorEvent) => {
+            throw Error('Error in store.get(), errorCode: ' +
+                event.target.errorCode);
+        }
+    }
+
+    getItemByName(name: string, callback: (data: any) => void) {
+        let getRequest: IDBRequest = this.db.transaction(this.dbStoreName,
+            'readonly').objectStore(this.dbStoreName).index('name').get(name);
+
+        getRequest.onsuccess = (event: IDBEvent) => {
+            console.log('Success getting an item with name=' + name);
+            if (typeof (getRequest.result) === 'undefined') {
+                console.log('item by name: ' + name + ' not found!')
+            }
+            console.dir(event);
+            callback(event.target.result);
         }
 
         getRequest.onerror = (event: IDBErrorEvent) => {
