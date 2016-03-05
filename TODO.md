@@ -6,6 +6,11 @@
 
 ## Modules / Pages
 
+### AppState
+* Add it.  For now, we're saving only:
+  * last folder viewed in 'library' (or none)
+  * whether any new items have not been viewed yet
+  
 ### Library page
 * load folder we last viewed or if not last viewed, view Unfiled folder
 
