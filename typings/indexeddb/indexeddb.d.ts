@@ -21,5 +21,5 @@ interface DBItem {
     name: string;
     parentKey: number;
     date: number;
-    blob: Blob;
+    data: any;
 }

@@ -60,9 +60,11 @@ export class RecordPage {
 
             this.localDB.clearObjectStore();
             this.localDB.addItem('testAdd', 0, blob, (key: number) => {
-                this.localDB.getBlob(key, (blob: Blob) => {
+                console.log('recorder:added item with key=' + key);
+                this.localDB.getItem(key, (data: any) => {
+                    console.log('recorder:got item with key=' + key);
                     console.log('...and we got the blob back! dir:');
-                    console.dir(blob);
+                    console.dir(data);
                 });
             });
         };
