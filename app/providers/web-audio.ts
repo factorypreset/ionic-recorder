@@ -14,7 +14,6 @@ export class WebAudio {
     onStop: (blob: Blob) => void;
 
     constructor() {
-        console.log('constructor():WebAudio');
         this.blobs = [];
         this.initAudio();
     }

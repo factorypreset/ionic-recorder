@@ -10,15 +10,15 @@ import {Component, Input, OnChanges, SimpleChange} from 'angular2/core';
 @Component({
     selector: 'vu-gauge',
     template: ['<svg fill="rgba(0,0,0,0)" width="100%"',
-        '            [attr.height]="height">',
-        '           <rect *ngFor="#led of leds"',
-        '               [attr.width]="ledWidth"',
-        '               [attr.height]="height"',
-        '               [attr.x]="led.x"',
-        '               [attr.stroke-width]="led.strokeWidth"',
-        '               stroke="rgb(255,255,255)"',
-        '               [attr.fill]="led.fill" />',
-        '       </svg>'].join('')
+               '            [attr.height]="height">',
+               '           <rect *ngFor="#led of leds"',
+               '               [attr.width]="ledWidth"',
+               '               [attr.height]="height"',
+               '               [attr.x]="led.x"',
+               '               [attr.stroke-width]="led.strokeWidth"',
+               '               stroke="rgb(255,255,255)"',
+               '               [attr.fill]="led.fill" />',
+               '       </svg>'].join('')
 })
 export class VuGauge implements OnChanges {
     @Input() private height: string;
@@ -42,12 +42,12 @@ export class VuGauge implements OnChanges {
 
     fillColor(ledIndex: number, lightness: string) {
         return ['hsl(', 120.0 - ledIndex * this.hStep,
-            ',100%,', lightness, ')'].join('');
+                ',100%,', lightness, ')'].join('');
     }
 
     ngOnInit() {
         let percentWidth: number = 100.0 / (2 * this.nbars - 1),
-            xStep: number = 2.0 * percentWidth, i: number;
+        xStep: number = 2.0 * percentWidth, i: number;
         this.ledWidth = percentWidth + '%';
         this.hStep = 120.0 / (this.nbars - 1.0);
         for (i = 0; i < this.nbars; i++) {
