@@ -3,5 +3,5 @@ import {Injectable} from 'angular2/core';
 
 @Injectable()
 export class AppState {
-    lastFolderViewedKey: number = 0;
+    lastViewedFolderKey: number = 0;
 }

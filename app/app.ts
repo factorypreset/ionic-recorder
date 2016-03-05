@@ -3,12 +3,13 @@ import {Type, enableProdMode} from 'angular2/core';
 import {TabsPage} from './pages/tabs/tabs';
 import {WebAudio} from './providers/web-audio';
 import {LocalDB} from './providers/local-db';
+import {AppState} from './providers/app-state';
 
 // enableProdMode();
 
 @App({
     templateUrl: 'build/app.html',
-    providers: [WebAudio, LocalDB],
+    providers: [WebAudio, LocalDB, AppState],
     config: {
         backButtonText: ''
     }
