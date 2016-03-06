@@ -8,16 +8,15 @@ import {AppState} from '../../providers/app-state';
 })
 export class LibraryPage {
     private localDB: LocalDB;
-    private folderItems: Object[];
-    constructor(private platform: Platform,
-        private appState: AppState) {
+    private folderItems: Object[] = [];
+    constructor(private platform: Platform, private appState: AppState) {
         this.localDB = this.appState.db;
-        this.localDB.foreachChild(
+        
+        this.localDB.getItemsByParentKey(
             this.appState.lastViewedFolderKey,
             (data: any) => {
-                console.log('foreachChild CB:')
                 this.folderItems.push(data);
-                console.dir(this.folderItems);
+                console.dir(data);
             }
         );
     }

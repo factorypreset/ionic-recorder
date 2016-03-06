@@ -6,6 +6,20 @@
 
 ## Modules / Pages
 
+We need to solve two main problems right now:
+
+1) for the 'Unfiled' object, we only allow one result.  the very first 
+   time you run this app, the Unfiled object is created for you.
+   if someone wants to create a new object, we never allow them to 
+   either delete the 'Unfiled' folder or to overwrite it or to create
+   a new folder by the same name.  folder name needs to be unique
+   at each level, i.e. you can have unfiled->rock->unfiled path
+   but at the same directory no two files can have the same name,
+   nor do we allow any two folders to have the same name.  idea: allow
+   it for files, but don't allow it for folders, perhaps. no. just add
+   the unique constraint.
+1) listing a folder's contents
+
 ### AppState
 * Add it.  For now, we're saving only:
   * last folder viewed in 'library' (or none)

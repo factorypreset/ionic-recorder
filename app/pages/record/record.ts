@@ -19,8 +19,6 @@ const MONITOR_TIMEOUT_MSEC: number = 1000.0 / MONITOR_FREQUENCY_HZ;
     directives: [VuGauge]
 })
 export class RecordPage {
-    private localDB: LocalDB;
-
     private currentVolume: number;
     private maxVolume: number;
     private peaksAtMax: number;
@@ -49,11 +47,8 @@ export class RecordPage {
         this.peaksAtMax = 1;
         this.recordingTime = msec2time(0);
         this.recordButtonIcon = START_RESUME_ICON;
-        // this.localDB = new LocalDB(this.appState.dbName,
-        //     this.appState.dbVersion, this.appState.dbTreeStoreName);
-        this.localDB = this.appState.db;
 
-        if (!this.localDB) {
+        if (!this.appState.db) {
             throw Error('no local DB!');
         }
         
@@ -63,7 +58,7 @@ export class RecordPage {
             let now: Date = new Date(),
                 name: string = now.toLocaleDateString() + ' ' +
                     now.toLocaleTimeString();
-            this.localDB.getItemByName(
+            this.appState.db.getItemByUniqueName(
                 this.appState.unfiledFolderName,
                 (item: any) => {
                     if (item) {
@@ -71,7 +66,7 @@ export class RecordPage {
                             item.id);
                         // unfiled folder already exists
                         let parentKey: number = item.id;
-                        this.localDB.addItem(
+                        this.appState.db.addItem(
                             name,
                             parentKey,
                             blob,
@@ -83,12 +78,12 @@ export class RecordPage {
                     else {
                         // unfiled folder does not yet exist
                         console.log('creating new Unfiled folder');
-                        this.localDB.addItem(
+                        this.appState.db.addItem(
                             this.appState.unfiledFolderName,
-                            this.localDB.dbNoKey,
+                            this.appState.db.dbNoKey,
                             null,
                             (folderKey: number) => {
-                                this.localDB.addItem(
+                                this.appState.db.addItem(
                                     name,
                                     folderKey,
                                     blob,

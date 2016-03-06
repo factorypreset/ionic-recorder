@@ -5,6 +5,7 @@ const STORE_EXISTS_ERROR_CODE: number = 0;
 const DB_DATA_TABLE_STORE_NAME: string = 'dataTable';
 const DB_NO_KEY: number = 0;
 
+
 @Injectable()
 export class LocalDB {
     dbNoKey: number = DB_NO_KEY;
@@ -31,19 +32,19 @@ export class LocalDB {
             console.log('openDb:onsuccess() db:' + openRequest.result);
             this.db = openRequest.result;
             console.log('openDb:onsuccess() END');
-        }
+        };
 
         openRequest.onerror = (event: IDBErrorEvent) => {
             console.log('openDb:onerror()');
             throw Error('Error in indexedDB.open(), errorCode: ' +
                 event.target.errorCode);
-        }
+        };
 
         openRequest.onblocked = (event: IDBErrorEvent) => {
             console.log('openDb:onblocked()');
             throw Error('Error in indexedDB.open(), errorCode: ' +
                 event.target.errorCode);
-        }
+        };
 
         // This function is called when the database doesn't exist
         openRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
@@ -57,7 +58,8 @@ export class LocalDB {
                 // index to search recordings by name
                 treeStore.createIndex('name', 'name', { unique: false });
                 // index to search by parentKey
-                treeStore.createIndex('parentKey', 'parentKey', { unique: false });
+                treeStore.createIndex(
+                    'parentKey', 'parentKey', { unique: false });
 
                 // create data-table
                 this.db.createObjectStore(DB_DATA_TABLE_STORE_NAME,
@@ -74,11 +76,16 @@ export class LocalDB {
 
             console.log('openDb:onupgradeended DONE');
         }
-    }
+    }; // openRequest.onupgradeneeded = ...
+    
     /**
      * @param {string} mode either "readonly" or "readwrite"
      */
     getObjectStore(mode) {
+        console.log('getObjectStore:' + this.dbStoreName);
+        if (!this.db) {
+            throw Error('No DB available!');
+        }
         return this.db.transaction(this.dbStoreName, mode)
             .objectStore(this.dbStoreName);
     }
@@ -92,14 +99,16 @@ export class LocalDB {
 
             clearRequest.onsuccess = function(event: Event) {
                 console.log('IndexedDB Store cleared');
-            }
+            };
 
             clearRequest.onerror = (event: IDBErrorEvent) => {
                 throw Error('Error in store.clear(), errorCode: ' +
                     event.target.errorCode);
-            }
+            };
         }
         catch (error) {
+            console.log('clearObjectStore() error');
+            console.dir(error);
             throw Error(error.message);
         }
     }
@@ -143,7 +152,7 @@ export class LocalDB {
         data?: any,
         callback?: (key: number) => void) {
 
-        console.log('addItem(name:' + name + ', parentKey:' + parentKey + ')');
+        console.log('addItem(' + name + ', ' + parentKey + ')');
 
         if (data) {
             // first add the data to the data-table and get the auto-
@@ -178,54 +187,101 @@ export class LocalDB {
         getRequest.onsuccess = (event: IDBEvent) => {
             console.log('getItemByKey: success key = ' + key);
             callback(getRequest.result);
-        }
+        };
 
         getRequest.onerror = (event: IDBErrorEvent) => {
             throw Error('getItemByKey Error, code = ' +
                 event.target.errorCode);
-        }
+        };
     }
 
-    getItemByName(
-        name: string,
-        callback: (data: any) => void) {
-        let getRequest: IDBRequest =
-            this.getObjectStore('readonly').index('name').get(name);
-
-        getRequest.onsuccess = (event: IDBEvent) => {
-            console.log('getItemByName: success, name = ' +
-                event.target.result);
-            callback(event.target.result);
-        }
-
-        getRequest.onerror = (event: IDBErrorEvent) => {
-            throw Error('getItemByName Error, code = ' +
-                event.target.errorCode);
-        }
-    }
-
-    foreachChild(
+    getItemsByParentKey(
         parentKey: number,
         callback: (data: any) => void) {
-        console.log('foreachChild(' + parentKey + ')');
-        let cursorRequest: IDBRequest =
-            this.getObjectStore('readonly').openCursor();
-        console.log('hi');
-        
+        let store: IDBObjectStore = this.getObjectStore('readonly'),
+            index: IDBIndex = store.index('parentKey'),
+            keyRange: IDBKeyRange = IDBKeyRange.only(parentKey),
+            cursorRequest: IDBRequest = index.openCursor(keyRange);
+
+        console.log('getItemByParentKey: success key = ' + parentKey);
+
         cursorRequest.onsuccess = (event: IDBEvent) => {
-            console.log('hi2');
+            console.log('cursorItemByParentKey: success key = ' + parentKey);
             // console.dir(event);
-            let cursor: any = event.target.result;
+            var cursor = event.target.result;
             if (cursor) {
-                console.log('hi3');
-                console.log('foreachChild: Success, dir(cursor'); +
-                    console.dir(cursor.value);
+                callback && callback(cursor.value);
+                cursor.continue();
             }
-        }
+        };
 
         cursorRequest.onerror = (event: IDBErrorEvent) => {
-            throw Error('foreachChild: Error, code = ' +
+            throw Error('cursorItemByParentKey Error, code = ' +
                 event.target.errorCode);
-        }
+        };
+    }
+
+    getItemsByName(
+        name: string,
+        callback: (data: any) => void) {
+        let store: IDBObjectStore = this.getObjectStore('readonly'),
+            index: IDBIndex = store.index('name'),
+            keyRange: IDBKeyRange = IDBKeyRange.only(name),
+            cursorRequest: IDBRequest = index.openCursor(keyRange);
+
+        console.log('getItemByName: success key = ' + name);
+
+        cursorRequest.onsuccess = (event: IDBEvent) => {
+            console.log('cursorItemByName: success key = ' + name);
+            // console.dir(event);
+            var cursor = event.target.result;
+            if (cursor) {
+                callback && callback(cursor.value);
+                cursor.continue();
+            }
+        };
+
+        cursorRequest.onerror = (event: IDBErrorEvent) => {
+            throw Error('cursorItemByName Error, code = ' +
+                event.target.errorCode);
+        };
+    }
+
+    getItemByUniqueName(
+        name: string,
+        callback: (data: any) => void) {
+
+        let count: number = 0;
+        this.getItemsByName(name, (data: any) => {
+            count += 1;
+            if (count > 1) {
+                throw Error('getItemByUniqueName: error: name not unique');
+            }
+            callback && callback(data);
+        });
+    }
+
+    smartUpdate(name: string, newData: any) {
+        let store: IDBObjectStore = this.getObjectStore('readonly');
+        let index: IDBIndex = store.index('name');
+        let getRequest: IDBRequest = index.get(name);
+        console.log('smartUpdate(' + name + ')');
+        console.dir(store);
+        getRequest.onsuccess = (event: IDBEvent) => {
+            console.log('getItemByName: success, name = ' +
+                getRequest.result);
+            // let data = getRequest.result;
+            let putRequest: IDBRequest = store.put(newData);
+
+            putRequest.onsuccess = (event: IDBEvent) => {
+                console.log('putRequest Success: dir(event):');
+                console.dir(event);
+            };
+
+            putRequest.onerror = (event: IDBErrorEvent) => {
+                throw Error('PutRequest Error, code = ' +
+                    event.target.errorCode);
+            };
+        }; // getRequest.onsuccess = ...
     }
 }

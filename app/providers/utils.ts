@@ -24,3 +24,13 @@ export function msec2time(msec: number) {
     return [addZero(hr), hr, ':', addZero(min), min, ':',
         addZero(sec), sec, '.', secFrac, addZero(secFrac)].join('');
 }
+
+/*
+export function copyObject(object1: any, object2: any) {
+    for (var key in object1) {
+        if (object1.hasOwnProperty(key)) {
+            object2[key] = object1[key];
+        }
+    }
+}
+*/
