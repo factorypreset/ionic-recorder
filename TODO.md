@@ -1,24 +1,26 @@
 # TODO.md
 
-## General
-* merge web-audio-api with record.js because there are too many duplicates
-  there and because web-audio-api does not need to be injected anywhere else
+* Design Library Page all the way up with current functionality of
+  only adding recordings, even though some buttons won't work.  We
+  already have files and folders, so we have all we need to design
+  a large part of the look.  We'll need to implement:
+  * getFolderPath() - to display in <ion-item-divider>
+  * isFolder(folder) - add a condition in html to pick the right
+    icon name.
+  * add a select checkbox
+* for the 'Unfiled' object, we only allow one result.  the very first 
+  time you run this app, the Unfiled object is created for you.
+  if someone wants to create a new object, we never allow them to 
+  either delete the 'Unfiled' folder or to overwrite it or to create
+  a new folder by the same name.  folder name needs to be unique
+  at each level, i.e. you can have unfiled->rock->unfiled path
+  but at the same directory no two files can have the same name,
+  nor do we allow any two folders to have the same name.  idea: allow
+  it for files, but don't allow it for folders, perhaps. no. just add
+  the unique constraint.
+* listing a folder's contents
 
 ## Modules / Pages
-
-We need to solve two main problems right now:
-
-1) for the 'Unfiled' object, we only allow one result.  the very first 
-   time you run this app, the Unfiled object is created for you.
-   if someone wants to create a new object, we never allow them to 
-   either delete the 'Unfiled' folder or to overwrite it or to create
-   a new folder by the same name.  folder name needs to be unique
-   at each level, i.e. you can have unfiled->rock->unfiled path
-   but at the same directory no two files can have the same name,
-   nor do we allow any two folders to have the same name.  idea: allow
-   it for files, but don't allow it for folders, perhaps. no. just add
-   the unique constraint.
-1) listing a folder's contents
 
 ### AppState
 * Add it.  For now, we're saving only:

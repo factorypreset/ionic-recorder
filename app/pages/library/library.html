@@ -11,11 +11,17 @@
 
 <ion-content [class]="platform.platforms()">
     <ion-list>
-        <ion-item-divider sticky darkest-gray>
+        <ion-item-divider sticky dark>
+            <ion-checkbox checked="false" item-left></ion-checkbox>
+            <ion-icon name="folder-open" item-left></ion-icon>
             {{folderPath}}
         </ion-item-divider>
         <ion-item *ngFor="#folderItem of folderItems">
-            {{folderItem.name}}
+            <ion-label>
+                <ion-icon name="folder" item-left></ion-icon>
+                {{folderItem.name}}
+            </ion-label>
+            <ion-checkbox checked="false" item-left></ion-checkbox>
         </ion-item>
     </ion-list>
 </ion-content>

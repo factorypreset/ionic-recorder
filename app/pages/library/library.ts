@@ -14,7 +14,8 @@ export class LibraryPage {
         this.localDB = this.appState.db;
         
         this.localDB.getItemsByParentKey(
-            this.appState.lastViewedFolderKey,
+            // this.appState.lastViewedFolderKey,
+            1,
             (data: any) => {
                 this.folderItems.push(data);
                 if (data.parentKey === this.appState.db.dbNoKey) {
