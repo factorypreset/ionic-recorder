@@ -75,17 +75,20 @@ export class LocalDB {
             console.log('openDb:onupgradeended DONE');
         }
     }
+    /**
+     * @param {string} mode either "readonly" or "readwrite"
+     */
+    getObjectStore(mode) {
+        return this.db.transaction(this.dbStoreName, mode)
+            .objectStore(this.dbStoreName);
+    }
 
     clearObjectStore() {
         console.log('clearObjectStore() db: ' + this.db);
-        console.log(this.dbStoreName);
-        console.log('clearObjectStore() db.transaction: ' +
-            this.db.transaction(this.dbStoreName, 'readwrite'));
 
         try {
-            let clearRequest: IDBRequest = this.db.transaction(
-                this.dbStoreName, 'readwrite').objectStore(
-                this.dbStoreName).clear();
+            let clearRequest: IDBRequest =
+                this.getObjectStore('readwrite').clear();
 
             clearRequest.onsuccess = function(event: Event) {
                 console.log('IndexedDB Store cleared');
@@ -111,14 +114,12 @@ export class LocalDB {
         console.log('addItemToTree(' + name + ', ' + parentKey + ', ' +
             dataTableKey + ', ' + callback + ')');
 
-        let addRequest: IDBRequest = this.db.transaction(
-            this.dbStoreName, 'readwrite').objectStore(this.dbStoreName)
-            .add({
-                name: name,
-                parentKey: parentKey,
-                dataTableKey: dataTableKey,
-                date: Date.now()
-            });
+        let addRequest: IDBRequest = this.getObjectStore('readwrite').add({
+            name: name,
+            parentKey: parentKey,
+            dataTableKey: dataTableKey,
+            date: Date.now()
+        });
 
         addRequest.onsuccess = (event: IDBEvent) => {
             console.log('addItemToTree(): success, key = ' +
@@ -141,13 +142,14 @@ export class LocalDB {
         parentKey: number,
         data?: any,
         callback?: (key: number) => void) {
+
         console.log('addItem(name:' + name + ', parentKey:' + parentKey + ')');
+
         if (data) {
             // first add the data to the data-table and get the auto-
             // incremented key for it in the data-table
-            let dataTableAddRequest: IDBRequest = this.db.transaction(
-                DB_DATA_TABLE_STORE_NAME, 'readwrite').objectStore(
-                DB_DATA_TABLE_STORE_NAME).add({ data: data });
+            let dataTableAddRequest: IDBRequest =
+                this.getObjectStore('readwrite').add({ data: data });
 
             dataTableAddRequest.onsuccess = (event: IDBEvent) => {
                 console.log('dataTableAddRequest success, key: = ' +
@@ -170,9 +172,8 @@ export class LocalDB {
     getItemByKey(
         key: number,
         callback: (data: any) => void) {
-        let getRequest: IDBRequest = this.db.transaction(
-            this.dbStoreName, 'readonly').objectStore(this.dbStoreName)
-            .get(key);
+        let getRequest: IDBRequest =
+            this.getObjectStore('readonly').get(key);
 
         getRequest.onsuccess = (event: IDBEvent) => {
             console.log('getItemByKey: success key = ' + key);
@@ -188,9 +189,8 @@ export class LocalDB {
     getItemByName(
         name: string,
         callback: (data: any) => void) {
-        let getRequest: IDBRequest = this.db.transaction(
-            this.dbStoreName, 'readonly').objectStore(this.dbStoreName)
-            .index('name').get(name);
+        let getRequest: IDBRequest =
+            this.getObjectStore('readonly').index('name').get(name);
 
         getRequest.onsuccess = (event: IDBEvent) => {
             console.log('getItemByName: success, name = ' +
@@ -208,27 +208,23 @@ export class LocalDB {
         parentKey: number,
         callback: (data: any) => void) {
         console.log('foreachChild(' + parentKey + ')');
-        let cursorRequest: IDBRequest = this.db.transaction(
-            this.dbStoreName, 'readonly').objectStore(this.dbStoreName)
-            .index('parentKey').openCursor();
-
+        let cursorRequest: IDBRequest =
+            this.getObjectStore('readonly').openCursor();
+        console.log('hi');
+        
         cursorRequest.onsuccess = (event: IDBEvent) => {
-            console.log('foreachChild: success, parentKey = ' +
-                event.target.result);
-
-            console.dir(event);
-/*
-            var cursor: IDBCursorWithValue = event.target.result;
+            console.log('hi2');
+            // console.dir(event);
+            let cursor: any = event.target.result;
             if (cursor) {
-                console.log('cursor.value = ' + cursor.value);
-                callback(cursor.value);
-                cursor.continue();
+                console.log('hi3');
+                console.log('foreachChild: Success, dir(cursor'); +
+                    console.dir(cursor.value);
             }
-*/
         }
 
         cursorRequest.onerror = (event: IDBErrorEvent) => {
-            throw Error('foreachChild Error, code = ' +
+            throw Error('foreachChild: Error, code = ' +
                 event.target.errorCode);
         }
     }
