@@ -12,9 +12,10 @@
 <ion-content [class]="platform.platforms()">
     <ion-list>
         <ion-item-divider sticky darkest-gray>
-            <!--{{currentFolder.title}}-->
+            {{folderPath}}
         </ion-item-divider>
         <ion-item *ngFor="#folderItem of folderItems">
+            {{folderItem.name}}
         </ion-item>
     </ion-list>
 </ion-content>

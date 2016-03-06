@@ -8,6 +8,7 @@ import {AppState} from '../../providers/app-state';
 })
 export class LibraryPage {
     private localDB: LocalDB;
+    private folderPath: string = '/';
     private folderItems: Object[] = [];
     constructor(private platform: Platform, private appState: AppState) {
         this.localDB = this.appState.db;
@@ -16,6 +17,9 @@ export class LibraryPage {
             this.appState.lastViewedFolderKey,
             (data: any) => {
                 this.folderItems.push(data);
+                if (data.parentKey === this.appState.db.dbNoKey) {
+                    this.folderPath = '/';
+                }
                 console.dir(data);
             }
         );
