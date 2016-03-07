@@ -14,7 +14,7 @@ import {AppState} from "./providers/app-state";
         backButtonText: ""
     }
 })
-export class MyApp {
+export class TracktunesApp {
     private rootPage: Type = TabsPage;
 
     constructor(private app: IonicApp, private platform: Platform) {
