@@ -15,7 +15,7 @@ export class AppState {
     constructor() {
         let localDB: LocalDB = LocalDB.Instance;
         /*
-        this.localDb.getDbObservable().subscribe(
+        this.localDB.getDBObservable().subscribe(
             (db: IDBDatabase) => {
                 console.log('... and the DB is: ' + db);
             },
@@ -33,11 +33,11 @@ export class AppState {
     save() {
         /*
         // very brute force ...
-        this.localDb.smartUpdate(
+        this.localDB.smartUpdate(
             APP_STATE_ITEM_NAME, {
-                dbName: this.localDbName,
-                dbVersion: this.localDbVersion,
-                dbStoreName: this.localDbStoreName,
+                dbName: this.localDBName,
+                dbVersion: this.localDBVersion,
+                dbStoreName: this.localDBStoreName,
                 unfiledFolderName: this.unfiledFolderName,
                 lastViewedPage: this.lastViewedPage,
                 lastViewedFolderKey: this.lastViewedFolderKey

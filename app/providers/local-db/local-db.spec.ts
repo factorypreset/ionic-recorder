@@ -18,12 +18,12 @@ export function main(): void {
         });
 
         it("indexedDB is available", () => {
-            expect(localDB.getDb()).not.toBeFalsy();
+            expect(localDB.getDB()).not.toBeFalsy();
         });
 
         it("both stores are available", () => {
-                expect(localDB.getDataStore("readwrite")).not.toBeFalsy();
-                expect(localDB.getTreeStore("readwrite")).not.toBeFalsy();
+            expect(localDB.getDataStore("readwrite")).not.toBeFalsy();
+            expect(localDB.getTreeStore("readwrite")).not.toBeFalsy();
         });
     });
 

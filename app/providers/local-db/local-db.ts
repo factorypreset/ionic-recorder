@@ -25,7 +25,7 @@ export class LocalDB {
             throw Error("Browser does not support indexedDB");
         }
 
-        this.openDb().subscribe(
+        this.openDB().subscribe(
             (db: IDBDatabase) => {
                 console.log("... and the DB is: " + db);
                 this.db = db;
@@ -46,13 +46,13 @@ export class LocalDB {
         return this.instance;
     }
 
-    getDb() {
+    getDB() {
         return this.db;
     }
 
-    openDb() {
+    openDB() {
         let source: Observable<IDBDatabase> = Observable.create((observer) => {
-            console.log("IndexedDB:openDb() db:" + DB_NAME +
+            console.log("IndexedDB:openDB() db:" + DB_NAME +
                 ", version:" + DB_VERSION);
             let openRequest: IDBOpenDBRequest = indexedDB.open(
                 DB_NAME, DB_VERSION);
@@ -77,7 +77,7 @@ export class LocalDB {
 
             // This function is called when the database doesn"t exist
             openRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-                console.log("openDb:onupgradeended START");
+                console.log("openDB:onupgradeended START");
                 try {
                     let treeStore: IDBObjectStore =
                         openRequest.result.createObjectStore(
@@ -105,7 +105,7 @@ export class LocalDB {
                             ex.code + ", message: " + ex.message);
                     }
                 }
-                console.log("openDb:onupgradeended DONE");
+                console.log("openDB:onupgradeended DONE");
             }; // openRequest.onupgradeneeded = ...            
         }); // let obs: Observable<IDBDatabase> = 
 
