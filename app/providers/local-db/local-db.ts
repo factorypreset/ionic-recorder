@@ -9,7 +9,7 @@ export const DB_NO_KEY: number = 0;
 
 @Injectable()
 export class LocalDB {
-    private db: IDBDatabase;
+    private db: IDBDatabase = null;
 
     constructor(
         private dbName: string,
