@@ -2,18 +2,15 @@
 
 # NOTE: make sure you have latest ionic cli installed
 
-GITHUB_PATH="tracktunes/ionic-recorder"
-if [ "$1" == "" ]; then
-    echo "USAGE: $0 < new-ionic-project-directory-to-create >"
+APP_NAME="ionic-recorder"
+GITHUB_PATH="tracktunes/$APP_NAME"
+
+if [ -e $APP_NAME ]; then
+    echo "ERROR: ./$APP_NAME already exists"
     exit 1
 fi
 
-if [ -e $1 ]; then
-    echo "ERROR: ./$1 already exists"
-    exit 1
-fi
-
-ionic start $1 --v2 --ts
+ionic start $APP_NAME --v2 --ts
 
 mkdir -p tmp
 cd tmp
@@ -32,11 +29,12 @@ for copy in \
     bin \
     test
 do
-    rm -fr $1/$copy
-    cp -fr tmp/$copy $1/
+    rm -fr $APP_NAME/$copy
+    cp -fr tmp/$APP_NAME/$copy $APP_NAME/
 done
+/bin/rm -fr tmp
 
-cd $1
+cd $APP_NAME
 
 npm install --save-dev \
     ionic-app-lib \
