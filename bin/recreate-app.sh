@@ -19,10 +19,22 @@ mkdir -p tmp
 cd tmp
 git clone https://github.com/$GITHUB_PATH
 cd ..
-rm -fr $1/app
-cp -fr tmp/ionic-recorder/app $1/
-cp -fr tmp/ionic-recorder/test $1/
-rm -fr tmp
+
+for copy in \
+    .gitignore \
+    LICENSE \
+    README.md \
+    TODO.md \
+    ionic.project \
+    www/favicon.ico \
+    www/img \
+    app \
+    bin \
+    test
+do
+    rm -fr $1/$copy
+    cp -fr tmp/$copy $1/
+done
 
 cd $1
 
@@ -50,13 +62,6 @@ npm install --save-dev \
     systemjs \
     traceur
 
-mkdir -p bin
-cd bin
-ln -s ../node_modules/gulp/bin/gulp.js gulp
-ln -s ../node_modules/typings/dist/bin/typings.js typings
-ln -s ../node_modules/tslint/bin/tslint 
-cd ..
-
 /bin/rm -fr typings/*
 
 for typing in \
@@ -65,7 +70,7 @@ for typing in \
     github:$GITHUB_PATH/typings/main/ambient/waa/waa.d.ts \
     github:$GITHUB_PATH/typings/main/ambient/MediaStream/MediaStream.d.ts
 do
-    yes '' | ./node_modules/typings/dist/bin/typings.js install \
+    ./node_modules/typings/dist/bin/typings.js install \
         --ambient --save
 done
 
