@@ -1,5 +1,5 @@
 import {Page, Platform} from "ionic-angular";
-import {AppState} from "../../providers/app-state";
+import {AppState} from "../../providers/app-state/app-state";
 
 
 @Page({

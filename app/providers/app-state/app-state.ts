@@ -1,5 +1,5 @@
 import {Injectable} from "angular2/core";
-import {LocalDB} from "./local-db";
+import {LocalDB} from "../local-db/local-db";
 
 
 // make sure APP_STATE_ITEM_NAME will never be entered by a user
@@ -16,6 +16,10 @@ export class AppState {
     unfiledFolderName: string = "Unfiled";
     lastViewedPage: string = "record";
     lastViewedFolderKey: number;
+    tabs: Object[] = [
+        { index: 0, name: "Record" },
+        { index: 1, name: "Library" }
+    ];
 
     constructor() {
         this.db = new LocalDB(

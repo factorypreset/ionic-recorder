@@ -1,9 +1,9 @@
 import {App, IonicApp, Platform} from "ionic-angular";
 import {Type, enableProdMode} from "angular2/core";
 import {TabsPage} from "./pages/tabs/tabs";
-import {WebAudio} from "./providers/web-audio";
-import {LocalDB} from "./providers/local-db";
-import {AppState} from "./providers/app-state";
+import {WebAudio} from "./providers/web-audio/web-audio";
+import {LocalDB} from "./providers/local-db/local-db";
+import {AppState} from "./providers/app-state/app-state";
 
 // enableProdMode();
 

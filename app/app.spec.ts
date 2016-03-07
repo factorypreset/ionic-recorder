@@ -6,7 +6,7 @@ import {TracktunesApp}from "./app";
 
 // this needs doing _once_ for the entire test suite, hence it"s here
 setBaseTestProviders(TEST_BROWSER_PLATFORM_PROVIDERS,
-                     TEST_BROWSER_APPLICATION_PROVIDERS);
+    TEST_BROWSER_APPLICATION_PROVIDERS);
 
 let tracktunesApp: TracktunesApp = null;
 
@@ -38,6 +38,5 @@ export function main(): void {
         it("initialises with an app", () => {
             expect(tracktunesApp["app"]).not.toBe(null);
         });
-
     });
 }
