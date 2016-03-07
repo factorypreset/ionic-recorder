@@ -43,14 +43,15 @@ export function main(): void {
             expect(tracktunesApp["app"]).not.toBe(null);
         });
 
-        // it("opens a page", () => {
-        //     spyOn(tracktunesApp["app"], "getComponent")
-        //         .and.callFake(getComponentStub);
-        //     tracktunesApp.openPage(tracktunesApp["pages"][1]);
-        //     expect(tracktunesApp["app"].getComponent)
-        //         .toHaveBeenCalledWith("leftMenu");
-        //     expect(tracktunesApp["app"].getComponent)
-        //         .toHaveBeenCalledWith("nav");
-        // });
+        it("opens a page", () => {
+            spyOn(tracktunesApp["app"], "getComponent")
+                .and.callFake(getComponentStub);
+            tracktunesApp.openRecordPage();
+            tracktunesApp.openLibraryPage();
+            expect(tracktunesApp["app"].getComponent)
+                .toHaveBeenCalledWith("leftMenu");
+            expect(tracktunesApp["app"].getComponent)
+                .toHaveBeenCalledWith("nav");
+        });
     });
 }
