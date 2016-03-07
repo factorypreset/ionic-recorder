@@ -3,8 +3,8 @@ import {Injectable} from "angular2/core";
 
 const STORE_EXISTS_ERROR_CODE: number = 0;
 const DB_DATA_TABLE_STORE_NAME: string = "dataTable";
+const KEY_PATH: string = "id";
 export const DB_NO_KEY: number = 0;
-export const KEY_PATH: string = "id";
 
 
 @Injectable()
@@ -21,6 +21,10 @@ export class LocalDB {
             throw Error("Browser does not support indexedDB");
         }
         this.openDb();
+    }
+
+    getDb() {
+        return this.db;
     }
 
     openDb() {
