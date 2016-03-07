@@ -1,4 +1,5 @@
 import {Injectable} from "angular2/core";
+import {Observable} from "rxjs/Rx";
 
 
 const STORE_EXISTS_ERROR_CODE: number = 0;
@@ -9,7 +10,8 @@ export const DB_NO_KEY: number = 0;
 
 @Injectable()
 export class LocalDB {
-    private db: IDBDatabase = null;
+    // private db: IDBDatabase = null;
+    private dbObservable: Observable<IDBDatabase>;
 
     constructor(
         private dbName: string,
@@ -21,103 +23,102 @@ export class LocalDB {
         if (!indexedDB) {
             throw Error("Browser does not support indexedDB");
         }
-        this.openDb(done);
+
+        this.dbObservable = this.openDb();
     }
 
-    getDb() {
-        return this.db;
+    getDbObservable() {
+        return this.dbObservable;
     }
 
-    openDb(done?: Function) {
-        console.log("IndexedDB:openDb() db:" + this.dbName +
-            ", version:" + this.dbVersion);
-        let openRequest: IDBOpenDBRequest = indexedDB.open(
-            this.dbName, this.dbVersion);
+    openDb() {
+        let obs: Observable<IDBDatabase> = Observable.create((observer) => {
+            console.log("IndexedDB:openDb() db:" + this.dbName +
+                ", version:" + this.dbVersion);
+            let openRequest: IDBOpenDBRequest = indexedDB.open(
+                this.dbName, this.dbVersion);
 
-        openRequest.onsuccess = (event: Event) => {
-            console.log("openDb:onsuccess() db:" + openRequest.result);
-            this.db = openRequest.result;
-            done && done();
-            console.log("openDb:onsuccess() END");
-        };
+            openRequest.onsuccess = (event: Event) => {
+                console.log("openDb:onsuccess() db:" + openRequest.result);
+                observer.onNext(openRequest.result);
+            };
 
-        openRequest.onerror = (event: IDBErrorEvent) => {
-            console.log("openDb:onerror()");
-            throw Error("Error in indexedDB.open(), errorCode: " +
-                event.target.errorCode);
-        };
+            openRequest.onerror = (event: IDBErrorEvent) => {
+                console.log("openDb:onerror()");
+                throw Error("Error in indexedDB.open(), errorCode: " +
+                    event.target.errorCode);
+            };
 
-        openRequest.onblocked = (event: IDBErrorEvent) => {
-            console.log("openDb:onblocked()");
-            throw Error("Error in indexedDB.open(), errorCode: " +
-                event.target.errorCode);
-        };
+            openRequest.onblocked = (event: IDBErrorEvent) => {
+                console.log("openDb:onblocked()");
+                throw Error("Error in indexedDB.open(), errorCode: " +
+                    event.target.errorCode);
+            };
 
-        // This function is called when the database doesn"t exist
-        openRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-            console.log("openDb:onupgradeended START");
-            this.db = openRequest.result;
-            try {
-                let treeStore: IDBObjectStore = this.db.createObjectStore(
-                    this.dbStoreName,
-                    { keyPath: DB_KEY_PATH, autoIncrement: true });
+            // This function is called when the database doesn"t exist
+            openRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
+                console.log("openDb:onupgradeended START");
+                try {
+                    let treeStore: IDBObjectStore = openRequest.result.createObjectStore(
+                        this.dbStoreName,
+                        { keyPath: DB_KEY_PATH, autoIncrement: true });
 
-                // index to search recordings by name
-                treeStore.createIndex("name", "name", { unique: false });
-                // index to search by parentKey
-                treeStore.createIndex(
-                    "parentKey", "parentKey", { unique: false });
+                    // index on name and parentKey
+                    treeStore.createIndex("name", "name", { unique: false });
+                    treeStore.createIndex(
+                        "parentKey", "parentKey", { unique: false });
 
-                // create data-table
-                this.db.createObjectStore(DB_DATA_TABLE_STORE_NAME,
-                    { keyPath: DB_KEY_PATH, autoIncrement: true });
-            }
-            catch (error) {
-                let ex: DOMException = error;
-                if (ex.code !== STORE_EXISTS_ERROR_CODE) {
-                    // we ignore the error that says store already exists,
-                    // just throw any other error
-                    throw Error("Error(" + ex.code + "): " + ex.message);
+                    // create internal data-table store
+                    openRequest.result.createObjectStore(DB_DATA_TABLE_STORE_NAME,
+                        { keyPath: DB_KEY_PATH, autoIncrement: true });
                 }
-            }
+                catch (error) {
+                    let ex: DOMException = error;
+                    if (ex.code !== STORE_EXISTS_ERROR_CODE) {
+                        // we ignore the error that says store already exists,
+                        // just throw any other error
+                        throw Error("Error(" + ex.code + "): " + ex.message);
+                    }
+                }
+                observer.onNext(openRequest.result);
 
-            console.log("openDb:onupgradeended DONE");
-        }; // openRequest.onupgradeneeded = ...
-    }; // openRequest.onupgradeneeded = ...
+                console.log("openDb:onupgradeended DONE");
+            }; // openRequest.onupgradeneeded = ...            
+        }); // let obs: Observable<IDBDatabase> = 
+
+        return obs;
+    }
 
     /**
      * @param {string} mode either "readonly" or "readwrite"
      */
-    getObjectStore(mode) {
-        console.log("getObjectStore:" + this.dbStoreName);
-        if (!this.db) {
-            throw Error("No DB available!");
-        }
-        return this.db.transaction(this.dbStoreName, mode)
-            .objectStore(this.dbStoreName);
+    getObjectStoreObservable(storeName: string, mode: string) {
+        let obs: Observable<IDBObjectStore> = Observable.create((observer) => {
+            console.log("getObjectStore:" + storeName);
+            this.dbObservable.subscribe(
+                (db: IDBDatabase) => {
+                    observer.onNext(db.transaction(storeName, mode)
+                        .objectStore(storeName));
+                });
+        });
+
+        return obs;
     }
 
     clearObjectStore() {
-        console.log("clearObjectStore() db: " + this.db);
+        this.getObjectStoreObservable(this.dbStoreName, "readwrite").subscribe(
+            (store: IDBObjectStore) => {
+                let clearRequest: IDBRequest = store.clear();
 
-        try {
-            let clearRequest: IDBRequest =
-                this.getObjectStore("readwrite").clear();
+                clearRequest.onsuccess = function(event: Event) {
+                    console.log("IndexedDB Store cleared");
+                };
 
-            clearRequest.onsuccess = function(event: Event) {
-                console.log("IndexedDB Store cleared");
-            };
-
-            clearRequest.onerror = (event: IDBErrorEvent) => {
-                throw Error("Error in store.clear(), errorCode: " +
-                    event.target.errorCode);
-            };
-        }
-        catch (error) {
-            console.log("clearObjectStore() error");
-            console.dir(error);
-            throw Error(error.message);
-        }
+                clearRequest.onerror = (event: IDBErrorEvent) => {
+                    throw Error("Error in store.clear(), errorCode: " +
+                        event.target.errorCode);
+                };
+            });
     }
 
     addItemToTree(
