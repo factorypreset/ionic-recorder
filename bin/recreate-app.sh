@@ -30,7 +30,7 @@ for copy in \
     test
 do
     rm -fr $APP_NAME/$copy
-    cp -fr tmp/$APP_NAME/$copy $APP_NAME/
+    cp -fr tmp/$APP_NAME/$copy $APP_NAME/$copy
 done
 /bin/rm -fr tmp
 
@@ -68,18 +68,16 @@ for typing in \
     github:$GITHUB_PATH/typings/main/ambient/waa/waa.d.ts \
     github:$GITHUB_PATH/typings/main/ambient/MediaStream/MediaStream.d.ts
 do
-    ./node_modules/typings/dist/bin/typings.js install \
-        --ambient --save
+    yes '' | ./bin/typings install $typing --ambient --save
 done
-
 
 for typing in \
     bluebird chalk del es6-shim express glob gulp gulp-load-plugins \
     gulp-typescript gulp-util jasmine karma log4js mime minimatch \
     node orchestrator q run-sequence serve-static through2 vinyl
 do
-    yes '' | ./node_modules/typings/dist/bin/typings.js install $typing \
-        --save-dev --ambient --no-insight
+    yes '' | ./bin/typings install $typing \
+        --ambient --no-insight --save-dev
 done
 
 # run the main gulp test task, which runs other tasks in order
@@ -87,4 +85,4 @@ done
 # command line but we have to group them under this general task 'test'
 # because of the globals being tracked in the gulp.ts file ...
 
-./node_modules/gulp/bin/gulp.js --gulpfile test/gulpfile.ts --cwd ./ test
+./bin/gulp --gulpfile test/gulpfile.ts --cwd ./ test
