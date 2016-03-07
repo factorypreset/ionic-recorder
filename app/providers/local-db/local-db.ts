@@ -14,20 +14,21 @@ export class LocalDB {
     constructor(
         private dbName: string,
         private dbVersion: number,
-        private dbStoreName: string
+        private dbStoreName: string,
+        done?: Function
     ) {
         console.log("constructor():IndexedDB");
         if (!indexedDB) {
             throw Error("Browser does not support indexedDB");
         }
-        this.openDb();
+        this.openDb(done);
     }
 
     getDb() {
         return this.db;
     }
 
-    openDb() {
+    openDb(done?: Function) {
         console.log("IndexedDB:openDb() db:" + this.dbName +
             ", version:" + this.dbVersion);
         let openRequest: IDBOpenDBRequest = indexedDB.open(
@@ -36,6 +37,7 @@ export class LocalDB {
         openRequest.onsuccess = (event: Event) => {
             console.log("openDb:onsuccess() db:" + openRequest.result);
             this.db = openRequest.result;
+            done && done();
             console.log("openDb:onsuccess() END");
         };
 

@@ -1,5 +1,8 @@
 # TODO.md
 
+* Make LocalDB an observable, see
+  * [this blog](http://blog.thoughtram.io/angular/2016/01/06/taking-advantage-of-observables-in-angular2.html)
+  * [this video](https://egghead.io/lessons/rxjs-rxjs-observables-vs-promises)
 * Design Library Page all the way up with current functionality of
   only adding recordings, even though some buttons won't work.  We
   already have files and folders, so we have all we need to design

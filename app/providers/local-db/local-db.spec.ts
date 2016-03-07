@@ -7,22 +7,27 @@ const DB_VERSION: number = 1;
 const DB_STORE_NAME: string = "test-store";
 
 
-let localDB: LocalDB = null;
-
-
 export function main(): void {
     "use strict";
 
     describe("LocalDB", () => {
+        let localDB: LocalDB = null;
 
-        beforeEach(() => {
-            localDB = new LocalDB(DB_NAME, DB_VERSION, DB_STORE_NAME);
+        beforeEach((done: Function) => {
+            setTimeout(() => {
+                localDB = new LocalDB(DB_NAME, DB_VERSION, DB_STORE_NAME, done);
+            }, MAX_DB_INIT_TIME);
         });
 
-        it("initializes with a db", () => {
-            setTimeout(() => {
-                expect(localDB.getDb()).not.toBeFalsy();
-            }, MAX_DB_INIT_TIME);
+        afterEach((done: Function) => {
+            done();
+        });
+
+        it("initializes with a db", (done) => {
+            // setTimeout(() => {
+            expect(localDB.getDb()).not.toBeFalsy();
+            done();
+            // }, MAX_DB_INIT_TIME);
         });
 
         it("has store: " + DB_STORE_NAME, () => {
@@ -58,19 +63,21 @@ export function main(): void {
         });
 
         it("addItem()->getItemByKey() loop", () => {
-            let key: number = DB_NO_KEY,
-                data: any = null;
+            let sentData: any = { a: 1, b: 2 },
+                gotKey: number = DB_NO_KEY,
+                gotData: any = null;
             setTimeout(() => {
                 expect(
                     localDB.addItem("", DB_NO_KEY, undefined, (key: number) => {
-                        key = key;
+                        throw Error();
+                        gotKey = key;
                         localDB.getItemByKey(key, (data: any) => {
-                            data = data;
+                            gotData = data;
                         });
                     })
                 ).not.toThrow();
-                expect(key).toEqual(1);
-                expect(data).toEqual(undefined);
+                expect(gotKey).toEqual(DB_NO_KEY);
+                expect(gotData).toEqual(sentData);
             }, MAX_DB_INIT_TIME);
         });
     });
