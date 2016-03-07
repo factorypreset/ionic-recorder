@@ -62,6 +62,9 @@ npm install --save-dev \
     systemjs \
     traceur
 
+/bin/rm -fr tslint.json
+./bin/tslint --init
+
 /bin/rm -fr typings/*
 
 for typing in \
