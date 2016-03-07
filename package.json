@@ -42,5 +42,10 @@
     "webpack": "1.12.14"
   },
   "name": "ionic-recorder",
-  "description": "ionic-recorder: An Ionic project"
+  "description": "ionic-recorder: Ionic2 / WebAudio project,",
+  "license": "GPL 2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tracktunes/ionic-recorder.git"
+  }
 }

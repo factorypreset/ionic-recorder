@@ -12,30 +12,6 @@ fi
 
 ionic start $APP_NAME --v2 --ts
 
-#
-# fix package.json
-# 
-
-NLINES="`wc -l package.json | awk '{print $1}'`"
-NLINES_MINUS2="`echo $NLINES - 2 | bc`"
-TMPFILE=.tmp$RANDOM
-
-head -n $NLINES_MINUS2 package.json > $TMPFILE
-
-cat << EOF >> $TMPFILE
-  "description": "ionic-recorder: Ionic2 / WebAudio project,",
-  "license": "GPL 2.0",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/tracktunes/ionic-recorder.git"
-  }
-}
-EOF
-
-mv $TMPFILE package.json
-
-# DONE: fix package.json
-
 mkdir -p tmp
 cd tmp
 git clone https://github.com/$GITHUB_PATH
@@ -59,6 +35,8 @@ done
 /bin/rm -fr tmp
 
 cd $APP_NAME
+
+./bin/fix_package.json.sh
 
 npm install --save-dev \
     ionic-app-lib \
