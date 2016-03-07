@@ -2,8 +2,8 @@ import {Injectable} from "angular2/core";
 
 
 const STORE_EXISTS_ERROR_CODE: number = 0;
-const DB_DATA_TABLE_STORE_NAME: string = "dataTable";
-const KEY_PATH: string = "id";
+export const DB_DATA_TABLE_STORE_NAME: string = "dataTable";
+export const DB_KEY_PATH: string = "id";
 export const DB_NO_KEY: number = 0;
 
 
@@ -58,7 +58,7 @@ export class LocalDB {
             try {
                 let treeStore: IDBObjectStore = this.db.createObjectStore(
                     this.dbStoreName,
-                    { keyPath: KEY_PATH, autoIncrement: true });
+                    { keyPath: DB_KEY_PATH, autoIncrement: true });
 
                 // index to search recordings by name
                 treeStore.createIndex("name", "name", { unique: false });
@@ -68,7 +68,7 @@ export class LocalDB {
 
                 // create data-table
                 this.db.createObjectStore(DB_DATA_TABLE_STORE_NAME,
-                    { keyPath: KEY_PATH, autoIncrement: true });
+                    { keyPath: DB_KEY_PATH, autoIncrement: true });
             }
             catch (error) {
                 let ex: DOMException = error;

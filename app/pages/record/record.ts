@@ -3,7 +3,7 @@ import {LibraryPage} from "../library/library";
 import {VuGauge} from "../../components/vu-gauge/vu-gauge";
 import {AppState} from "../../providers/app-state/app-state";
 import {WebAudio} from "../../providers/web-audio/web-audio";
-import {LocalDB, DB_NO_KEY} from "../../providers/local-db/local-db";
+import {LocalDB, DB_KEY_PATH, DB_NO_KEY} from "../../providers/local-db/local-db";
 import {num2str, msec2time} from "../../providers/utils/utils";
 
 // the volume monitor frequency, in Hz
@@ -71,7 +71,7 @@ export class RecordPage {
                         console.log("unfiled exists, key = " +
                             item.id);
                         // unfiled folder already exists
-                        let parentKey: number = item.id;
+                        let parentKey: number = item[DB_KEY_PATH];
                         this.appState.db.addItem(
                             name,
                             parentKey,
