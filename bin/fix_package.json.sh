@@ -11,7 +11,7 @@ cat << EOF >> $TMPFILE
   "license": "GPL 2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tracktunes/ionic-recorder.git"
+    "url": "https://github.com/tracktunes/ionic-recorder"
   },
   "scripts": {
     "start": "ionic serve --browser chromium-browser",
