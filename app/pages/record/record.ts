@@ -48,10 +48,6 @@ export class RecordPage {
         this.recordingTime = msec2time(0);
         this.recordButtonIcon = START_RESUME_ICON;
 
-        if (!this.appState.db) {
-            throw Error("no local DB!");
-        }
-
         // function that gets called with a newly created blob when
         // we hit the stop button - saves blob to local db
         webAudio.onStop = (blob: Blob) => {
@@ -59,6 +55,7 @@ export class RecordPage {
                 name: string = now.toLocaleDateString() + " " +
                     now.toLocaleTimeString(),
                 itemCount: number = 0;
+            /*
             this.appState.db.getItemsByName(
                 this.appState.unfiledFolderName,
                 (item: any) => {
@@ -100,6 +97,7 @@ export class RecordPage {
                             });
                     }
                 });
+            */
         }; // webAudio.onStop = (blob: Blob) => { ...
 
         // start volume monitoring infinite loop
@@ -112,28 +110,28 @@ export class RecordPage {
         this.monitorStartTime = Date.now();
 
         let timeNow: number, timeoutError: number, bufferMax: number,
-        repeat: Function = () => {
-            this.monitorTotalTime += MONITOR_TIMEOUT_MSEC;
-            bufferMax = this.webAudio.getBufferMaxVolume();
+            repeat: Function = () => {
+                this.monitorTotalTime += MONITOR_TIMEOUT_MSEC;
+                bufferMax = this.webAudio.getBufferMaxVolume();
 
-            if (bufferMax === this.maxVolume) {
-                this.peaksAtMax += 1;
-            }
-            else if (bufferMax > this.maxVolume) {
-                this.peaksAtMax = 1;
-                this.maxVolume = bufferMax;
-            }
-            this.currentVolume = bufferMax;
-            timeNow = Date.now();
-            timeoutError = timeNow - this.monitorStartTime -
-                this.monitorTotalTime;
-            if (this.webAudio.isRecording()) {
-                this.recordingDuration = timeNow - this.recordStartTime -
-                    this.totalPauseTime;
-                this.recordingTime = msec2time(this.recordingDuration);
-            }
-            setTimeout(repeat, MONITOR_TIMEOUT_MSEC - timeoutError);
-        };
+                if (bufferMax === this.maxVolume) {
+                    this.peaksAtMax += 1;
+                }
+                else if (bufferMax > this.maxVolume) {
+                    this.peaksAtMax = 1;
+                    this.maxVolume = bufferMax;
+                }
+                this.currentVolume = bufferMax;
+                timeNow = Date.now();
+                timeoutError = timeNow - this.monitorStartTime -
+                    this.monitorTotalTime;
+                if (this.webAudio.isRecording()) {
+                    this.recordingDuration = timeNow - this.recordStartTime -
+                        this.totalPauseTime;
+                    this.recordingTime = msec2time(this.recordingDuration);
+                }
+                setTimeout(repeat, MONITOR_TIMEOUT_MSEC - timeoutError);
+            };
         setTimeout(repeat, MONITOR_TIMEOUT_MSEC);
     }
 

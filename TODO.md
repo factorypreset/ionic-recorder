@@ -1,5 +1,8 @@
 # TODO.md
 
+* Make LocalDB a singleton (see wiki for link to patterns examples)
+* make db name, db version, db store name constants in localdb - unless we find out how
+  to create a singleton that has constructor arguments
 * Make LocalDB an observable, see
   * [this blog](http://blog.thoughtram.io/angular/2016/01/06/taking-advantage-of-observables-in-angular2.html)
   * [this video](https://egghead.io/lessons/rxjs-rxjs-observables-vs-promises)

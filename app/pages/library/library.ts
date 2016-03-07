@@ -13,6 +13,7 @@ export class LibraryPage {
     }
 
     onPageDidEnter() {
+        /*
         this.appState.db.getItemsByParentKey(
             this.appState.lastViewedFolderKey,
             (data: any) => {
@@ -32,5 +33,6 @@ export class LibraryPage {
                 console.dir(data);
             }
         );
+        */
     }
 }

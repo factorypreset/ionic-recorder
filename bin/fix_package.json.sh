@@ -8,7 +8,7 @@ head -n $NLINES_MINUS2 package.json > $TMPFILE
 
 cat << EOF >> $TMPFILE
   "description": "ionic-recorder: Ionic2 / WebAudio project",
-  "license": "GPL 2.0",
+  "license": "GPL-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/tracktunes/ionic-recorder.git"

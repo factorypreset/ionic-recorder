@@ -9,36 +9,39 @@ const APP_STATE_ITEM_NAME: string =
 
 @Injectable()
 export class AppState {
-    db: LocalDB;
-    dbName: string = "ionic-recorder-db";
-    dbVersion: number = 1;
-    dbStoreName = "blobTree";
-    unfiledFolderName: string = "Unfiled";
     lastViewedPage: string = "record";
     lastViewedFolderKey: number;
-    tabs: Object[] = [
-        { index: 0, name: "Record" },
-        { index: 1, name: "Library" }
-    ];
 
     constructor() {
-        this.db = new LocalDB(
-            this.dbName,
-            this.dbVersion,
-            this.dbStoreName);
+        let localDB: LocalDB = LocalDB.Instance;
+        /*
+        this.localDb.getDbObservable().subscribe(
+            (db: IDBDatabase) => {
+                console.log('... and the DB is: ' + db);
+            },
+            (error) => {
+                console.log('... could not get DB in AppState constructor!');
+            },
+            () => {
+                console.log('... done getting DB');
+            }
+        );
+        */
         this.lastViewedFolderKey = DB_NO_KEY;
     }
 
     save() {
+        /*
         // very brute force ...
-        this.db.smartUpdate(
+        this.localDb.smartUpdate(
             APP_STATE_ITEM_NAME, {
-                dbName: this.dbName,
-                dbVersion: this.dbVersion,
-                dbStoreName: this.dbStoreName,
+                dbName: this.localDbName,
+                dbVersion: this.localDbVersion,
+                dbStoreName: this.localDbStoreName,
                 unfiledFolderName: this.unfiledFolderName,
                 lastViewedPage: this.lastViewedPage,
                 lastViewedFolderKey: this.lastViewedFolderKey
             });
+        */
     }
 }
