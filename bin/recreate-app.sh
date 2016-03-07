@@ -58,6 +58,7 @@ npm install --save-dev \
     karma-jasmine \
     karma-mocha-reporter \
     karma-phantomjs-launcher \
+    karma-chrome-launcher \
     phantomjs-prebuilt \
     systemjs \
     traceur

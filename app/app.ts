@@ -43,12 +43,4 @@ export class TracktunesApp {
             // console.log("App:this.platform.ready!");
         });
     }
-
-    openRecordPage() {
-        this.app.getComponent("tabs").select(0);
-    }
-
-    openLibraryPage() {
-        this.app.getComponent("tabs").select(1);
-    }
 }
