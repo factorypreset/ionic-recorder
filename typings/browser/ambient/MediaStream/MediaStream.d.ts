@@ -1,4 +1,6 @@
 // Compiled using typings@0.6.10
+// Source: https://raw.githubusercontent.com/tracktunes/ionic-recorder/master/typings/main/ambient/MediaStream/MediaStream.d.ts
+// Compiled using typings@0.6.10
 // Source: https://raw.githubusercontent.com/tracktunes/ionic-recorder/master/typings/webrtc/MediaStream.d.ts
 // Type definitions for WebRTC
 // Project: http://dev.w3.org/2011/webrtc/

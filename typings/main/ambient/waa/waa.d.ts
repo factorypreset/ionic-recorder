@@ -1,4 +1,6 @@
 // Compiled using typings@0.6.10
+// Source: https://raw.githubusercontent.com/tracktunes/ionic-recorder/master/typings/main/ambient/waa/waa.d.ts
+// Compiled using typings@0.6.10
 // Source: https://raw.githubusercontent.com/tracktunes/ionic-recorder/master/typings/webaudioapi/waa.d.ts
 // Type definitions for Web Audio API
 // Project: http://www.w3.org/TR/webaudio/

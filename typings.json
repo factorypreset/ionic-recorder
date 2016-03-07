@@ -2,7 +2,11 @@
   "dependencies": {},
   "devDependencies": {},
   "ambientDependencies": {
-    "es6-shim": "github:DefinitelyTyped/DefinitelyTyped/es6-shim/es6-shim.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c"
+    "MediaStream": "github:tracktunes/ionic-recorder/typings/main/ambient/MediaStream/MediaStream.d.ts",
+    "es6-shim": "github:DefinitelyTyped/DefinitelyTyped/es6-shim/es6-shim.d.ts#4de74cb527395c13ba20b438c3a7a419ad931f1c",
+    "ionic-app-lib": "github:tracktunes/ionic-recorder/typings/main/ambient/ionic-app-lib/ionic-app-lib.d.ts",
+    "local": "github:tracktunes/ionic-recorder/typings/main/ambient/local/local.d.ts",
+    "waa": "github:tracktunes/ionic-recorder/typings/main/ambient/waa/waa.d.ts"
   },
   "ambientDevDependencies": {
     "bluebird": "github:DefinitelyTyped/DefinitelyTyped/bluebird/bluebird.d.ts#dd328830dddffbe19e9addd7cf8532cbd3600816",

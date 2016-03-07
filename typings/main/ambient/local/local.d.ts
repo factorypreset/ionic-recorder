@@ -1,4 +1,6 @@
 // Compiled using typings@0.6.10
+// Source: https://raw.githubusercontent.com/tracktunes/ionic-recorder/master/typings/main/ambient/local/local.d.ts
+// Compiled using typings@0.6.10
 // Source: https://raw.githubusercontent.com/tracktunes/ionic-recorder/master/typings/local/local.d.ts
 // locally added type definitions to avoid compiler warnings
 
