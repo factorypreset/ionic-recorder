@@ -3,7 +3,6 @@
 # NOTE: make sure you have latest ionic cli installed
 
 GITHUB_PATH="tracktunes/ionic-recorder"
-
 if [ "$1" == "" ]; then
     echo "USAGE: $0 < new-ionic-project-directory-to-create >"
     exit 1
@@ -51,33 +50,33 @@ npm install --save-dev \
     systemjs \
     traceur
 
-ln -s ./node_modules/gulp/bin/gulp.js bin/gulp
-ln -s ./node_modules/typings/dist/bin/typings.js bin/typings
-ln -s ./node_nodules/tslint/bin/tslint bin/tslint
+mkdir -p bin
+cd bin
+ln -s ../node_modules/gulp/bin/gulp.js gulp
+ln -s ../node_modules/typings/dist/bin/typings.js typings
+ln -s ../node_modules/tslint/bin/tslint 
+cd ..
 
 /bin/rm -fr typings/*
 
-./bin/typings install --ambient --save \
-    github:$GITHUB_PATH/typings/main/ambient/local/local.d.ts
+for typing in \
+    github:$GITHUB_PATH/typings/main/ambient/local/local.d.ts \
+    github:$GITHUB_PATH/typings/main/ambient/ionic-app-lib/ionic-app-lib.d.ts \
+    github:$GITHUB_PATH/typings/main/ambient/waa/waa.d.ts \
+    github:$GITHUB_PATH/typings/main/ambient/MediaStream/MediaStream.d.ts
+do
+    yes '' | ./node_modules/typings/dist/bin/typings.js install \
+        --ambient --save
+done
 
-./bin/typings install --ambient --save \
-    github:$GITHUB_PATH/typings/main/ambient/ionic-app-lib/ionic-app-lib.d.ts
-
-./bin/typings install --ambient --save \
-    github:$GITHUB_PATH/typings/main/ambient/waa/waa.d.ts
-
-./bin/typings install --ambient --save \
-    github:$GITHUB_PATH/typings/main/ambient/webrtc/MediaStream.d.ts
-
-./bin/typings install --ambient --save \
-    github:$GITHUB_PATH/typings/main/ambient/webrtc/MediaStream.d.ts
 
 for typing in \
     bluebird chalk del es6-shim express glob gulp gulp-load-plugins \
     gulp-typescript gulp-util jasmine karma log4js mime minimatch \
     node orchestrator q run-sequence serve-static through2 vinyl
 do
-     ./bin/typings install $typing --save-dev --ambient --no-insight
+    yes '' | ./node_modules/typings/dist/bin/typings.js install $typing \
+        --save-dev --ambient --no-insight
 done
 
 # run the main gulp test task, which runs other tasks in order
@@ -85,4 +84,4 @@ done
 # command line but we have to group them under this general task 'test'
 # because of the globals being tracked in the gulp.ts file ...
 
-./gulp.js --gulpfile test/gulpfile.ts --cwd ./ test
+./node_modules/gulp/bin/gulp.js --gulpfile test/gulpfile.ts --cwd ./ test
