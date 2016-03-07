@@ -12,16 +12,19 @@
 <ion-content [class]="platform.platforms()">
     <ion-list>
         <ion-item-divider sticky dark>
-            <ion-checkbox checked="false" item-left></ion-checkbox>
-            <ion-icon name="folder-open" item-left></ion-icon>
+            <ion-checkbox checked="false" medium-gray item-left></ion-checkbox>
+            <ion-icon name="folder-open" medium-gray item-left></ion-icon>
             {{folderPath}}
         </ion-item-divider>
-        <ion-item *ngFor="#folderItem of folderItems">
+        <ion-item *ngFor="#item of folderItems">
             <ion-label>
-                <ion-icon name="folder" item-left></ion-icon>
-                {{folderItem.name}}
+                <ion-icon *ngIf="item.dataTableKey"
+                          name="document" medium-gray item-left></ion-icon>
+                <ion-icon *ngIf="!item.dataTableKey"
+                          name="folder" medium-gray item-left></ion-icon>
+                {{item.name}}
             </ion-label>
-            <ion-checkbox checked="false" item-left></ion-checkbox>
+            <ion-checkbox checked="false" medium-gray item-left></ion-checkbox>
         </ion-item>
     </ion-list>
 </ion-content>

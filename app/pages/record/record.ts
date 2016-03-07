@@ -1,21 +1,21 @@
-import {Page, Platform} from 'ionic-angular';
-import {LibraryPage} from '../library/library';
-import {VuGauge} from '../../components/vu-gauge/vu-gauge';
-import {AppState} from '../../providers/app-state';
-import {WebAudio} from '../../providers/web-audio';
-import {LocalDB} from '../../providers/local-db';
-import {num2str, msec2time} from '../../providers/utils';
+import {Page, Platform} from "ionic-angular";
+import {LibraryPage} from "../library/library";
+import {VuGauge} from "../../components/vu-gauge/vu-gauge";
+import {AppState} from "../../providers/app-state";
+import {WebAudio} from "../../providers/web-audio";
+import {LocalDB} from "../../providers/local-db";
+import {num2str, msec2time} from "../../providers/utils";
 
 // the volume monitor frequency, in Hz
 const MONITOR_FREQUENCY_HZ: number = 40;
-const START_RESUME_ICON: string = 'mic';
-const PAUSE_ICON: string = 'pause';
+const START_RESUME_ICON: string = "mic";
+const PAUSE_ICON: string = "pause";
 // derived constants, please do not touch the constants below:
 const MONITOR_TIMEOUT_MSEC: number = 1000.0 / MONITOR_FREQUENCY_HZ;
 
 
 @Page({
-    templateUrl: 'build/pages/record/record.html',
+    templateUrl: "build/pages/record/record.html",
     directives: [VuGauge]
 })
 export class RecordPage {
@@ -39,9 +39,9 @@ export class RecordPage {
 
     constructor(private platform: Platform, private webAudio: WebAudio,
         private appState: AppState) {
-        console.log('constructor():RecordPage');
+        console.log("constructor():RecordPage");
         this.gain = 100;
-        this.dB = '0.00 dB';
+        this.dB = "0.00 dB";
         this.sliderValue = 100;
         this.maxVolume = 0;
         this.peaksAtMax = 1;
@@ -49,20 +49,26 @@ export class RecordPage {
         this.recordButtonIcon = START_RESUME_ICON;
 
         if (!this.appState.db) {
-            throw Error('no local DB!');
+            throw Error("no local DB!");
         }
-        
+
         // function that gets called with a newly created blob when
         // we hit the stop button - saves blob to local db
         webAudio.onStop = (blob: Blob) => {
             let now: Date = new Date(),
-                name: string = now.toLocaleDateString() + ' ' +
-                    now.toLocaleTimeString();
-            this.appState.db.getItemByUniqueName(
+                name: string = now.toLocaleDateString() + " " +
+                    now.toLocaleTimeString(),
+                itemCount: number = 0;
+            this.appState.db.getItemsByName(
                 this.appState.unfiledFolderName,
                 (item: any) => {
                     if (item) {
-                        console.log('unfiled exists, key = ' +
+                        console.log("Unfiled folder already exists");
+                        itemCount += 1;
+                        if (itemCount > 1) {
+                            throw Error("More > 1 Unfiled folders in /");
+                        }
+                        console.log("unfiled exists, key = " +
                             item.id);
                         // unfiled folder already exists
                         let parentKey: number = item.id;
@@ -71,13 +77,13 @@ export class RecordPage {
                             parentKey,
                             blob,
                             (itemKey: number) => {
-                                console.log('adding item ' + itemKey +
-                                    ' to folder ' + parentKey);
+                                console.log("adding item " + itemKey +
+                                    " to folder " + parentKey);
                             });
                     }
                     else {
                         // unfiled folder does not yet exist
-                        console.log('creating new Unfiled folder');
+                        console.log("no Unfiled folder, creating it");
                         this.appState.db.addItem(
                             this.appState.unfiledFolderName,
                             this.appState.db.dbNoKey,
@@ -88,27 +94,28 @@ export class RecordPage {
                                     folderKey,
                                     blob,
                                     (itemKey: number) => {
-                                        console.log('adding item ' + itemKey +
-                                            ' to folder ' + folderKey);
+                                        console.log("adding item " + itemKey +
+                                            " to folder " + folderKey);
                                     });
                             });
                     }
                 });
-        } // webAudio.onStop = (blob: Blob) => { ...
-        
+        }; // webAudio.onStop = (blob: Blob) => { ...
+
         // start volume monitoring infinite loop
         this.monitorVolume();
     }
 
     monitorVolume() {
-        console.log('monitorVolume()');
+        console.log("monitorVolume()");
         this.totalPauseTime = this.monitorTotalTime = this.lastPauseTime = 0;
         this.monitorStartTime = Date.now();
 
-        let timeNow: number, timeoutError: number, bufferMax: number;
-        let repeat: Function = () => {
+        let timeNow: number, timeoutError: number, bufferMax: number,
+        repeat: Function = () => {
             this.monitorTotalTime += MONITOR_TIMEOUT_MSEC;
             bufferMax = this.webAudio.getBufferMaxVolume();
+
             if (bufferMax === this.maxVolume) {
                 this.peaksAtMax += 1;
             }
@@ -139,11 +146,11 @@ export class RecordPage {
         this.gain = (<RangeInputEventTarget>event.target).value;
         let factor: number = this.gain / 100.0;
         if (factor === 0) {
-            this.dB = 'Muted'
+            this.dB = "Muted";
         }
         else {
             // convert factor (a number in [0, 1]) to decibels
-            this.dB = num2str(10.0 * Math.log10(factor), 2) + ' dB';
+            this.dB = num2str(10.0 * Math.log10(factor), 2) + " dB";
         }
         this.webAudio.setGainFactor(factor);
     }

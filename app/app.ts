@@ -1,24 +1,24 @@
-import {App, IonicApp, Platform} from 'ionic-angular';
-import {Type, enableProdMode} from 'angular2/core';
-import {TabsPage} from './pages/tabs/tabs';
-import {WebAudio} from './providers/web-audio';
-import {LocalDB} from './providers/local-db';
-import {AppState} from './providers/app-state';
+import {App, IonicApp, Platform} from "ionic-angular";
+import {Type, enableProdMode} from "angular2/core";
+import {TabsPage} from "./pages/tabs/tabs";
+import {WebAudio} from "./providers/web-audio";
+import {LocalDB} from "./providers/local-db";
+import {AppState} from "./providers/app-state";
 
 // enableProdMode();
 
 @App({
-    templateUrl: 'build/app.html',
+    templateUrl: "build/app.html",
     providers: [WebAudio, LocalDB, AppState],
     config: {
-        backButtonText: ''
+        backButtonText: ""
     }
 })
-class MyApp {
+export class MyApp {
     private rootPage: Type = TabsPage;
 
     constructor(private app: IonicApp, private platform: Platform) {
-        console.log('constructor():MyApp');
+        console.log("constructor():MyApp");
         this.initializeApp();
     }
 
@@ -32,15 +32,15 @@ class MyApp {
             // available.  Here you can do any higher level native
             // things you might need.
             //
-            // First, let's hide the keyboard accessory bar (only
-            // works natively) since that's a better default:
+            // First, let"s hide the keyboard accessory bar (only
+            // works natively) since that"s a better default:
             //
             // Keyboard.setAccessoryBarVisible(false);
             //
             // For example, we might change the StatusBar color. This
             // one below is good for dark backgrounds and light text:
             // StatusBar.setStyle(StatusBar.LIGHT_CONTENT)
-            // console.log('App:this.platform.ready!');
+            // console.log("App:this.platform.ready!");
         });
     }
 }

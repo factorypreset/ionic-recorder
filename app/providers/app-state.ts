@@ -1,20 +1,20 @@
-import {Injectable} from 'angular2/core';
-import {LocalDB} from './local-db';
+import {Injectable} from "angular2/core";
+import {LocalDB} from "./local-db";
 
 
 // make sure APP_STATE_ITEM_NAME will never be entered by a user
 const APP_STATE_ITEM_NAME: string =
-    'Kwj7t9X2PTsPwLquD9qvZqaApMP8LGRjPFENUHnvrpmUE25rkrYHhzf9KBEradAU';
+    "Kwj7t9X2PTsPwLquD9qvZqaApMP8LGRjPFENUHnvrpmUE25rkrYHhzf9KBEradAU";
 
 
 @Injectable()
 export class AppState {
     db: LocalDB;
-    dbName: string = 'ionic-recorder-db';
+    dbName: string = "ionic-recorder-db";
     dbVersion: number = 1;
-    dbStoreName = 'blobTree';
-    unfiledFolderName: string = 'Unfiled';
-    lastViewedPage: string = 'record';
+    dbStoreName = "blobTree";
+    unfiledFolderName: string = "Unfiled";
+    lastViewedPage: string = "record";
     lastViewedFolderKey: number;
 
     constructor() {
@@ -24,7 +24,7 @@ export class AppState {
             this.dbStoreName);
         this.lastViewedFolderKey = this.db.dbNoKey;
     }
-    
+
     save() {
         // very brute force ...
         this.db.smartUpdate(
