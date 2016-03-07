@@ -2,9 +2,10 @@ import {TEST_BROWSER_PLATFORM_PROVIDERS, TEST_BROWSER_APPLICATION_PROVIDERS}
 from "angular2/platform/testing/browser";
 import {setBaseTestProviders} from "angular2/testing";
 import {IonicApp, Platform} from "ionic-angular";
-import {TracktunesApp}from "./app";
+import {TracktunesApp} from "./app";
+import {AppState} from "./providers/app-state/app-state";
 
-// this needs doing _once_ for the entire test suite, hence it"s here
+// this needs doing _once_ for the entire test suite, hence it's here
 setBaseTestProviders(TEST_BROWSER_PLATFORM_PROVIDERS,
     TEST_BROWSER_APPLICATION_PROVIDERS);
 
@@ -23,12 +24,13 @@ function getComponentStub(name: string): any {
 export function main(): void {
     "use strict";
 
-    describe("tracktunesApp", () => {
+    describe("TracktunesApp", () => {
 
         beforeEach(() => {
             let ionicApp: IonicApp = new IonicApp(null, null, null);
             let platform: Platform = new Platform();
-            tracktunesApp = new TracktunesApp(ionicApp, platform);
+            let appState: AppState = new AppState();
+            tracktunesApp = new TracktunesApp(ionicApp, platform, appState);
         });
 
         it("initialises with a root page", () => {

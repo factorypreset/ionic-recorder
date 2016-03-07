@@ -3,18 +3,19 @@ import {Injectable} from "angular2/core";
 
 const STORE_EXISTS_ERROR_CODE: number = 0;
 const DB_DATA_TABLE_STORE_NAME: string = "dataTable";
-const DB_NO_KEY: number = 0;
+export const DB_NO_KEY: number = 0;
+export const KEY_PATH: string = "id";
 
 
 @Injectable()
 export class LocalDB {
-    dbNoKey: number = DB_NO_KEY;
     private db: IDBDatabase;
 
-    constructor(private dbName: string,
+    constructor(
+        private dbName: string,
         private dbVersion: number,
-        private dbStoreName: string,
-        private storeKeyPath: string = "id") {
+        private dbStoreName: string
+    ) {
         console.log("constructor():IndexedDB");
         if (!indexedDB) {
             throw Error("Browser does not support indexedDB");
@@ -53,7 +54,7 @@ export class LocalDB {
             try {
                 let treeStore: IDBObjectStore = this.db.createObjectStore(
                     this.dbStoreName,
-                    { keyPath: this.storeKeyPath, autoIncrement: true });
+                    { keyPath: KEY_PATH, autoIncrement: true });
 
                 // index to search recordings by name
                 treeStore.createIndex("name", "name", { unique: false });
@@ -63,7 +64,7 @@ export class LocalDB {
 
                 // create data-table
                 this.db.createObjectStore(DB_DATA_TABLE_STORE_NAME,
-                    { keyPath: "id", autoIncrement: true });
+                    { keyPath: KEY_PATH, autoIncrement: true });
             }
             catch (error) {
                 let ex: DOMException = error;
@@ -271,7 +272,7 @@ export class LocalDB {
         console.log("iteratePath on key = " + key);
         this.getItemByKey(key, (data: any) => {
             let parentKey: number = data.ParentKey;
-            if (parentKey === this.dbNoKey) {
+            if (parentKey === DB_NO_KEY) {
                 // we're at the top
                 return "/";
             }

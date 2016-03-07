@@ -1,5 +1,5 @@
 import {Injectable} from "angular2/core";
-import {LocalDB} from "../local-db/local-db";
+import {LocalDB, DB_NO_KEY} from "../local-db/local-db";
 
 
 // make sure APP_STATE_ITEM_NAME will never be entered by a user
@@ -26,7 +26,7 @@ export class AppState {
             this.dbName,
             this.dbVersion,
             this.dbStoreName);
-        this.lastViewedFolderKey = this.db.dbNoKey;
+        this.lastViewedFolderKey = DB_NO_KEY;
     }
 
     save() {
