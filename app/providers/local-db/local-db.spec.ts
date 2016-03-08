@@ -25,6 +25,25 @@ export function main(): void {
             expect(localDB.getDataStore("readwrite")).not.toBeFalsy();
             expect(localDB.getTreeStore("readwrite")).not.toBeFalsy();
         });
+
+        it("can clear stores twice in a row", () => {
+            // we have to use bind() here, we cannot use
+            //     expect(localDB.clearObjectStores()).not.toThrow();
+            // (see: http://stackoverflow.com/questions/9500586)
+            expect(localDB.clearObjectStores.bind(localDB)).not.toThrow();
+            expect(localDB.clearObjectStores.bind(localDB)).not.toThrow();
+        });
+
+        it("can try to retrieve an item with a non-existing key", () => {
+            localDB.getItemByKey(1, (data: any) => {
+                expect(data).toBe(undefined);
+            });
+        });
+        /*
+        it("can smart-add an item", () => {
+            // expect(localDB.smartAdd.bind(localDB, )) 
+        });
+        */
     });
 
     describe("When two LocalDB instances are initialized", () => {

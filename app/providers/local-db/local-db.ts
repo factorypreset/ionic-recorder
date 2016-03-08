@@ -22,7 +22,7 @@ export class LocalDB {
     constructor() {
         console.log("constructor():IndexedDB");
         if (!indexedDB) {
-            throw Error("Browser does not support indexedDB");
+            throw new Error("Browser does not support indexedDB");
         }
 
         this.openDB().subscribe(
@@ -47,6 +47,9 @@ export class LocalDB {
     }
 
     getDB() {
+        if (!this.db) {
+            throw new Error("DB not available!");
+        }
         return this.db;
     }
 
@@ -66,13 +69,11 @@ export class LocalDB {
             };
 
             openRequest.onerror = (event: IDBErrorEvent) => {
-                observer.onError("Error in indexedDB.open(), errorCode: " +
-                    event.target.errorCode);
+                observer.error("Cannot open DB");
             };
 
             openRequest.onblocked = (event: IDBErrorEvent) => {
-                observer.onError("DB blocked error, errorCode: " +
-                    event.target.errorCode);
+                observer.error("DB blocked");
             };
 
             // This function is called when the database doesn"t exist
@@ -99,10 +100,8 @@ export class LocalDB {
                 catch (error) {
                     let ex: DOMException = error;
                     if (ex.code !== STORE_EXISTS_ERROR_CODE) {
-                        // we ignore the error that says store already exists,
-                        // just throw any other error
-                        observer.error("Cannot create store, code: " +
-                            ex.code + ", message: " + ex.message);
+                        // ignore 'store already exists' error
+                        observer.error("Cannot create store");
                     }
                 }
                 console.log("openDB:onupgradeended DONE");
@@ -113,13 +112,8 @@ export class LocalDB {
     }
 
     getStore(name: string, mode: string) {
-        if (!this.db) {
-            throw Error("getObjectStore(): DB not available!");
-        }
-        else {
-            return this.db.transaction(DB_TREE_STORE_NAME, mode)
-                .objectStore(DB_TREE_STORE_NAME);
-        }
+        return this.getDB().transaction(DB_TREE_STORE_NAME, mode)
+            .objectStore(DB_TREE_STORE_NAME);
     }
 
     getTreeStore(mode: string) {
@@ -130,5 +124,71 @@ export class LocalDB {
         return this.getStore(DB_DATA_STORE_NAME, mode);
     }
 
+    clearObjectStores() {
+        let clearTreeStoreRequest: IDBRequest =
+            this.getTreeStore("readwrite").clear();
+
+        clearTreeStoreRequest.onsuccess = function(event: Event) {
+            console.log("tree Store cleared");
+        };
+
+        clearTreeStoreRequest.onerror = (event: IDBErrorEvent) => {
+            throw new Error("Tree store.clear() failed");
+        };
+
+        let clearDataStoreRequest: IDBRequest =
+            this.getDataStore("readwrite").clear();
+
+        clearDataStoreRequest.onsuccess = function(event: Event) {
+            console.log("data Store cleared");
+        };
+
+        clearDataStoreRequest.onerror = (event: IDBErrorEvent) => {
+            throw new Error("data store.clear() failed");
+        };
+    };
+
+    getItemByKey(
+        key: number,
+        callback: (data: any) => void) {
+
+        let getRequest: IDBRequest =
+            this.getTreeStore("readonly").get(key);
+
+        getRequest.onsuccess = (event: IDBEvent) => {
+            console.log("got item " + getRequest.result + " with key " + key);
+            callback && callback(getRequest.result);
+        };
+
+        getRequest.onerror = (event: IDBErrorEvent) => {
+            throw new Error("Failed to get item by key ");
+        };
+    }
+
+    /*
+    parentItemsObservable(parentKey: number) {
+        
+    }
+    getItemInParentByName(
+        name: string,
+        parentKey: number,
+        callback: (data: any) => void) {
+
+        this.getItemByKey(parentKey, (data: any) => {
+            if (data === undefined) {
+                // parent not found
+            }
+            
+        });
+    }
+    */
+    // if parent already has an item by that name, throw error
+    // otherwise create a new item in the parent
+    // - if it's a folder, do not add it to the data table, only add to tree
+    // - if it's not a folder, add it to the data table first and
+    //   then add it to the tree, in the tree only store its index
+    smartAddItemToParent() {
+
+    }
 }
 
