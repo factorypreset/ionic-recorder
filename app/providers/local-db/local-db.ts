@@ -217,7 +217,6 @@ export class LocalDB {
                         () => {
                             console.log("COMPLETED NESTED OBSERVER " +
                                 nCleared);
-                            observer.complete();
                         }
                     );
                 },
@@ -226,7 +225,6 @@ export class LocalDB {
                 },
                 () => {
                     console.log("COMPLETED PARENT OBSERVER " + nCleared);
-                    observer.complete();
                 }
             );
         });
@@ -257,7 +255,6 @@ export class LocalDB {
                 },
                 () => {
                     console.log("addDataItem() getDataStore observable complete");
-                    observer.complete();
                 }
             );
         });

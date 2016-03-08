@@ -1,5 +1,6 @@
 // not efficient but sufficient and clear
 export function num2str(num: number, nDecimals: number) {
+    "use strict";
     let floorNum: number = Math.floor(num),
         frac: number = num - floorNum,
         pow10: number = Math.pow(10, nDecimals),
@@ -13,6 +14,7 @@ const addZero = (n: number) => { return (n < 10) ? "0" : ""; };
 
 // not efficient but sufficient and clear
 export function msec2time(msec: number) {
+    "use strict";
     let totalSec: number = Math.floor(msec / 1000),
         totalMin: number = Math.floor(totalSec / 60),
         hr: number = Math.floor(totalMin / 60),
@@ -22,13 +24,3 @@ export function msec2time(msec: number) {
     return [addZero(hr), hr, ":", addZero(min), min, ":",
         addZero(sec), sec, ".", secFrac, addZero(secFrac)].join("");
 }
-
-/*
-export function copyObject(object1: any, object2: any) {
-    for (var key in object1) {
-        if (object1.hasOwnProperty(key)) {
-            object2[key] = object1[key];
-        }
-    }
-}
-*/
