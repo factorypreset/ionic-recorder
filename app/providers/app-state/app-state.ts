@@ -15,9 +15,11 @@ export class AppState {
     constructor() {
         console.log("constructor():AppState");
         let localDB: LocalDB = LocalDB.Instance;
-        localDB.getDB().subscribe((db: IDBDatabase) => {
-            console.log("app state got db: " + db);
-        });
+        
+        // block below works
+        // localDB.getDB().subscribe((db: IDBDatabase) => {
+        //     console.log("app state got db: " + db);
+        // });
     }
 
     save() {

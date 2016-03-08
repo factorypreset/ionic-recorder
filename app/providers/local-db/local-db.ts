@@ -36,7 +36,7 @@ export class LocalDB {
         return this.instance;
     }
 
-    // returns an Observable<IDBDatabase>, just like openDB() does,
+    // returns an Observable<IDBDatabase> of the db, just like openDB() does,
     // but this time it's a smarter one that checks to see if we already
     // have a DB opened, so that we don"t call open() more than once
     getDB() {
@@ -67,18 +67,13 @@ export class LocalDB {
         return source;
     }
 
-    // returns an Observable<IDBDatabase>
+    // returns an Observable<IDBDatabase> of the db
     openDB() {
         let source: Observable<IDBDatabase> = Observable.create((observer) => {
-            // console.log("IndexedDB:openDB() db:" + DB_NAME +
-            //     ", version:" + DB_VERSION);
             let openRequest: IDBOpenDBRequest = indexedDB.open(
                 DB_NAME, DB_VERSION);
 
             openRequest.onsuccess = (event: Event) => {
-                // console.log("indexedDB.open().onsuccess(): " +
-                //     openRequest.result);
-                // we got a db in openRequest.result - only 1 db, so quit
                 observer.next(openRequest.result);
                 observer.complete();
             };
@@ -93,7 +88,6 @@ export class LocalDB {
 
             // This function is called when the database doesn"t exist
             openRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-                console.log("openDB:onupgradeended START");
                 try {
                     let treeStore: IDBObjectStore =
                         openRequest.result.createObjectStore(
@@ -126,7 +120,7 @@ export class LocalDB {
         return source;
     }
 
-    // returns an Observable<IDBObjectStore
+    // returns an Observable<IDBObjectStore of a store
     getStore(name: string, mode: string) {
         let source: Observable<IDBObjectStore> = Observable.create((observer) => {
             this.getDB().subscribe(
@@ -147,17 +141,17 @@ export class LocalDB {
         return source;
     }
 
-    // returns an Observable<IDBObjectStore>
+    // returns an Observable<IDBObjectStore> of the tree store
     getTreeStore(mode: string) {
         return this.getStore(DB_TREE_STORE_NAME, mode);
     }
 
-    // returns an Observable<IDBObjectStore>
+    // returns an Observable<IDBObjectStore> of the data store
     getDataStore(mode: string) {
         return this.getStore(DB_DATA_STORE_NAME, mode);
     }
 
-    // returns an Observable<IDBObjectStore>
+    // returns an Observable<IDBObjectStore> of the store that was cleared
     clearObjectStore(storeName: string) {
         let source: Observable<IDBObjectStore> = Observable.create((observer) => {
             this.getStore(storeName, "readwrite").subscribe(
@@ -191,12 +185,12 @@ export class LocalDB {
                             observer.complete();
                         },
                         (error2) => {
-                            observer.error("could not clear tree store 1/2");
+                            observer.error("could not clear tree store 2/2");
                         }
                     );
                 },
                 (error) => {
-                    observer.error("could not clear data store 2/2");
+                    observer.error("could not clear data store 1/2");
                 }
             );
         });
@@ -214,13 +208,11 @@ export class LocalDB {
                         observer.complete();
                     };
                     addRequest.onerror = (event: IDBEvent) => {
-                        console.log("addDataItem() request error");
-                        observer.error("addDataItem() add request failed");
+                        observer.error("addDataItem: request error");
                     };
                 },
                 (error) => {
-                    console.log("addDataItem: getDataStore error");
-                    observer.error("could not get data store in addDataItem");
+                    observer.error("addDataItem: getDataStore error");
                 }
             );
         });
@@ -239,19 +231,16 @@ export class LocalDB {
                             observer.next(undefined);
                         }
                         else {
-                            console.log("got data: " + getRequest.result.data);
                             observer.next(getRequest.result.data);
                             observer.complete();
                         }
                     };
 
                     getRequest.onerror = (event: IDBErrorEvent) => {
-                        console.log("getDataItem() request error");
-                        observer.error("getDataItem() add request failed");
+                        observer.error("getDataItem: request error");
                     };
                 },
                 (error) => {
-                    console.log("getDataItem: getDataStore error");
                     observer.error("getDataItem: getDataStore error");
                 }
             );
@@ -272,12 +261,10 @@ export class LocalDB {
                     };
 
                     deleteRequest.onerror = (event: IDBErrorEvent) => {
-                        console.log("deleteDataItem() request error");
-                        observer.error("deleteDataItem() add request failed");
+                        observer.error("deleteDataItem: request error");
                     };
                 },
                 (error) => {
-                    console.log("deleteDataItem: getDataStore error");
                     observer.error("deleteDataItem: getDataStore error");
                 }
             );
