@@ -12,11 +12,6 @@ export const DB_NO_KEY: number = 0;
 const STORE_EXISTS_ERROR_CODE: number = 0;
 
 
-interface DBItem {
-    id: number;
-
-}
-
 @Injectable()
 export class LocalDB {
     // Singleton pattern implementation
@@ -42,14 +37,14 @@ export class LocalDB {
     }
 
     // returns an Observable<IDBDatabase>, just like openDB() does,
-    // but this time it's a smarter one that checks to see if we already
+    // but this time it"s a smarter one that checks to see if we already
     // have a DB opened, so that we don"t call open() more than once
     getDB() {
         // subscribe to dbObservable, which opens the db, but only
         // do so if you don"t already have the db opened before
         // (this is an example of chaining one observable (the one
         // returned) with another)
-        let obs: Observable<IDBDatabase> = Observable.create((observer) => {
+        let source: Observable<IDBDatabase> = Observable.create((observer) => {
             if (this.db) {
                 console.log("... already got DB: " + this.db);
                 observer.next(this.db);
@@ -67,18 +62,18 @@ export class LocalDB {
                         observer.error("could not get DB");
                     },
                     () => {
-                        console.log("done getting DB " + this.db);
+                        console.log("done with getDB() observable");
                         observer.complete();
                     }
                 );
             }
         });
-        return obs;
+        return source;
     }
 
     // returns an Observable<IDBDatabase>
     openDB() {
-        let obs: Observable<IDBDatabase> = Observable.create((observer) => {
+        let source: Observable<IDBDatabase> = Observable.create((observer) => {
             // console.log("IndexedDB:openDB() db:" + DB_NAME +
             //     ", version:" + DB_VERSION);
             let openRequest: IDBOpenDBRequest = indexedDB.open(
@@ -130,9 +125,8 @@ export class LocalDB {
                 }
                 // console.log("openDB:onupgradeended DONE");
             }; // openRequest.onupgradeneeded = ...
-        }); // let obs: Observable<IDBDatabase> =
-
-        return obs;
+        }); // let source: Observable<IDBDatabase> =
+        return source;
     }
 
     // returns an Observable<IDBObjectStore
@@ -141,28 +135,27 @@ export class LocalDB {
         // do so if you don"t already have the db opened before
         // (this is an example of chaining one observable (the one
         // returned) with another)
-        let obs: Observable<IDBObjectStore> = Observable.create((observer) => {
+        let source: Observable<IDBObjectStore> = Observable.create((observer) => {
             this.getDB().subscribe(
                 (db: IDBDatabase) => {
                     observer.next(
                         db.transaction(
-                            DB_TREE_STORE_NAME,
+                            name,
                             mode
-                        ).objectStore(DB_TREE_STORE_NAME)
+                        ).objectStore(name)
                     );
                     observer.complete();
                 },
                 (error) => {
-                    observer.error("could not get DB");
+                    observer.error("getStore() getDB(): could not get DB");
                 },
                 () => {
-                    console.log("done getting DB " + this.db);
+                    console.log("done with getStore() getDB() observable");
                     observer.complete();
                 }
             );
         });
-
-        return obs;
+        return source;
     }
 
     // returns an Observable<IDBObjectStore>
@@ -181,7 +174,7 @@ export class LocalDB {
         // do so if you don"t already have the db opened before
         // (this is an example of chaining one observable (the one
         // returned) with another)
-        let obs: Observable<IDBObjectStore> = Observable.create((observer) => {
+        let source: Observable<IDBObjectStore> = Observable.create((observer) => {
             this.getStore(storeName, "readwrite").subscribe(
                 (store: IDBObjectStore) => {
                     store.clear();
@@ -192,36 +185,56 @@ export class LocalDB {
                     observer.error("could not clear store");
                 },
                 () => {
-                    console.log("done getting DB " + this.db);
+                    console.log("done with clearObjectStore() observable");
                     observer.complete();
                 }
             );
         });
-        return obs;
+        return source;
     }
 
-    // returns an Observable<IDBObjectStore[]>, clears both stores
-    clearObjectStores() {
+    // returns an Observable<boolean> (if deleted or not)
+    deleteDB() {
+        let source: Observable<boolean> = Observable.create((observer) => {
+            let req: IDBOpenDBRequest = indexedDB.deleteDatabase(DB_NAME);
+            req.onsuccess = () => {
+                observer.next(true);
+                observer.complete();
+            };
+            req.onerror = () => {
+                observer.error("Could not delete DB");
+            };
+            req.onblocked = () => {
+                observer.error("Could not delete DB - DB blocked");
+            };
+        });
+        return source;
+    }
+
+    // returns an Observable<number> (number of stores cleared)
+    // clears both stores
+    clearDB() {
         // subscribe to dbObservable, which opens the db, but only
         // do so if you don"t already have the db opened before
         // (this is an example of chaining one observable (the one
         // returned with two other observables)
-        let obs: Observable<IDBObjectStore[]> = Observable.create((observer) => {
-            let objectStores: IDBObjectStore[] = [];
+        let source: Observable<number> = Observable.create((observer) => {
+            let nCleared: number = 0;
             this.clearObjectStore(DB_DATA_STORE_NAME).subscribe(
                 (store: IDBObjectStore) => {
-                    objectStores.push(store);
+                    nCleared += 1;
                     this.clearObjectStore(DB_TREE_STORE_NAME).subscribe(
                         (store: IDBObjectStore) => {
-                            objectStores.push(store);
-                            observer.next(objectStores);
+                            nCleared += 1;
+                            observer.next(nCleared);
                             observer.complete();
                         },
                         (error2) => {
                             observer.error("could not clear tree store 1/2");
                         },
                         () => {
-                            console.log("COMPLETED NESTED OBSERVER");
+                            console.log("COMPLETED NESTED OBSERVER " +
+                                nCleared);
                             observer.complete();
                         }
                     );
@@ -230,12 +243,43 @@ export class LocalDB {
                     observer.error("could not clear data store 2/2");
                 },
                 () => {
-                    console.log("COMPLETED PARENT OBSERVER");
+                    console.log("COMPLETED PARENT OBSERVER " + nCleared);
                     observer.complete();
                 }
             );
         });
-        return obs;
+        return source;
+    }
+
+    // returns an Observable<number> of the added item's key
+    addDataItem(data: any) {
+        let source: Observable<number> = Observable.create((observer) => {
+            this.getDataStore("readwrite").subscribe(
+                (store: IDBObjectStore) => {
+                    console.log("addDataItem() getDataStore observable success");
+                    let addRequest: IDBRequest = store.add({ data: data });
+                    addRequest.onsuccess = (event: IDBEvent) => {
+                        console.log("addDataItem() request success, key = " +
+                            addRequest.result);
+                        observer.next(addRequest.result);
+                        observer.complete();
+                    };
+                    addRequest.onerror = (event: IDBEvent) => {
+                        console.log("addDataItem() request error");
+                        observer.error("add request fails in addDataItem()");
+                    };
+                },
+                (error) => {
+                    console.log("addDataItem() getDataStore observable error");
+                    observer.error("could not get data store in addDataItem()");
+                },
+                () => {
+                    console.log("addDataItem() getDataStore observable complete");
+                    observer.complete();
+                }
+            );
+        });
+        return source;
     }
 }
 

@@ -12,6 +12,8 @@ const START_RESUME_ICON: string = "mic";
 const PAUSE_ICON: string = "pause";
 // derived constants, please do not touch the constants below:
 const MONITOR_TIMEOUT_MSEC: number = 1000.0 / MONITOR_FREQUENCY_HZ;
+// the max amount of time we expect the db to finish initialization
+const OPEN_DB_MAX_TIMEOUT: number = 50;
 
 
 @Page({
@@ -37,8 +39,13 @@ export class RecordPage {
     private totalPauseTime: number;
     private recordingDuration: number;
 
+    private localDB: LocalDB;
+
     constructor(private platform: Platform, private webAudio: WebAudio,
         private appState: AppState) {
+
+        this.localDB = LocalDB.Instance;
+
         console.log("constructor():RecordPage");
         this.gain = 100;
         this.dB = "0.00 dB";
@@ -102,6 +109,21 @@ export class RecordPage {
 
         // start volume monitoring infinite loop
         this.monitorVolume();
+    }
+
+    onPageDidEnter() {
+        console.log("RecordPage:onPageDidEnter()");
+        this.localDB = LocalDB.Instance;
+        // by setting a small timeout here we're ensuring that the
+        // getDB operation that opens a new db happens only once
+        // even when it happens more than once, it works, but this
+        // keeps things more efficient by opening the db only once
+        // for the entire app
+        setTimeout(() => {
+            this.localDB.getDB().subscribe((db: IDBDatabase) => {
+                console.log("record page got db: " + db);
+            });
+        }, OPEN_DB_MAX_TIMEOUT);
     }
 
     monitorVolume() {

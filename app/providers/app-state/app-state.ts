@@ -13,20 +13,12 @@ export class AppState {
     lastViewedFolderKey: number;
 
     constructor() {
+        console.log("constructor():AppState");
         let localDB: LocalDB = LocalDB.Instance;
-        /*
-        this.localDB.getDBObservable().subscribe(
-            (db: IDBDatabase) => {
-                console.log('... and the DB is: ' + db);
-            },
-            (error) => {
-                console.log('... could not get DB in AppState constructor!');
-            },
-            () => {
-                console.log('... done getting DB');
-            }
-        );
-        */
+        localDB.getDB().subscribe((db: IDBDatabase) => {
+            console.log("app state got db: " + db);
+        });
+
         this.lastViewedFolderKey = DB_NO_KEY;
     }
 

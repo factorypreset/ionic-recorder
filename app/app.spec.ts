@@ -5,6 +5,10 @@ import {IonicApp, Platform} from "ionic-angular";
 import {TracktunesApp} from "./app";
 import {AppState} from "./providers/app-state/app-state";
 
+
+const MAX_APP_INIT_TIME = 60;
+
+
 // this needs doing _once_ for the entire test suite, hence it's here
 setBaseTestProviders(TEST_BROWSER_PLATFORM_PROVIDERS,
     TEST_BROWSER_APPLICATION_PROVIDERS);
@@ -26,19 +30,27 @@ export function main(): void {
 
     describe("TracktunesApp", () => {
 
-        beforeEach(() => {
+        beforeEach((done: Function) => {
             let ionicApp: IonicApp = new IonicApp(null, null, null);
             let platform: Platform = new Platform();
             let appState: AppState = new AppState();
             tracktunesApp = new TracktunesApp(ionicApp, platform, appState);
+            done();
         });
 
-        it("initialises with a root page", () => {
-            expect(tracktunesApp["rootPage"]).not.toBe(null);
+        it("initialises with a root page", (done) => {
+            setTimeout(() => {
+                expect(tracktunesApp["rootPage"]).not.toBeFalsy();
+                done();
+            }, MAX_APP_INIT_TIME);
         });
 
-        it("initialises with an app", () => {
-            expect(tracktunesApp["app"]).not.toBe(null);
+        it("initialises with an app", (done) => {
+            setTimeout(() => {
+                expect(tracktunesApp["rootPage"]).not.toBeFalsy();
+                expect(tracktunesApp["app"]).not.toBeFalsy();
+                done();
+            }, MAX_APP_INIT_TIME);
         });
     });
 }
