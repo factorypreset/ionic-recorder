@@ -6,10 +6,22 @@ export function main(): void {
     "use strict";
 
     let localDB: LocalDB = null,
-        localDB2: LocalDB = null;
+        localDB2: LocalDB = null,
+        db: IDBDatabase = null;
 
-    beforeEach(() => {
+    beforeEach((done: Function) => {
         localDB = LocalDB.Instance;
+        localDB.getDB().subscribe(
+            (database: IDBDatabase) => {
+                db = database;
+            },
+            (error) => {
+                throw new Error("woops!");
+            },
+            () => {
+                done();
+            }
+        );
     });
 
     describe("When localDB initialized", () => {
@@ -20,41 +32,34 @@ export function main(): void {
         it("indexedDB is available", () => {
             expect(localDB.getDB()).not.toBeFalsy();
         });
-
-        it("both stores are available", () => {
-            expect(localDB.getDataStore("readwrite")).not.toBeFalsy();
-            expect(localDB.getTreeStore("readwrite")).not.toBeFalsy();
-        });
-
-        it("can clear stores twice in a row", () => {
-            // we have to use bind() here, we cannot use
-            //     expect(localDB.clearObjectStores()).not.toThrow();
-            // (see: http://stackoverflow.com/questions/9500586)
-            expect(localDB.clearObjectStores.bind(localDB)).not.toThrow();
-            expect(localDB.clearObjectStores.bind(localDB)).not.toThrow();
-        });
-
-        // since we just cleared the db before, we know no items exist in it
-        it("can try to retrieve an item with a non-existing key", () => {
-            localDB.getItemByKey(1, (data: any) => {
-                expect(data).toBe(undefined);
-            });
-        });
-        
-        it("cannot subscribe to parent observable w/no parent", () = {
-            let parentItemsObservable: Observable<DBItem>;
-        })
-        /*
-        it("can smart-add an item", () => {
-            // expect(localDB.smartAdd.bind(localDB, )) 
-        });
-        */
     });
 
     describe("When two LocalDB instances are initialized", () => {
         it("should be equal (singleton test)", () => {
             localDB2 = LocalDB.Instance;
             expect(localDB2).toBe(localDB);
+        });
+    });
+
+    describe("When DB is available", () => {
+        it("db is not falsy", () => {
+            expect(db).not.toBeFalsy();
+        });
+
+        it("clears both stores, twice in a row without erring", () => {
+            let storesArray: IDBObjectStore[] = [];
+            localDB.clearObjectStores().subscribe(
+                (stores: IDBObjectStore[]) => {
+                    storesArray = stores;
+                    expect(stores.length).toBe(2);
+                },
+                (error) => {
+                    fail();
+                },
+                () => {
+                    expect(storesArray.length).toBe(2);
+                }
+            );
         });
     });
 }

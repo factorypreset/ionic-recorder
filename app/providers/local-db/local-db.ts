@@ -43,12 +43,13 @@ export class LocalDB {
 
     // returns an Observable<IDBDatabase>, just like openDB() does,
     // but this time it's a smarter one that checks to see if we already
-    // have a DB opened, so that we don't call open() more than once
+    // have a DB opened, so that we don"t call open() more than once
     getDB() {
-        // subscribe to dbObservable, which opens the db, but only 
-        // do so if you don't already have the db opened before
-        // (this is an example of chaining two observables)
-        let source: Observable<IDBDatabase> = Observable.create((observer) => {
+        // subscribe to dbObservable, which opens the db, but only
+        // do so if you don"t already have the db opened before
+        // (this is an example of chaining one observable (the one
+        // returned) with another)
+        let obs: Observable<IDBDatabase> = Observable.create((observer) => {
             if (this.db) {
                 console.log("... already got DB: " + this.db);
                 observer.next(this.db);
@@ -72,12 +73,12 @@ export class LocalDB {
                 );
             }
         });
-        return source;
+        return obs;
     }
 
     // returns an Observable<IDBDatabase>
     openDB() {
-        let source: Observable<IDBDatabase> = Observable.create((observer) => {
+        let obs: Observable<IDBDatabase> = Observable.create((observer) => {
             // console.log("IndexedDB:openDB() db:" + DB_NAME +
             //     ", version:" + DB_VERSION);
             let openRequest: IDBOpenDBRequest = indexedDB.open(
@@ -123,23 +124,24 @@ export class LocalDB {
                 catch (error) {
                     let ex: DOMException = error;
                     if (ex.code !== STORE_EXISTS_ERROR_CODE) {
-                        // ignore 'store already exists' error
+                        // ignore "store already exists" error
                         observer.error("Cannot create store");
                     }
                 }
                 // console.log("openDB:onupgradeended DONE");
-            }; // openRequest.onupgradeneeded = ...            
-        }); // let obs: Observable<IDBDatabase> = 
+            }; // openRequest.onupgradeneeded = ...
+        }); // let obs: Observable<IDBDatabase> =
 
-        return source;
+        return obs;
     }
 
     // returns an Observable<IDBObjectStore
     getStore(name: string, mode: string) {
-        // subscribe to dbObservable, which opens the db, but only 
-        // do so if you don't already have the db opened before
-        // (this is an example of chaining two observables)
-        let source: Observable<IDBObjectStore> = Observable.create((observer) => {
+        // subscribe to dbObservable, which opens the db, but only
+        // do so if you don"t already have the db opened before
+        // (this is an example of chaining one observable (the one
+        // returned) with another)
+        let obs: Observable<IDBObjectStore> = Observable.create((observer) => {
             this.getDB().subscribe(
                 (db: IDBDatabase) => {
                     observer.next(
@@ -160,7 +162,7 @@ export class LocalDB {
             );
         });
 
-        return source;
+        return obs;
     }
 
     // returns an Observable<IDBObjectStore>
@@ -175,10 +177,11 @@ export class LocalDB {
 
     // returns an Observable<IDBObjectStore>
     clearObjectStore(storeName: string) {
-        // subscribe to dbObservable, which opens the db, but only 
-        // do so if you don't already have the db opened before
-        // (this is an example of chaining two observables)
-        let source: Observable<IDBObjectStore> = Observable.create((observer) => {
+        // subscribe to dbObservable, which opens the db, but only
+        // do so if you don"t already have the db opened before
+        // (this is an example of chaining one observable (the one
+        // returned) with another)
+        let obs: Observable<IDBObjectStore> = Observable.create((observer) => {
             this.getStore(storeName, "readwrite").subscribe(
                 (store: IDBObjectStore) => {
                     store.clear();
@@ -194,15 +197,16 @@ export class LocalDB {
                 }
             );
         });
-        return source;
+        return obs;
     }
-    
+
     // returns an Observable<IDBObjectStore[]>, clears both stores
     clearObjectStores() {
-        // subscribe to dbObservable, which opens the db, but only 
-        // do so if you don't already have the db opened before
-        // (this is an example of chaining two observables)
-        let source: Observable<IDBObjectStore[]> = Observable.create((observer) => {
+        // subscribe to dbObservable, which opens the db, but only
+        // do so if you don"t already have the db opened before
+        // (this is an example of chaining one observable (the one
+        // returned with two other observables)
+        let obs: Observable<IDBObjectStore[]> = Observable.create((observer) => {
             let objectStores: IDBObjectStore[] = [];
             this.clearObjectStore(DB_DATA_STORE_NAME).subscribe(
                 (store: IDBObjectStore) => {
@@ -217,7 +221,7 @@ export class LocalDB {
                             observer.error("could not clear tree store 1/2");
                         },
                         () => {
-                            console.log('COMPLETED NESTED OBSERVER');
+                            console.log("COMPLETED NESTED OBSERVER");
                             observer.complete();
                         }
                     );
@@ -226,122 +230,12 @@ export class LocalDB {
                     observer.error("could not clear data store 2/2");
                 },
                 () => {
-                    console.log('COMPLETED PARENT OBSERVER');
+                    console.log("COMPLETED PARENT OBSERVER");
                     observer.complete();
                 }
             );
         });
-        return source;
-    }
-
-    addDataItem(
-        data: any,
-        callback?: (key: number) => void) {
-
-        if (data) {
-            let addRequest: IDBRequest =
-                this.getDataStore("readwrite").add(data);
-
-            addRequest.onsuccess = (event: IDBEvent) => {
-                console.log("got item with key " + addRequest.result);
-                callback && callback(addRequest.result);
-            };
-
-            addRequest.onerror = (event: IDBErrorEvent) => {
-                throw new Error("Failed to get item by key ");
-            };
-        }
-    }
-
-    addTreeItem(
-        data: any,
-        callback?: (key: number) => void) {
-
-        if (data) {
-            let addRequest: IDBRequest =
-                this.getTreeStore("readwrite").add(data);
-
-            addRequest.onsuccess = (event: IDBEvent) => {
-                console.log("got item with key " + addRequest.result);
-                callback && callback(addRequest.result);
-            };
-
-            addRequest.onerror = (event: IDBErrorEvent) => {
-                throw new Error("Failed to get item by key ");
-            };
-        }
-    }
-
-    getItemByKey(
-        key: number,
-        callback: (data: any) => void) {
-
-        let getRequest: IDBRequest =
-            this.getTreeStore("readonly").get(key);
-
-        getRequest.onsuccess = (event: IDBEvent) => {
-            console.log("got item " + getRequest.result + " with key " + key);
-            callback && callback(getRequest.result);
-        };
-
-        getRequest.onerror = (event: IDBErrorEvent) => {
-            throw new Error("Failed to get item by key ");
-        };
-    }
-
-    parentItemsObservable(parentKey: number) {
-        let source: Observable<IDBDatabase> = Observable.create((observer) => {
-            // first: just a check to make sure the parent exists
-            this.getItemByKey(parentKey, (data: any) => {
-                if (data === undefined) {
-                    observer.error("Parent does not exist!");
-                }
-            });
-            // now iterate on contents with a cursor
-            let keyRange: IDBKeyRange = IDBKeyRange.only(parentKey),
-                cursorRequest: IDBRequest = this.getTreeStore("readonly")
-                    .index("parentKey").openCursor(keyRange);
-
-            cursorRequest.onsuccess = (event: IDBEvent) => {
-                let cursor: IDBCursorWithValue = cursorRequest.result;
-                console.log("getItemsByParentKey: SUCCESS parentKey: " +
-                    parentKey + ", cursor = " + cursor);
-                if (cursor) {
-                    observer.next(cursor.value);
-                    cursor.continue();
-                }
-                else {
-                    observer.complete();
-                }
-            };
-
-            cursorRequest.onerror = (event: IDBErrorEvent) => {
-                observer.error("cursor error in parent key index search");
-            };
-        });
-        return source;
-    }
-    /*
-    getItemInParentByName(
-        name: string,
-        parentKey: number,
-        callback: (data: any) => void) {
-     
-        this.getItemByKey(parentKey, (data: any) => {
-            if (data === undefined) {
-                // parent not found
-            }
-            
-        });
-    }
-    */
-    // if parent already has an item by that name, throw error
-    // otherwise create a new item in the parent
-    // - if it's a folder, do not add it to the data table, only add to tree
-    // - if it's not a folder, add it to the data table first and
-    //   then add it to the tree, in the tree only store its index
-    smartAddItemToParent() {
-
+        return obs;
     }
 }
 
