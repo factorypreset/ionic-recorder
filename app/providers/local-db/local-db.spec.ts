@@ -34,11 +34,16 @@ export function main(): void {
             expect(localDB.clearObjectStores.bind(localDB)).not.toThrow();
         });
 
+        // since we just cleared the db before, we know no items exist in it
         it("can try to retrieve an item with a non-existing key", () => {
             localDB.getItemByKey(1, (data: any) => {
                 expect(data).toBe(undefined);
             });
         });
+        
+        it("cannot subscribe to parent observable w/no parent", () = {
+            let parentItemsObservable: Observable<DBItem>;
+        })
         /*
         it("can smart-add an item", () => {
             // expect(localDB.smartAdd.bind(localDB, )) 
