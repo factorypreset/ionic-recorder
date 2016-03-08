@@ -96,7 +96,7 @@ export class LocalDB {
 
             // This function is called when the database doesn"t exist
             openRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-                // console.log("openDB:onupgradeended START");
+                console.log("openDB:onupgradeended START");
                 try {
                     let treeStore: IDBObjectStore =
                         openRequest.result.createObjectStore(
@@ -104,10 +104,11 @@ export class LocalDB {
                             { keyPath: DB_KEY_PATH, autoIncrement: true }
                         );
 
-                    // index on name and parentKey
+                    // index on name, parentKey and date
                     treeStore.createIndex("name", "name", { unique: false });
                     treeStore.createIndex(
                         "parentKey", "parentKey", { unique: false });
+                    treeStore.createIndex("date", "date", { unique: true });
 
                     // create internal data-table store
                     openRequest.result.createObjectStore(
@@ -122,7 +123,7 @@ export class LocalDB {
                         observer.error("Cannot create store");
                     }
                 }
-                // console.log("openDB:onupgradeended DONE");
+                console.log("openDB:onupgradeended DONE");
             }; // openRequest.onupgradeneeded = ...
         }); // let source: Observable<IDBDatabase> =
         return source;
