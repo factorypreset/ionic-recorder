@@ -37,7 +37,7 @@ export class LocalDB {
     }
 
     // returns an Observable<IDBDatabase>, just like openDB() does,
-    // but this time it"s a smarter one that checks to see if we already
+    // but this time it's a smarter one that checks to see if we already
     // have a DB opened, so that we don"t call open() more than once
     getDB() {
         // subscribe to dbObservable, which opens the db, but only

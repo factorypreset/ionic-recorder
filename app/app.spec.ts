@@ -4,7 +4,7 @@ import {setBaseTestProviders} from "angular2/testing";
 import {IonicApp, Platform} from "ionic-angular";
 import {TracktunesApp} from "./app";
 import {AppState} from "./providers/app-state/app-state";
-
+import {DB_NAME} from "./providers/local-db/local-db";
 
 const MAX_APP_INIT_TIME = 60;
 
@@ -31,11 +31,11 @@ export function main(): void {
     describe("TracktunesApp", () => {
 
         beforeEach((done: Function) => {
-            let ionicApp: IonicApp = new IonicApp(null, null, null);
-            let platform: Platform = new Platform();
-            let appState: AppState = new AppState();
-            tracktunesApp = new TracktunesApp(ionicApp, platform, appState);
-            done();
+            let ionicApp: IonicApp = new IonicApp(null, null, null),
+                platform: Platform = new Platform(),
+                appState: AppState = new AppState();
+                tracktunesApp = new TracktunesApp(ionicApp, platform, appState);
+                done();
         });
 
         it("initialises with a root page", (done) => {

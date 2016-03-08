@@ -1,9 +1,24 @@
-import {LocalDB, DB_NO_KEY} from "./local-db";
+import {LocalDB, DB_NAME} from "./local-db";
 import {Observable} from "rxjs/Rx";
 
 const MAX_DB_INIT_TIME = 200;
 const RANDOM_WORD: string =
     "aWh9Xs5ytKuvEjdBhuLUVjED4dp5UPZd3QZFTLuejYNbuLvBVeP9Qq5xaBPAY7RE";
+
+let request: IDBOpenDBRequest = indexedDB.deleteDatabase(DB_NAME);
+
+request.onsuccess = function() {
+    console.log("deleteDatabase: SUCCESS");
+};
+
+request.onerror = function() {
+    console.log("deleteDatabase: ERROR");
+};
+
+request.onblocked = function() {
+    console.log("deleteDatabase: BLOCKED");
+};
+
 
 export function main(): void {
     "use strict";
@@ -78,7 +93,7 @@ export function main(): void {
             setTimeout(() => {
                 localDB.addDataItem(RANDOM_WORD).subscribe(
                     (key: number) => {
-                        expect(key).toBeGreaterThan(0);
+                        expect(key).toBe(1);
                         done();
                     },
                     (error) => {
