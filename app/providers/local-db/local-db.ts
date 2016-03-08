@@ -63,7 +63,6 @@ export class LocalDB {
                     },
                     () => {
                         console.log("done with getDB() observable");
-                        observer.complete();
                     }
                 );
             }
@@ -151,7 +150,6 @@ export class LocalDB {
                 },
                 () => {
                     console.log("done with getStore() getDB() observable");
-                    observer.complete();
                 }
             );
         });
@@ -186,7 +184,6 @@ export class LocalDB {
                 },
                 () => {
                     console.log("done with clearObjectStore() observable");
-                    observer.complete();
                 }
             );
         });
@@ -262,3 +259,4 @@ export class LocalDB {
     }
 }
 
+    
