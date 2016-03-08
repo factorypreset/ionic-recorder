@@ -131,10 +131,6 @@ export class LocalDB {
 
     // returns an Observable<IDBObjectStore
     getStore(name: string, mode: string) {
-        // subscribe to dbObservable, which opens the db, but only
-        // do so if you don"t already have the db opened before
-        // (this is an example of chaining one observable (the one
-        // returned) with another)
         let source: Observable<IDBObjectStore> = Observable.create((observer) => {
             this.getDB().subscribe(
                 (db: IDBDatabase) => {
@@ -169,10 +165,6 @@ export class LocalDB {
 
     // returns an Observable<IDBObjectStore>
     clearObjectStore(storeName: string) {
-        // subscribe to dbObservable, which opens the db, but only
-        // do so if you don"t already have the db opened before
-        // (this is an example of chaining one observable (the one
-        // returned) with another)
         let source: Observable<IDBObjectStore> = Observable.create((observer) => {
             this.getStore(storeName, "readwrite").subscribe(
                 (store: IDBObjectStore) => {
@@ -194,8 +186,6 @@ export class LocalDB {
     // returns an Observable<number> (number of stores cleared)
     // clears both stores
     clearDB() {
-        // subscribe to dbObservable, which opens the db, but only
-        // do so if you don"t already have the db opened before
         // (this is an example of chaining one observable (the one
         // returned with two other observables)
         let source: Observable<number> = Observable.create((observer) => {
@@ -259,5 +249,3 @@ export class LocalDB {
         return source;
     }
 }
-
-    
