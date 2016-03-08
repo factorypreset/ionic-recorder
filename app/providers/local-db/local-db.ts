@@ -60,9 +60,6 @@ export class LocalDB {
                     },
                     (error) => {
                         observer.error("could not get DB");
-                    },
-                    () => {
-                        console.log("done with getDB() observable");
                     }
                 );
             }
@@ -144,9 +141,6 @@ export class LocalDB {
                 },
                 (error) => {
                     observer.error("getStore() getDB(): could not get DB");
-                },
-                () => {
-                    console.log("done with getStore() getDB() observable");
                 }
             );
         });
@@ -174,9 +168,6 @@ export class LocalDB {
                 },
                 (error) => {
                     observer.error("could not clear store");
-                },
-                () => {
-                    console.log("done with clearObjectStore() observable");
                 }
             );
         });
@@ -201,18 +192,11 @@ export class LocalDB {
                         },
                         (error2) => {
                             observer.error("could not clear tree store 1/2");
-                        },
-                        () => {
-                            console.log("COMPLETED NESTED OBSERVER " +
-                                nCleared);
                         }
                     );
                 },
                 (error) => {
                     observer.error("could not clear data store 2/2");
-                },
-                () => {
-                    console.log("COMPLETED PARENT OBSERVER " + nCleared);
                 }
             );
         });
@@ -224,25 +208,77 @@ export class LocalDB {
         let source: Observable<number> = Observable.create((observer) => {
             this.getDataStore("readwrite").subscribe(
                 (store: IDBObjectStore) => {
-                    console.log("addDataItem() getDataStore observable success");
                     let addRequest: IDBRequest = store.add({ data: data });
                     addRequest.onsuccess = (event: IDBEvent) => {
-                        console.log("addDataItem() request success, key = " +
-                            addRequest.result);
                         observer.next(addRequest.result);
                         observer.complete();
                     };
                     addRequest.onerror = (event: IDBEvent) => {
                         console.log("addDataItem() request error");
-                        observer.error("add request fails in addDataItem()");
+                        observer.error("addDataItem() add request failed");
                     };
                 },
                 (error) => {
-                    console.log("addDataItem() getDataStore observable error");
-                    observer.error("could not get data store in addDataItem()");
+                    console.log("addDataItem: getDataStore error");
+                    observer.error("could not get data store in addDataItem");
+                }
+            );
+        });
+        return source;
+    }
+
+    // returns an Observable<any> of data item
+    getDataItem(key: number) {
+        let source: Observable<any> = Observable.create((observer) => {
+            this.getDataStore("readonly").subscribe(
+                (store: IDBObjectStore) => {
+                    let getRequest: IDBRequest = store.get(key);
+
+                    getRequest.onsuccess = (event: IDBEvent) => {
+                        if (!getRequest.result) {
+                            observer.next(undefined);
+                        }
+                        else {
+                            console.log("got data: " + getRequest.result.data);
+                            observer.next(getRequest.result.data);
+                            observer.complete();
+                        }
+                    };
+
+                    getRequest.onerror = (event: IDBErrorEvent) => {
+                        console.log("getDataItem() request error");
+                        observer.error("getDataItem() add request failed");
+                    };
                 },
-                () => {
-                    console.log("addDataItem() getDataStore observable complete");
+                (error) => {
+                    console.log("getDataItem: getDataStore error");
+                    observer.error("getDataItem: getDataStore error");
+                }
+            );
+        });
+        return source;
+    }
+
+    // returns an Observable<boolean> of data item
+    deleteDataItem(key: number) {
+        let source: Observable<boolean> = Observable.create((observer) => {
+            this.getDataStore("readwrite").subscribe(
+                (store: IDBObjectStore) => {
+                    let deleteRequest: IDBRequest = store.delete(key);
+
+                    deleteRequest.onsuccess = (event: IDBEvent) => {
+                        observer.next(true);
+                        observer.complete();
+                    };
+
+                    deleteRequest.onerror = (event: IDBErrorEvent) => {
+                        console.log("deleteDataItem() request error");
+                        observer.error("deleteDataItem() add request failed");
+                    };
+                },
+                (error) => {
+                    console.log("deleteDataItem: getDataStore error");
+                    observer.error("deleteDataItem: getDataStore error");
                 }
             );
         });

@@ -25,7 +25,8 @@ export function main(): void {
 
     let localDB: LocalDB = null,
         localDB2: LocalDB = null,
-        db: IDBDatabase = null;
+        db: IDBDatabase = null,
+        addItemKey: number;
 
     beforeEach((done: Function) => {
         localDB = LocalDB.Instance;
@@ -94,6 +95,7 @@ export function main(): void {
                 localDB.addDataItem(RANDOM_WORD).subscribe(
                     (key: number) => {
                         // expect key to be 1 due to deleting db on each run
+                        addItemKey = key;
                         expect(key).toBe(1);
                         done();
                     },
@@ -103,5 +105,48 @@ export function main(): void {
                 );
             }, MAX_DB_INIT_TIME);
         });
+
+        it("can get the added item from the data store", (done) => {
+            setTimeout(() => {
+                localDB.getDataItem(addItemKey).subscribe(
+                    (data: any) => {
+                        expect(data).toBe(RANDOM_WORD);
+                        done();
+                    },
+                    (error) => {
+                        fail();
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can delete the added item from the data store", (done) => {
+            setTimeout(() => {
+                localDB.deleteDataItem(addItemKey).subscribe(
+                    (data: any) => {
+                        expect(data).toBe(true);
+                        done();
+                    },
+                    (error) => {
+                        fail();
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("cannot get the deleted item from the data store", (done) => {
+            setTimeout(() => {
+                localDB.getDataItem(addItemKey).subscribe(
+                    (data: any) => {
+                        expect(data).toBe(undefined);
+                        done();
+                    },
+                    (error) => {
+                        fail();
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
     });
 }
