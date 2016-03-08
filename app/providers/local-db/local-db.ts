@@ -193,24 +193,6 @@ export class LocalDB {
         return source;
     }
 
-    // returns an Observable<boolean> (if deleted or not)
-    deleteDB() {
-        let source: Observable<boolean> = Observable.create((observer) => {
-            let req: IDBOpenDBRequest = indexedDB.deleteDatabase(DB_NAME);
-            req.onsuccess = () => {
-                observer.next(true);
-                observer.complete();
-            };
-            req.onerror = () => {
-                observer.error("Could not delete DB");
-            };
-            req.onblocked = () => {
-                observer.error("Could not delete DB - DB blocked");
-            };
-        });
-        return source;
-    }
-
     // returns an Observable<number> (number of stores cleared)
     // clears both stores
     clearDB() {

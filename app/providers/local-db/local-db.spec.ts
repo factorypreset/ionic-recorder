@@ -1,7 +1,7 @@
 import {LocalDB, DB_NO_KEY} from "./local-db";
 import {Observable} from "rxjs/Rx";
 
-const MAX_DB_INIT_TIME = 100;
+const MAX_DB_INIT_TIME = 200;
 const RANDOM_WORD: string =
     "aWh9Xs5ytKuvEjdBhuLUVjED4dp5UPZd3QZFTLuejYNbuLvBVeP9Qq5xaBPAY7RE";
 
@@ -17,36 +17,15 @@ export function main(): void {
         localDB.getDB().subscribe(
             (database: IDBDatabase) => {
                 db = database;
+                done();
             },
             (error) => {
                 fail(error);
-            },
-            () => {
-                done();
             }
         );
     });
 
-    describe("When localDB initialized", () => {
-        it("entire database can be deleted", (done) => {
-            setTimeout(() => {
-                let result: boolean = false;
-                localDB.deleteDB().subscribe(
-                    (success: boolean) => {
-                        result = success;
-                    },
-                    (error) => {
-                        fail(error);
-                    },
-                    () => {
-                        expect(result).toBe(true);
-                        done();
-                    }
-                );
-            });
-        }, MAX_DB_INIT_TIME);
-    });
-
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = MAX_DB_INIT_TIME * 100;
     describe("When localDB initialized", () => {
         it("localDB is not falsy", (done) => {
             setTimeout(() => {
@@ -83,17 +62,13 @@ export function main(): void {
 
         it("clears both stores, twice in a row without erring", (done) => {
             setTimeout(() => {
-                let cachedCleared: number = 0;
                 localDB.clearDB().subscribe(
                     (cleared: number) => {
-                        cachedCleared = cleared;
+                        expect(cleared).toBe(2);
+                        done();
                     },
                     (error) => {
                         fail();
-                    },
-                    () => {
-                        expect(cachedCleared).toBe(2);
-                        done();
                     }
                 );
             }, MAX_DB_INIT_TIME);
@@ -101,17 +76,13 @@ export function main(): void {
 
         it("can add an item to the data store", (done) => {
             setTimeout(() => {
-                let cachedKey: number = 0;
                 localDB.addDataItem(RANDOM_WORD).subscribe(
                     (key: number) => {
-                        cachedKey = key;
+                        expect(key).toBeGreaterThan(0);
+                        done();
                     },
                     (error) => {
                         fail();
-                    },
-                    () => {
-                        expect(cachedKey).toBe(2);
-                        done();
                     }
                 );
             }, MAX_DB_INIT_TIME);
