@@ -93,6 +93,7 @@ export function main(): void {
             setTimeout(() => {
                 localDB.addDataItem(RANDOM_WORD).subscribe(
                     (key: number) => {
+                        // expect key to be 1 due to deleting db on each run
                         expect(key).toBe(1);
                         done();
                     },

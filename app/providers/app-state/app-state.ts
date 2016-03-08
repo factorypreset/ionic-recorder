@@ -10,7 +10,7 @@ const APP_STATE_ITEM_NAME: string =
 @Injectable()
 export class AppState {
     lastViewedPage: string = "record";
-    lastViewedFolderKey: number;
+    lastViewedFolderKey: number = DB_NO_KEY;
 
     constructor() {
         console.log("constructor():AppState");
@@ -18,8 +18,6 @@ export class AppState {
         localDB.getDB().subscribe((db: IDBDatabase) => {
             console.log("app state got db: " + db);
         });
-
-        this.lastViewedFolderKey = DB_NO_KEY;
     }
 
     save() {

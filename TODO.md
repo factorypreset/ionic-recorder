@@ -1,5 +1,26 @@
 # TODO.md
 
+* local-db.ts:
+  * add TreeNode interface
+  * add DataNode interface
+  * type things with the above interfaces
+  * create an initial folder item that has name '/' and is the root
+  * addTreeItem - must add to a parent by parentkey, parent must 
+    exist and be a folder (check this first).  if you are adding a
+    folder, make sure no other folder by that name exists in the
+    same parent. if you're adding 
+  * ... all of the above plus more so that we can call something in
+    app-state.ts - we want to (a) check if the app-state has ever
+    been stored in the db before.  if yes, get it and set the state
+    to it. if no, then save yourself into it, i.e. create a new 
+    one with default values.
+  * create type definitions for app-state
+  * now write the save() function of app-state
+  * it may be good to load all pages on starting the app - if few
+  * use save() to save state when switching pages, and see if you
+    can restart to the library page, after hitting refresh, because
+    you left off from there
+  * now get to library page design
 * Make LocalDB a singleton (see wiki for link to patterns examples)
 * make db name, db version, db store name constants in localdb - unless we find out how
   to create a singleton that has constructor arguments
