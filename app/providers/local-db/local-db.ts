@@ -82,7 +82,7 @@ export class LocalDB {
                         observer.complete(db);
                     },
                     (error) => {
-                        observer.error("could not get DB");
+                        observer.error("get DB error");
                     }
                 );
             }
@@ -102,11 +102,11 @@ export class LocalDB {
             };
 
             openRequest.onerror = (event: IDBErrorEvent) => {
-                observer.error("Cannot open DB");
+                observer.error("open DB error");
             };
 
             openRequest.onblocked = (event: IDBErrorEvent) => {
-                observer.error("DB blocked");
+                observer.error("DB blocked error");
             };
 
             // This function is called when the database doesn"t exist
@@ -134,7 +134,7 @@ export class LocalDB {
                     let ex: DOMException = error;
                     if (ex.code !== STORE_EXISTS_ERROR_CODE) {
                         // ignore "store already exists" error
-                        observer.error("Cannot create store");
+                        observer.error("create store error");
                     }
                 }
                 console.log("openDB:onupgradeended DONE");
@@ -157,7 +157,7 @@ export class LocalDB {
                     observer.complete();
                 },
                 (error) => {
-                    observer.error("getStore() getDB(): could not get DB");
+                    observer.error("get DB error");
                 }
             );
         });
@@ -184,7 +184,7 @@ export class LocalDB {
                     observer.complete();
                 },
                 (error) => {
-                    observer.error("could not clear store");
+                    observer.error("clear store error");
                 }
             );
         });
@@ -208,12 +208,12 @@ export class LocalDB {
                             observer.complete();
                         },
                         (error2) => {
-                            observer.error("could not clear tree store 2/2");
+                            observer.error("clear tree store error");
                         }
                     );
                 },
                 (error) => {
-                    observer.error("could not clear data store 1/2");
+                    observer.error("clear data store error");
                 }
             );
         });
@@ -224,7 +224,7 @@ export class LocalDB {
     createStoreItem(storeName: string, item: any) {
         let source: Observable<number> = Observable.create((observer) => {
             if (!item) {
-                observer.error("cannot add falsy item");
+                observer.error("add falsy item error");
             }
             else {
                 this.getStore(storeName, "readwrite").subscribe(
@@ -235,11 +235,11 @@ export class LocalDB {
                             observer.complete();
                         };
                         addRequest.onerror = (event: IDBEvent) => {
-                            observer.error("addDataItem: request error");
+                            observer.error("add request error");
                         };
                     },
                     (error) => {
-                        observer.error("addDataItem: getDataStore error");
+                        observer.error("get store error");
                     }
                 );
             }
@@ -278,11 +278,11 @@ export class LocalDB {
                         };
 
                         getRequest.onerror = (event: IDBErrorEvent) => {
-                            observer.error("readStoreItem: request error");
+                            observer.error(" get request error");
                         };
                     },
                     (error) => {
-                        observer.error("getDataItem: getStore error");
+                        observer.error("get store error");
                     }
                 );
             }
@@ -315,16 +315,18 @@ export class LocalDB {
                             if (!getRequest.result) {
                                 // request success, but we got nothing. ERROR:
                                 // we expect what we're updating to be there
-                                observer.error("no item to update");
+                                observer.error("no result to update error");
                             }
                             else {
                                 if (getRequest.result.id !== key) {
-                                    observer.error("got an item with no id");
+                                    observer.error("item with no id error");
                                 }
                                 else {
                                     let dbItem = getRequest.result,
-                                        updatedItem: Object =
-                                            copyObject(objectify(newItem), dbItem),
+                                        updatedItem: Object = copyObject(
+                                            objectify(newItem),
+                                            dbItem
+                                        ),
                                         putRequest: IDBRequest =
                                             store.put(updatedItem);
 
@@ -336,18 +338,19 @@ export class LocalDB {
 
                                     putRequest.onerror =
                                         (event: IDBErrorEvent) => {
-                                            observer.error("put error");
+                                            observer.error(
+                                                "put request error");
                                         };
                                 }
                             };
 
                             getRequest.onerror = (event: IDBErrorEvent) => {
-                                observer.error("readStoreItem: request error");
+                                observer.error("get request error");
                             };
                         }; // getRequest.onsuccess = 
                     },
                     (error) => {
-                        observer.error("getDataItem: getStore error");
+                        observer.error("get store error");
                     }
                 );
             }
@@ -377,11 +380,11 @@ export class LocalDB {
                     };
 
                     deleteRequest.onerror = (event: IDBErrorEvent) => {
-                        observer.error("deleteDataStoreItem: request error");
+                        observer.error("delete request error");
                     };
                 },
                 (error) => {
-                    observer.error("deleteDataStoreItem: getDataStore error");
+                    observer.error("get store error");
                 }
             );
         });
