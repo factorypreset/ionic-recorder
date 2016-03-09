@@ -121,15 +121,15 @@ export class LocalDB {
     }
 
     // returns an Observable<IDBObjectStore of a store
-    getStore(name: string, mode: string) {
+    getStore(storeName: string, mode: string) {
         let source: Observable<IDBObjectStore> = Observable.create((observer) => {
             this.getDB().subscribe(
                 (db: IDBDatabase) => {
                     observer.next(
                         db.transaction(
-                            name,
+                            storeName,
                             mode
-                        ).objectStore(name)
+                        ).objectStore(storeName)
                     );
                     observer.complete();
                 },
@@ -222,28 +222,36 @@ export class LocalDB {
     // returns an Observable<any> of data item
     getDataItem(key: number) {
         let source: Observable<any> = Observable.create((observer) => {
-            this.getDataStore("readonly").subscribe(
-                (store: IDBObjectStore) => {
-                    let getRequest: IDBRequest = store.get(key);
+            if (!key) {
+                console.log("invalid key in getDataItem");
+                observer.error("invalid key");
+            }
+            else {
+                this.getDataStore("readonly").subscribe(
+                    (store: IDBObjectStore) => {
+                        let getRequest: IDBRequest = store.get(key);
 
-                    getRequest.onsuccess = (event: IDBEvent) => {
-                        if (!getRequest.result) {
-                            observer.next(undefined);
-                        }
-                        else {
-                            observer.next(getRequest.result.data);
-                            observer.complete();
-                        }
-                    };
+                        getRequest.onsuccess = (event: IDBEvent) => {
+                            console.log("getDataItem success");
+                            if (!getRequest.result) {
+                                observer.next(undefined);
+                                observer.complete();
+                            }
+                            else {
+                                observer.next(getRequest.result.data);
+                                observer.complete();
+                            }
+                        };
 
-                    getRequest.onerror = (event: IDBErrorEvent) => {
-                        observer.error("getDataItem: request error");
-                    };
-                },
-                (error) => {
-                    observer.error("getDataItem: getDataStore error");
-                }
-            );
+                        getRequest.onerror = (event: IDBErrorEvent) => {
+                            observer.error("getDataItem: request error");
+                        };
+                    },
+                    (error) => {
+                        observer.error("getDataItem: getDataStore error");
+                    }
+                );
+            }
         });
         return source;
     }

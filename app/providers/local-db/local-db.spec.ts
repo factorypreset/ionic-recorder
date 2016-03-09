@@ -26,7 +26,7 @@ export function main(): void {
     let localDB: LocalDB = null,
         localDB2: LocalDB = null,
         db: IDBDatabase = null,
-        addItemKey: number;
+        addItemKey: number = 0;
 
     beforeEach((done: Function) => {
         localDB = LocalDB.Instance;
@@ -76,6 +76,27 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
+        it("cannot get a data store item with an invalid key from", (done) => {
+            setTimeout(() => {
+                let cachedData: any = "notFalsy";
+                localDB.getDataItem(addItemKey).subscribe(
+                    (data: any) => {
+                        cachedData = data;
+                        expect(data).toBe(undefined);
+                        done();
+                    },
+                    (error) => {
+                        done();
+                        // fail(error);
+                    },
+                    () => {
+                        expect(cachedData).toBe(undefined);
+                        done();
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
         it("clears both stores, twice in a row without erring", (done) => {
             setTimeout(() => {
                 localDB.clearDB().subscribe(
@@ -84,7 +105,7 @@ export function main(): void {
                         done();
                     },
                     (error) => {
-                        fail();
+                        fail(error);
                     }
                 );
             }, MAX_DB_INIT_TIME);
@@ -100,7 +121,7 @@ export function main(): void {
                         done();
                     },
                     (error) => {
-                        fail();
+                        fail(error);
                     }
                 );
             }, MAX_DB_INIT_TIME);
@@ -114,7 +135,7 @@ export function main(): void {
                         done();
                     },
                     (error) => {
-                        fail();
+                        fail(error);
                     }
                 );
             }, MAX_DB_INIT_TIME);
@@ -128,7 +149,7 @@ export function main(): void {
                         done();
                     },
                     (error) => {
-                        fail();
+                        fail(error);
                     }
                 );
             }, MAX_DB_INIT_TIME);
@@ -142,7 +163,7 @@ export function main(): void {
                         done();
                     },
                     (error) => {
-                        fail();
+                        fail(error);
                     }
                 );
             }, MAX_DB_INIT_TIME);
