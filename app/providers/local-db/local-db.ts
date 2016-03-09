@@ -112,9 +112,7 @@ export class LocalDB {
                         observer.next(db);
                         observer.complete(db);
                     },
-                    (error) => {
-                        observer.error("get DB");
-                    }
+                    (error) => { observer.error(error); }
                 );
             }
         });
@@ -188,9 +186,7 @@ export class LocalDB {
                         );
                         observer.complete();
                     },
-                    (error) => {
-                        observer.error("get DB");
-                    }
+                    (error) => { observer.error(error); }
                 );
             });
         return source;
@@ -216,9 +212,7 @@ export class LocalDB {
                         observer.next(store);
                         observer.complete();
                     },
-                    (error) => {
-                        observer.error("clear store");
-                    }
+                    (error) => { observer.error(error); }
                 );
             });
         return source;
@@ -245,9 +239,7 @@ export class LocalDB {
                         }
                     );
                 },
-                (error) => {
-                    observer.error("clear data store");
-                }
+                (error) => { observer.error(error); }
             );
         });
         return source;
@@ -271,9 +263,7 @@ export class LocalDB {
                             observer.error("add request");
                         };
                     },
-                    (error) => {
-                        observer.error("get store");
-                    }
+                    (error) => { observer.error(error); }
                 );
             }
         });
@@ -314,9 +304,7 @@ export class LocalDB {
                             observer.error("get request");
                         };
                     },
-                    (error) => {
-                        observer.error("get store");
-                    }
+                    (error) => { observer.error(error); }
                 );
             }
         });
@@ -360,9 +348,7 @@ export class LocalDB {
                         observer.error("cursor");
                     };
                 },
-                (error) => {
-                    observer.error("get tree store");
-                }
+                (error) => { observer.error(error); }
             );
         });
         return source;
@@ -406,8 +392,7 @@ export class LocalDB {
 
                                     putRequest.onerror =
                                         (event: IDBErrorEvent) => {
-                                            observer.error(
-                                                "put request");
+                                            observer.error("put request");
                                         };
                                 }
                             };
@@ -417,9 +402,7 @@ export class LocalDB {
                             };
                         }; // getRequest.onsuccess = 
                     },
-                    (error) => {
-                        observer.error("get store");
-                    }
+                    (error) => { observer.error(error); }
                 );
             }
         });
@@ -456,9 +439,7 @@ export class LocalDB {
                         observer.error("delete request");
                     };
                 },
-                (error) => {
-                    observer.error("get store");
-                }
+                (error) => { observer.error(error); }
             );
         });
         return source;
@@ -473,111 +454,117 @@ export class LocalDB {
     deleteTreeStoreItem(key: number) {
         return this.deleteStoreItem(DB_TREE_STORE_NAME, key);
     }
-}
-/*
-    ///////////////////////////////////////////////////////////////////////////
-    // HIGH LEVEL CRUD FUNCTIONS
-    ///////////////////////////////////////////////////////////////////////////
 
-    createItem(name: string, parentKey?: number, data?: any) {
-        if (!parentKey) {
-            // if no parent key was supplied, assume it's in root folder
-            parentKey = DB_NO_KEY;
-        }
-
-        if (!data) {
-            return this.createTreeStoreItem(name, parentKey, DB_NO_KEY);
-        }
-
+    // returns an Observable<boolean> of success if name is unique in parent
+    nameUniqueInParent(name: string, parentKey: number) {
         let source: Observable<number> = Observable.create((observer) => {
-            // non falsy data supplied, store it in the data table first
-            this.createDataStoreItem(data).subscribe(
-                (key: number) => {
-                    this.createTreeStoreItem(name, parentKey, key).subscribe(
-                        (treeKey: number) => {
-                            observer.next(treeKey);
+            this.readTreeStoreItemsByName(name).subscribe(
+                (nodes: TreeNode[]) => {
+                    let uniqueViolation: boolean = false;
+                    for (let i in nodes) {
+                        if (nodes[i].parentKey === parentKey) {
+                            // found something by same name in parent
+                            observer.next(false);
                             observer.complete();
-                        },
-                        (error) => {
-                            observer.error(error);
+                            break;
                         }
-                    );
+                    }
                 },
-                (error) => {
-                    observer.error(error);
+                (error) => { observer.error(error); },
+                () => {
+                    // we've completed without an error
+                    observer.next(true);
+                    observer.complete();
                 }
             );
         });
         return source;
     }
 
-    createTreeStoreItem(name: string, parentKey: number, data?: any) {
-        if (parentKey === DB_NO_KEY) {
-            // folder we're creating is a root of a tree in the forest
-            return this.createTreeAndDataStoreItems(
-                            name,
-                            parentKey,
-                            data
-                        );
-                        
-        }
-        // folder we're creating is not a root folder
+    // returns an Observable<number> of the key of this folder item
+    createFolderTreeStoreItem(name: string, parentKey: number) {
         let source: Observable<number> = Observable.create((observer) => {
-            if (!verifyKey(parentKey)) {
-                observer.error("invalid parent key");
-            }
-            else {
-                this.readTreeStoreItemsByName(name).subscribe(
-                    (nodes: TreeNode[]) => {
-                        for (let i in nodes) {
-                            if (isFolder(nodes[i]) &&
-                                (nodes[i].parentKey === parentKey)) {
-                                // already got folder by same name in parent
-                                observer.error("folder unique name violation");
-                            }
-                        }
-                    },
-                    (error) => {
-                        observer.error("read tree nodes by name");
-                    },
-                    () => {
-                        this.createTreeAndDataStoreItems(
-                            name,
-                            parentKey,
-                            data
-                        ).subscribe(
-                                (key: number) => {
-                                    observer.next(key);
-                                    observer.complete();
-                                },
-                                (error) => {
-                                    observer.error("create tree/data node")
-                                }
-                                
-                            )
-                        }
-                        else {
-                            // no data
-                            this.createStoreItem(
-                                DB_TREE_STORE_NAME,
-                                makeTreeNode(
-                                    name,
-                                    parentKey,
-                                    DB_NO_KEY
-                                )).subscribe(
-                                (key: number) => {
-                                    observer.next(key);
-                                    observer.complete();
-                                },
-                                (error) => {
-                                    observer.error("create store item");
-                                }
-                                );
-                        }
+            this.nameUniqueInParent(name, parentKey).subscribe(
+                (unique: boolean) => {
+                    if (!unique) {
+                        observer.error("unique violation");
                     }
-                );
-            }
+                    else {
+                        this.createStoreItem(
+                            DB_TREE_STORE_NAME,
+                            makeTreeNode(
+                                name,
+                                parentKey,
+                                DB_NO_KEY
+                            )).subscribe(
+                            (key: number) => {
+                                observer.next(key);
+                                observer.complete();
+                            },
+                            (error) => { observer.error(error); });
+                    }
+                },
+                (error) => { observer.error(error); }
+            );
         });
         return source;
     }
-*/
+
+    createDataTreeStoreItem(name: string, parentKey: number, data: any) {
+        let source: Observable<number> = Observable.create((observer) => {
+            // non falsy data supplied, store it in the data table first
+            this.nameUniqueInParent(name, parentKey).subscribe(
+                (unique: boolean) => {
+                    if (!unique) {
+                        observer.error("unique violation");
+                    }
+                    else {
+                        this.createDataStoreItem(data).subscribe(
+                            (dataKey: number) => {
+                                this.createStoreItem(
+                                    DB_TREE_STORE_NAME,
+                                    makeTreeNode(
+                                        name,
+                                        parentKey,
+                                        dataKey
+                                    )).subscribe(
+                                    (treeKey: number) => {
+                                        observer.next(treeKey);
+                                        observer.complete();
+                                    },
+                                    (error) => { observer.error(error); });
+                            },
+                            (error) => { observer.error(error); });
+                    }
+                },
+                (error) => { observer.error(error); });
+        });
+        return source;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // HIGH LEVEL API - these are the only functions you should be using   
+    ///////////////////////////////////////////////////////////////////////////
+
+    createItem(name: string, parentKey: number, data?: any) {
+        if (data) {
+            return this.createDataTreeStoreItem(name, parentKey, data);
+        }
+        else {
+            return this.createFolderTreeStoreItem(name, parentKey);
+        }
+    }
+
+    readItem(key: number) {
+        return this.readTreeStoreItem(key);
+    }
+
+    updateItem(key: number, newItem: any) {
+        return this.updateTreeStoreItem(key, newItem);
+    }
+
+    deleteItem(key: number) {
+        return this.deleteTreeStoreItem(key);
+    }
+
+}
