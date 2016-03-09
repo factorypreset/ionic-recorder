@@ -309,7 +309,7 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
-        it("can cannot create the same folder again", (done) => {
+        it("cannot create the same folder again", (done) => {
             setTimeout(() => {
                 localDB.createItem(RANDOM_WORD_1, DB_NO_KEY).subscribe(
                     (key: number) => {
@@ -374,17 +374,22 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
-        // we allow deleting something that isn't there
-        // because indexedDB allows it (doesn't err) too
-        it("can delete again the folder just deleted", (done) => {
+        it("cannot delete again the folder just deleted", (done) => {
             setTimeout(() => {
                 localDB.deleteItem(addItemKey).subscribe(
                     (success: boolean) => {
-                        expect(success).toBe(true);
-                        done();
+                        fail("expected an error");
                     },
-                    (error) => {
-                        fail(error);
+                    (error: any) => {
+                        if (error === "item does not exist") {
+                            done();
+                        }
+                        else {
+                            fail(error);
+                        }
+                    },
+                    () => {
+                        fail("expected an error");
                     }
                 );
             }, MAX_DB_INIT_TIME);

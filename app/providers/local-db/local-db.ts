@@ -577,7 +577,46 @@ export class LocalDB {
     // TODO: extend this to delete data table item when needed
     // returns an Observable<boolean> of delete success
     deleteItem(key: number) {
-        return this.deleteTreeStoreItem(key);
+        // return this.deleteTreeStoreItem(key);
+        let source: Observable<boolean> = Observable.create((observer) => {
+            this.readItem(key).subscribe(
+                (data: any) => {
+                    if (data === undefined) {
+                        // the read failed
+                        observer.error("item does not exist");
+                    }
+                    else {
+                        // the read succeeded, data key?
+                        if (data.dataKey) {
+                            // delete from data store
+                            this.deleteDataStoreItem(data.dataKey).subscribe(
+                                (success: boolean) => {
+                                    this.deleteTreeStoreItem(key).subscribe(
+                                        (success: boolean) => {
+                                            observer.next(true);
+                                            observer.complete();
+                                        },
+                                        (error) => { observer.error(error); }
+                                    );
+                                },
+                                (error) => { observer.error(error); }
+                            );
+                        }
+                        else {
+                            // no data key only delete from tree
+                            this.deleteTreeStoreItem(key).subscribe(
+                                (success: boolean) => {
+                                    observer.next(true);
+                                    observer.complete();
+                                },
+                                (error) => { observer.error(error); }
+                            );
+                        }
+                    }
+                },
+                (error) => { observer(error); });
+        });
+        return source;
     }
 
 }
