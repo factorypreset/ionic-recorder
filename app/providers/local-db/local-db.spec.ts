@@ -1,4 +1,4 @@
-import {LocalDB, DB_NAME, DB_NO_KEY} from "./local-db";
+import {LocalDB, DB_NAME, DB_NO_KEY, makeTreeNode} from "./local-db";
 import {Observable} from "rxjs/Rx";
 
 const MAX_DB_INIT_TIME = 200;
@@ -300,6 +300,87 @@ export function main(): void {
                         // expect key to be 1 due to deleting db on each run
                         addItemKey = key;
                         expect(key).toBe(1);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can cannot create the same folder again", (done) => {
+            setTimeout(() => {
+                localDB.createItem(RANDOM_WORD_1, DB_NO_KEY).subscribe(
+                    (key: number) => {
+                        fail("expected an error");
+                    },
+                    (error: any) => {
+                        if (error === "unique violation") {
+                            done();
+                        }
+                        else {
+                            fail(error);
+                        }
+                    },
+                    () => {
+                        fail("expected an error");
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can update the folder item name", (done) => {
+            setTimeout(() => {
+                localDB.updateItem(
+                    addItemKey,
+                    makeTreeNode(RANDOM_WORD_2, DB_NO_KEY, DB_NO_KEY)
+                ).subscribe(
+                    (success: boolean) => {
+                        expect(success).toBe(true);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    });
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can read the updated folder name", (done) => {
+            setTimeout(() => {
+                localDB.readItem(addItemKey).subscribe(
+                    (data: any) => {
+                        expect(data.name).toBe(RANDOM_WORD_2);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can delete the folder just created", (done) => {
+            setTimeout(() => {
+                localDB.deleteItem(addItemKey).subscribe(
+                    (success: boolean) => {
+                        expect(success).toBe(true);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        // we allow deleting something that isn't there
+        // because indexedDB allows it (doesn't err) too
+        it("can delete again the folder just deleted", (done) => {
+            setTimeout(() => {
+                localDB.deleteItem(addItemKey).subscribe(
+                    (success: boolean) => {
+                        expect(success).toBe(true);
                         done();
                     },
                     (error) => {

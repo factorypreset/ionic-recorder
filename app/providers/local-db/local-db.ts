@@ -37,8 +37,11 @@ const makeDataNode = function(item: any): DataNode {
     }
 };
 
-const makeTreeNode = function(name: string,
-    parentKey: number, dataKey: number): TreeNode {
+export const makeTreeNode = function(
+    name: string,
+    parentKey: number,
+    dataKey: number
+): TreeNode {
     return {
         name: name, parentKey:
         parentKey,
@@ -337,10 +340,10 @@ export class LocalDB {
                         cursorRequest: IDBRequest = index.openCursor(keyRange);
 
                     cursorRequest.onsuccess = (event: IDBEvent) => {
-                        console.log("getItemsByName: SUCCESS, name = " + name);
                         console.dir(cursorRequest);
                         let cursor: IDBCursorWithValue = cursorRequest.result;
                         if (cursor) {
+                            console.log("got item by name = " + name);
                             nodes.push(cursor.value);
                             cursor.continue();
                         }
@@ -486,35 +489,6 @@ export class LocalDB {
         return source;
     }
 
-    // returns an Observable<number> of the key of this folder item
-    createFolderTreeStoreItem(name: string, parentKey: number) {
-        let source: Observable<number> = Observable.create((observer) => {
-            this.nameUniqueInParent(name, parentKey).subscribe(
-                (unique: boolean) => {
-                    if (!unique) {
-                        observer.error("unique violation");
-                    }
-                    else {
-                        this.createStoreItem(
-                            DB_TREE_STORE_NAME,
-                            makeTreeNode(
-                                name,
-                                parentKey,
-                                DB_NO_KEY
-                            )).subscribe(
-                            (key: number) => {
-                                observer.next(key);
-                                observer.complete();
-                            },
-                            (error) => { observer.error(error); });
-                    }
-                },
-                (error) => { observer.error(error); }
-            );
-        });
-        return source;
-    }
-
     createDataTreeStoreItem(name: string, parentKey: number, data: any) {
         let source: Observable<number> = Observable.create((observer) => {
             // non falsy data supplied, store it in the data table first
@@ -547,6 +521,35 @@ export class LocalDB {
         return source;
     }
 
+    // returns an Observable<number> of the key of this folder item
+    createFolderTreeStoreItem(name: string, parentKey: number) {
+        let source: Observable<number> = Observable.create((observer) => {
+            this.nameUniqueInParent(name, parentKey).subscribe(
+                (unique: boolean) => {
+                    if (!unique) {
+                        observer.error("unique violation");
+                    }
+                    else {
+                        this.createStoreItem(
+                            DB_TREE_STORE_NAME,
+                            makeTreeNode(
+                                name,
+                                parentKey,
+                                DB_NO_KEY
+                            )).subscribe(
+                            (key: number) => {
+                                observer.next(key);
+                                observer.complete();
+                            },
+                            (error) => { observer.error(error); });
+                    }
+                },
+                (error) => { observer.error(error); }
+            );
+        });
+        return source;
+    }
+
     ///////////////////////////////////////////////////////////////////////////
     // HIGH LEVEL API - these are the only functions you should be using   
     ///////////////////////////////////////////////////////////////////////////
@@ -571,6 +574,7 @@ export class LocalDB {
         return this.updateTreeStoreItem(key, newItem);
     }
 
+    // TODO: extend this to delete data table item when needed
     // returns an Observable<boolean> of delete success
     deleteItem(key: number) {
         return this.deleteTreeStoreItem(key);
