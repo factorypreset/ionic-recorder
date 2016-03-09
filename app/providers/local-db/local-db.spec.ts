@@ -148,7 +148,7 @@ export function main(): void {
             setTimeout(() => {
                 localDB.readDataStoreItem(addItemKey).subscribe(
                     (data: any) => {
-                        expect(data.data).toBe(RANDOM_WORD_1);
+                        expect(data.data    ).toBe(RANDOM_WORD_1);
                         done();
                     },
                     (error) => {

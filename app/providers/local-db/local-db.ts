@@ -47,6 +47,9 @@ const makeTreeNode = function(name: string,
     };
 };
 
+const isFolder = function(node: TreeNode) {
+    return node.dataKey === DB_NO_KEY;
+};
 
 const verifyKey = function(key: number): boolean {
     return key && !isNaN(key) && (key === Math.floor(key));
@@ -110,7 +113,7 @@ export class LocalDB {
                         observer.complete(db);
                     },
                     (error) => {
-                        observer.error("get DB error");
+                        observer.error("get DB");
                     }
                 );
             }
@@ -130,11 +133,11 @@ export class LocalDB {
             };
 
             openRequest.onerror = (event: IDBErrorEvent) => {
-                observer.error("open DB error");
+                observer.error("open DB");
             };
 
             openRequest.onblocked = (event: IDBErrorEvent) => {
-                observer.error("DB blocked error");
+                observer.error("DB blocked");
             };
 
             // This function is called when the database doesn"t exist
@@ -162,7 +165,7 @@ export class LocalDB {
                     let ex: DOMException = error;
                     if (ex.code !== STORE_EXISTS_ERROR_CODE) {
                         // ignore "store already exists" error
-                        observer.error("create store error");
+                        observer.error("create store");
                     }
                 }
                 console.log("openDB:onupgradeended DONE");
@@ -186,7 +189,7 @@ export class LocalDB {
                         observer.complete();
                     },
                     (error) => {
-                        observer.error("get DB error");
+                        observer.error("get DB");
                     }
                 );
             });
@@ -214,7 +217,7 @@ export class LocalDB {
                         observer.complete();
                     },
                     (error) => {
-                        observer.error("clear store error");
+                        observer.error("clear store");
                     }
                 );
             });
@@ -238,12 +241,12 @@ export class LocalDB {
                             observer.complete();
                         },
                         (error2) => {
-                            observer.error("clear tree store error");
+                            observer.error("clear tree store");
                         }
                     );
                 },
                 (error) => {
-                    observer.error("clear data store error");
+                    observer.error("clear data store");
                 }
             );
         });
@@ -254,7 +257,7 @@ export class LocalDB {
     createStoreItem(storeName: string, item: any) {
         let source: Observable<number> = Observable.create((observer) => {
             if (!item) {
-                observer.error("add falsy item error");
+                observer.error("add falsy item");
             }
             else {
                 this.getStore(storeName, "readwrite").subscribe(
@@ -265,11 +268,11 @@ export class LocalDB {
                             observer.complete();
                         };
                         addRequest.onerror = (event: IDBEvent) => {
-                            observer.error("add request error");
+                            observer.error("add request");
                         };
                     },
                     (error) => {
-                        observer.error("get store error");
+                        observer.error("get store");
                     }
                 );
             }
@@ -284,12 +287,11 @@ export class LocalDB {
         );
     }
 
-    createTreeStoreItem(name: string, parentKey: number, data: any) {
-        return this.createStoreItem(DB_TREE_STORE_NAME, null);
-    }
-
-    createTreeStoreFolder(name: string, parentKey?: number) {
-        return this.createStoreItem(DB_TREE_STORE_NAME, null);
+    createTreeStoreItem(name: string, parentKey: number, dataKey: number) {
+        return this.createStoreItem(
+            DB_TREE_STORE_NAME,
+            makeTreeNode(name, parentKey, dataKey)
+        );
     }
 
     // returns an Observable<any> of data item
@@ -309,11 +311,11 @@ export class LocalDB {
                         };
 
                         getRequest.onerror = (event: IDBErrorEvent) => {
-                            observer.error("get request error");
+                            observer.error("get request");
                         };
                     },
                     (error) => {
-                        observer.error("get store error");
+                        observer.error("get store");
                     }
                 );
             }
@@ -331,6 +333,41 @@ export class LocalDB {
         return this.readStoreItem(DB_TREE_STORE_NAME, key);
     }
 
+    // returns an Observable<TreeNode[]> of all nodes obtained by name
+    readTreeStoreItemsByName(name: string) {
+        let source: Observable<TreeNode[]> = Observable.create((observer) => {
+            let nodes: TreeNode[] = [];
+            this.getTreeStore("readonly").subscribe(
+                (store: IDBObjectStore) => {
+                    let index: IDBIndex = store.index("name"),
+                        keyRange: IDBKeyRange = IDBKeyRange.only(name),
+                        cursorRequest: IDBRequest = index.openCursor(keyRange);
+
+                    cursorRequest.onsuccess = (event: IDBEvent) => {
+                        console.log("getItemsByName: SUCCESS, name = " + name);
+                        console.dir(cursorRequest);
+                        let cursor: IDBCursorWithValue = cursorRequest.result;
+                        if (cursor) {
+                            nodes.push(cursor.value);
+                            cursor.continue();
+                        }
+                        else {
+                            observer.next(nodes);
+                            observer.complete();
+                        }
+                    };
+                    cursorRequest.onerror = (event: IDBErrorEvent) => {
+                        observer.error("cursor");
+                    };
+                },
+                (error) => {
+                    observer.error("get tree store");
+                }
+            );
+        });
+        return source;
+    }
+
     // returns an Observable<true> of success in updating item
     updateStoreItem(storeName: string, key: number, newItem: any) {
         let source: Observable<boolean> = Observable.create((observer) => {
@@ -346,11 +383,11 @@ export class LocalDB {
                             if (!getRequest.result) {
                                 // request success, but we got nothing. ERROR:
                                 // we expect what we're updating to be there
-                                observer.error("no result to update error");
+                                observer.error("no result to update");
                             }
                             else {
                                 if (getRequest.result.id !== key) {
-                                    observer.error("item with no id error");
+                                    observer.error("item with no id");
                                 }
                                 else {
                                     let dbItem = getRequest.result,
@@ -370,18 +407,18 @@ export class LocalDB {
                                     putRequest.onerror =
                                         (event: IDBErrorEvent) => {
                                             observer.error(
-                                                "put request error");
+                                                "put request");
                                         };
                                 }
                             };
 
                             getRequest.onerror = (event: IDBErrorEvent) => {
-                                observer.error("get request error");
+                                observer.error("get request");
                             };
                         }; // getRequest.onsuccess = 
                     },
                     (error) => {
-                        observer.error("get store error");
+                        observer.error("get store");
                     }
                 );
             }
@@ -403,6 +440,7 @@ export class LocalDB {
         return this.updateStoreItem(DB_TREE_STORE_NAME, key, newItem);
     }
 
+    // returns an Observable<boolean> of success in deleting item
     deleteStoreItem(storeName: string, key: number) {
         let source: Observable<boolean> = Observable.create((observer) => {
             this.getStore(storeName, "readwrite").subscribe(
@@ -415,27 +453,61 @@ export class LocalDB {
                     };
 
                     deleteRequest.onerror = (event: IDBErrorEvent) => {
-                        observer.error("delete request error");
+                        observer.error("delete request");
                     };
                 },
                 (error) => {
-                    observer.error("get store error");
+                    observer.error("get store");
                 }
             );
         });
         return source;
     }
 
-    // returns an Observable<boolean> of data item
+    // returns an Observable<boolean> of success in deleting item
     deleteDataStoreItem(key: number) {
         return this.deleteStoreItem(DB_DATA_STORE_NAME, key);
     }
 
-    // returns an Observable<boolean> of data item
+    // returns an Observable<boolean> of success in deleting item
     deleteTreeStoreItem(key: number) {
         return this.deleteStoreItem(DB_TREE_STORE_NAME, key);
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // HIGH LEVEL CRUD FUNCTIONS
+    ///////////////////////////////////////////////////////////////////////////
 
+    createItem(name: string, parentKey?: number, data?: any) {
+        if (!parentKey) {
+            // if no parent key was supplied, assume it's in root folder
+            parentKey = DB_NO_KEY;
+        }
+
+        if (!data) {
+            return this.createTreeStoreItem(name, parentKey, DB_NO_KEY);
+        }
+
+        let source: Observable<number> = Observable.create((observer) => {
+            // non falsy data supplied, store it in the data table first
+            this.createDataStoreItem(data).subscribe(
+                (key: number) => {
+                    this.createTreeStoreItem(name, parentKey, key).subscribe(
+                        (treeKey: number) => {
+                            observer.next(treeKey);
+                            observer.complete();
+                        },
+                        (error) => {
+                            observer.error(error);
+                        }
+                    );
+                },
+                (error) => {
+                    observer.error(error);
+                }
+            );
+        });
+        return source;
+    }
 
 }
