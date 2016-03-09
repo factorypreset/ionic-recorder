@@ -189,8 +189,8 @@ export function main(): void {
         it("can delete the added item from the data store", (done) => {
             setTimeout(() => {
                 localDB.deleteDataStoreItem(addItemKey).subscribe(
-                    (data: any) => {
-                        expect(data).toBe(true);
+                    (success: boolean) => {
+                        expect(success).toBe(true);
                         done();
                     },
                     (error) => {
