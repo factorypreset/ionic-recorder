@@ -269,7 +269,7 @@ export class LocalDB {
     }
 
     // returns an Observable<boolean> of data item
-    deleteDataItem(key: number) {
+    deleteDataStoreItem(key: number) {
         let source: Observable<boolean> = Observable.create((observer) => {
             this.getDataStore("readwrite").subscribe(
                 (store: IDBObjectStore) => {
@@ -281,11 +281,11 @@ export class LocalDB {
                     };
 
                     deleteRequest.onerror = (event: IDBErrorEvent) => {
-                        observer.error("deleteDataItem: request error");
+                        observer.error("deleteDataStoreItem: request error");
                     };
                 },
                 (error) => {
-                    observer.error("deleteDataItem: getDataStore error");
+                    observer.error("deleteDataStoreItem: getDataStore error");
                 }
             );
         });
