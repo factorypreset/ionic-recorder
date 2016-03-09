@@ -198,11 +198,11 @@ export class LocalDB {
     }
 
     // returns an Observable<number> of the added item's key
-    addDataItem(data: any) {
+    addStoreItem(storeName: string, item: any) {
         let source: Observable<number> = Observable.create((observer) => {
-            this.getDataStore("readwrite").subscribe(
+            this.getStore(storeName, "readwrite").subscribe(
                 (store: IDBObjectStore) => {
-                    let addRequest: IDBRequest = store.add({ data: data });
+                    let addRequest: IDBRequest = store.add(item);
                     addRequest.onsuccess = (event: IDBEvent) => {
                         observer.next(addRequest.result);
                         observer.complete();
@@ -219,16 +219,20 @@ export class LocalDB {
         return source;
     }
 
+    addDataStoreItem(data: any) {
+        return this.addStoreItem(DB_DATA_STORE_NAME, {data: data});
+    }
+
     // returns an Observable<any> of data item
-    getDataItem(key: number) {
+    getStoreItem(storeName: string, key: number) {
         let source: Observable<any> = Observable.create((observer) => {
             if (!key) {
-                console.log("invalid key in getDataItem");
                 observer.error("invalid key");
             }
             else {
-                this.getDataStore("readonly").subscribe(
+                this.getStore(storeName, "readonly").subscribe(
                     (store: IDBObjectStore) => {
+                        console.log("store = " + store);
                         let getRequest: IDBRequest = store.get(key);
 
                         getRequest.onsuccess = (event: IDBEvent) => {
@@ -244,16 +248,26 @@ export class LocalDB {
                         };
 
                         getRequest.onerror = (event: IDBErrorEvent) => {
-                            observer.error("getDataItem: request error");
+                            observer.error("getStoreItem: request error");
                         };
                     },
                     (error) => {
-                        observer.error("getDataItem: getDataStore error");
+                        observer.error("getDataItem: getStore error");
                     }
                 );
             }
         });
         return source;
+    }
+
+    // returns an Observable<any> of data item
+    getDataStoreItem(key: number) {
+        return this.getStoreItem(DB_DATA_STORE_NAME, key);
+    }
+
+    // returns an Observable<any> of data item
+    getTreeStoreItem(key: number) {
+        return this.getStoreItem(DB_TREE_STORE_NAME, key);
     }
 
     // returns an Observable<boolean> of data item
