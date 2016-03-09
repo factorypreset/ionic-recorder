@@ -197,32 +197,6 @@ export class LocalDB {
         return source;
     }
 
-    // returns an Observable<number> of the added item's key
-    addStoreItem(storeName: string, item: any) {
-        let source: Observable<number> = Observable.create((observer) => {
-            this.getStore(storeName, "readwrite").subscribe(
-                (store: IDBObjectStore) => {
-                    let addRequest: IDBRequest = store.add(item);
-                    addRequest.onsuccess = (event: IDBEvent) => {
-                        observer.next(addRequest.result);
-                        observer.complete();
-                    };
-                    addRequest.onerror = (event: IDBEvent) => {
-                        observer.error("addDataItem: request error");
-                    };
-                },
-                (error) => {
-                    observer.error("addDataItem: getDataStore error");
-                }
-            );
-        });
-        return source;
-    }
-
-    addDataStoreItem(data: any) {
-        return this.addStoreItem(DB_DATA_STORE_NAME, { data: data });
-    }
-
     // returns an Observable<any> of data item
     getStoreItem(storeName: string, key: number) {
         let source: Observable<any> = Observable.create((observer) => {
@@ -266,6 +240,32 @@ export class LocalDB {
     // returns an Observable<any> of data item
     getTreeStoreItem(key: number) {
         return this.getStoreItem(DB_TREE_STORE_NAME, key);
+    }
+
+    // returns an Observable<number> of the added item's key
+    addStoreItem(storeName: string, item: any) {
+        let source: Observable<number> = Observable.create((observer) => {
+            this.getStore(storeName, "readwrite").subscribe(
+                (store: IDBObjectStore) => {
+                    let addRequest: IDBRequest = store.add(item);
+                    addRequest.onsuccess = (event: IDBEvent) => {
+                        observer.next(addRequest.result);
+                        observer.complete();
+                    };
+                    addRequest.onerror = (event: IDBEvent) => {
+                        observer.error("addDataItem: request error");
+                    };
+                },
+                (error) => {
+                    observer.error("addDataItem: getDataStore error");
+                }
+            );
+        });
+        return source;
+    }
+
+    addDataStoreItem(data: any) {
+        return this.addStoreItem(DB_DATA_STORE_NAME, { data: data });
     }
 
     // returns an Observable<boolean> of data item
