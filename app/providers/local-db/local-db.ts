@@ -51,8 +51,13 @@ const isFolder = function(node: TreeNode) {
     return node.dataKey === DB_NO_KEY;
 };
 
-const verifyKey = function(key: number): boolean {
-    return key && !isNaN(key) && (key === Math.floor(key));
+const validKey = function(key: number): boolean {
+    return (
+        key &&
+        !isNaN(key) &&
+        key > 0 &&
+        key === Math.floor(key)
+    );
 };
 
 const copyObject = function(objFrom: Object, objTo: Object): Object {
@@ -287,7 +292,7 @@ export class LocalDB {
     // returns an Observable<any> of data item
     readStoreItem(storeName: string, key: number) {
         let source: Observable<any> = Observable.create((observer) => {
-            if (!verifyKey(key)) {
+            if (!validKey(key)) {
                 observer.error("invalid key");
             }
             else {
@@ -357,7 +362,7 @@ export class LocalDB {
     // returns an Observable<true> of success in updating item
     updateStoreItem(storeName: string, key: number, newItem: any) {
         let source: Observable<boolean> = Observable.create((observer) => {
-            if (!verifyKey(key)) {
+            if (!validKey(key)) {
                 observer.error("invalid key");
             }
             else {
@@ -546,6 +551,7 @@ export class LocalDB {
     // HIGH LEVEL API - these are the only functions you should be using   
     ///////////////////////////////////////////////////////////////////////////
 
+    // returns an observble<number> of key of created tree node
     createItem(name: string, parentKey: number, data?: any) {
         if (data) {
             return this.createDataTreeStoreItem(name, parentKey, data);
@@ -555,14 +561,17 @@ export class LocalDB {
         }
     }
 
+    // returns an Observable<any> of the read tree node
     readItem(key: number) {
         return this.readTreeStoreItem(key);
     }
 
+    // returns an Observable<> 
     updateItem(key: number, newItem: any) {
         return this.updateTreeStoreItem(key, newItem);
     }
 
+    // returns an Observable<boolean> of delete success
     deleteItem(key: number) {
         return this.deleteTreeStoreItem(key);
     }

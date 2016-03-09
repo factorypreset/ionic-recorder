@@ -1,4 +1,4 @@
-import {LocalDB, DB_NAME} from "./local-db";
+import {LocalDB, DB_NAME, DB_NO_KEY} from "./local-db";
 import {Observable} from "rxjs/Rx";
 
 const MAX_DB_INIT_TIME = 200;
@@ -79,9 +79,9 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
-        it("cannot get a data store item with an invalid key", (done) => {
+        it("cannot read a data store item with an invalid key (0)", (done) => {
             setTimeout(() => {
-                localDB.readDataStoreItem(addItemKey).subscribe(
+                localDB.readDataStoreItem(0).subscribe(
                     (data: any) => {
                         fail("expected an error");
                     },
@@ -100,7 +100,49 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
-        it("cannot get a non-existing data store item (valid key)", (done) => {
+        it("cannot read a data store item with invalid key (1.1)", (done) => {
+            setTimeout(() => {
+                localDB.readDataStoreItem(1.1).subscribe(
+                    (data: any) => {
+                        fail("expected an error");
+                    },
+                    (error) => {
+                        if (error === "invalid key") {
+                            done();
+                        }
+                        else {
+                            fail(error);
+                        }
+                    },
+                    () => {
+                        fail("expected an error");
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("cannot read a data store item invalid key (-1)", (done) => {
+            setTimeout(() => {
+                localDB.readDataStoreItem(-1).subscribe(
+                    (data: any) => {
+                        fail("expected an error");
+                    },
+                    (error) => {
+                        if (error === "invalid key") {
+                            done();
+                        }
+                        else {
+                            fail(error);
+                        }
+                    },
+                    () => {
+                        fail("expected an error");
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("cannot read existing data store item (valid key)", (done) => {
             setTimeout(() => {
                 localDB.readDataStoreItem(1).subscribe(
                     (data: any) => {
@@ -114,7 +156,7 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
-        it("clears both stores, twice in a row without erring", (done) => {
+        it("clears both stores successfuly", (done) => {
             setTimeout(() => {
                 localDB.clearBothStores().subscribe(
                     (cleared: number) => {
@@ -148,7 +190,7 @@ export function main(): void {
             setTimeout(() => {
                 localDB.readDataStoreItem(addItemKey).subscribe(
                     (data: any) => {
-                        expect(data.data    ).toBe(RANDOM_WORD_1);
+                        expect(data.data).toBe(RANDOM_WORD_1);
                         done();
                     },
                     (error) => {
@@ -200,11 +242,64 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
-        it("cannot get the deleted item from the data store", (done) => {
+        it("cannot read the deleted item from the data store", (done) => {
             setTimeout(() => {
                 localDB.readDataStoreItem(addItemKey).subscribe(
                     (data: any) => {
                         expect(data).toBe(undefined);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        // HIGH-LEVEL CRUD FUNCTION TESTS
+
+        it("cannot read an item with an invalid key (0)", (done) => {
+            setTimeout(() => {
+                localDB.readItem(0).subscribe(
+                    (data: any) => {
+                        fail("expected an error");
+                    },
+                    (error) => {
+                        if (error === "invalid key") {
+                            done();
+                        }
+                        else {
+                            fail(error);
+                        }
+                    },
+                    () => {
+                        fail("expected an error");
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("cannot read existing item (valid key)", (done) => {
+            setTimeout(() => {
+                localDB.readItem(1).subscribe(
+                    (data: any) => {
+                        expect(data).toBe(undefined);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can create a folder", (done) => {
+            setTimeout(() => {
+                localDB.createItem(RANDOM_WORD_1, DB_NO_KEY).subscribe(
+                    (key: number) => {
+                        // expect key to be 1 due to deleting db on each run
+                        addItemKey = key;
+                        expect(key).toBe(1);
                         done();
                     },
                     (error) => {
