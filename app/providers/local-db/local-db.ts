@@ -8,8 +8,8 @@ export const DB_TREE_STORE_NAME = "blobTree";
 export const DB_DATA_STORE_NAME: string = "dataTable";
 export const DB_KEY_PATH: string = "id";
 export const DB_NO_KEY: number = 0;
-
 const STORE_EXISTS_ERROR_CODE: number = 0;
+
 
 function verifyKey(key: number) {
     return key && !isNaN(key) && (key === Math.floor(key));
@@ -34,6 +34,7 @@ function copyObject(objFrom: Object, objTo: Object) {
     }
     return objTo;
 }
+
 
 @Injectable()
 export class LocalDB {
@@ -145,22 +146,23 @@ export class LocalDB {
 
     // returns an Observable<IDBObjectStore of a store
     getStore(storeName: string, mode: string) {
-        let source: Observable<IDBObjectStore> = Observable.create((observer) => {
-            this.getDB().subscribe(
-                (db: IDBDatabase) => {
-                    observer.next(
-                        db.transaction(
-                            storeName,
-                            mode
-                        ).objectStore(storeName)
-                    );
-                    observer.complete();
-                },
-                (error) => {
-                    observer.error("get DB error");
-                }
-            );
-        });
+        let source: Observable<IDBObjectStore> =
+            Observable.create((observer) => {
+                this.getDB().subscribe(
+                    (db: IDBDatabase) => {
+                        observer.next(
+                            db.transaction(
+                                storeName,
+                                mode
+                            ).objectStore(storeName)
+                        );
+                        observer.complete();
+                    },
+                    (error) => {
+                        observer.error("get DB error");
+                    }
+                );
+            });
         return source;
     }
 
@@ -176,18 +178,19 @@ export class LocalDB {
 
     // returns an Observable<IDBObjectStore> of the store that was cleared
     clearStore(storeName: string) {
-        let source: Observable<IDBObjectStore> = Observable.create((observer) => {
-            this.getStore(storeName, "readwrite").subscribe(
-                (store: IDBObjectStore) => {
-                    store.clear();
-                    observer.next(store);
-                    observer.complete();
-                },
-                (error) => {
-                    observer.error("clear store error");
-                }
-            );
-        });
+        let source: Observable<IDBObjectStore> =
+            Observable.create((observer) => {
+                this.getStore(storeName, "readwrite").subscribe(
+                    (store: IDBObjectStore) => {
+                        store.clear();
+                        observer.next(store);
+                        observer.complete();
+                    },
+                    (error) => {
+                        observer.error("clear store error");
+                    }
+                );
+            });
         return source;
     }
 
@@ -229,7 +232,8 @@ export class LocalDB {
             else {
                 this.getStore(storeName, "readwrite").subscribe(
                     (store: IDBObjectStore) => {
-                        let addRequest: IDBRequest = store.add(objectify(item));
+                        let addRequest: IDBRequest =
+                            store.add(objectify(item));
                         addRequest.onsuccess = (event: IDBEvent) => {
                             observer.next(addRequest.result);
                             observer.complete();
