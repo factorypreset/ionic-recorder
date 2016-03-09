@@ -1,30 +1,58 @@
 import {Injectable} from "angular2/core";
 import {Observable} from "rxjs/Observable";
 
-
 export const DB_NAME: string = "ionic-recorder-db";
 export const DB_VERSION: number = 1;
 export const DB_TREE_STORE_NAME = "blobTree";
 export const DB_DATA_STORE_NAME: string = "dataTable";
 export const DB_KEY_PATH: string = "id";
 export const DB_NO_KEY: number = 0;
+
 const STORE_EXISTS_ERROR_CODE: number = 0;
 
-
-function verifyKey(key: number) {
-    return key && !isNaN(key) && (key === Math.floor(key));
+interface DataNode {
+    data: any;
+    id?: number;
 }
 
-function makeDataStoreItem(item: any) {
+interface TreeNode {
+    name: string;
+    parentKey: number;
+    dataKey: number;
+    date: number;
+    id?: number;
+}
+
+const makeDataNode = function(item: any): DataNode {
     if (typeof item === "object") {
-        return item;
+        if (item.data) {
+            return item;
+        }
+        else {
+            return { data: item };
+        }
     }
     else {
         return { data: item };
     }
-}
+};
 
-function copyObject(objFrom: Object, objTo: Object) {
+const makeTreeNode = function(name: string,
+    parentKey: number, dataKey: number): TreeNode {
+    return {
+        name: name, parentKey:
+        parentKey,
+        dataKey: dataKey,
+        date: Date.now()
+    };
+};
+
+
+const verifyKey = function(key: number): boolean {
+    return key && !isNaN(key) && (key === Math.floor(key));
+};
+
+const copyObject = function(objFrom: Object, objTo: Object): Object {
     console.log("copyObject(" + objFrom + "," + objTo + ")");
     for (let i in objFrom) {
         if (objFrom.hasOwnProperty(i)) {
@@ -33,8 +61,7 @@ function copyObject(objFrom: Object, objTo: Object) {
         }
     }
     return objTo;
-}
-
+};
 
 @Injectable()
 export class LocalDB {
@@ -253,12 +280,16 @@ export class LocalDB {
     createDataStoreItem(item: any) {
         return this.createStoreItem(
             DB_DATA_STORE_NAME,
-            makeDataStoreItem(item)
+            makeDataNode(item)
         );
     }
 
-    createTreeStoreItem(item: any) {
-        return this.createStoreItem(DB_TREE_STORE_NAME, item);
+    createTreeStoreItem(name: string, parentKey: number, data: any) {
+        return this.createStoreItem(DB_TREE_STORE_NAME, null);
+    }
+
+    createTreeStoreFolder(name: string, parentKey?: number) {
+        return this.createStoreItem(DB_TREE_STORE_NAME, null);
     }
 
     // returns an Observable<any> of data item
@@ -363,7 +394,7 @@ export class LocalDB {
         return this.updateStoreItem(
             DB_DATA_STORE_NAME,
             key,
-            makeDataStoreItem(newItem)
+            makeDataNode(newItem)
         );
     }
 
