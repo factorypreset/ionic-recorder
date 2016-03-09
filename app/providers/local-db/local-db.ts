@@ -220,7 +220,7 @@ export class LocalDB {
     }
 
     addDataStoreItem(data: any) {
-        return this.addStoreItem(DB_DATA_STORE_NAME, {data: data});
+        return this.addStoreItem(DB_DATA_STORE_NAME, { data: data });
     }
 
     // returns an Observable<any> of data item
@@ -268,10 +268,12 @@ export class LocalDB {
         return this.getStoreItem(DB_TREE_STORE_NAME, key);
     }
 
+
+
     // returns an Observable<boolean> of data item
-    deleteDataStoreItem(key: number) {
+    deleteStoreItem(storeName: string, key: number) {
         let source: Observable<boolean> = Observable.create((observer) => {
-            this.getDataStore("readwrite").subscribe(
+            this.getStore(storeName, "readwrite").subscribe(
                 (store: IDBObjectStore) => {
                     let deleteRequest: IDBRequest = store.delete(key);
 
@@ -290,5 +292,15 @@ export class LocalDB {
             );
         });
         return source;
+    }
+
+    // returns an Observable<boolean> of data item
+    deleteDataStoreItem(key: number) {
+        return this.deleteStoreItem(DB_DATA_STORE_NAME, key);
+    }
+
+    // returns an Observable<boolean> of data item
+    deleteTreeStoreItem(key: number) {
+        return this.deleteStoreItem(DB_TREE_STORE_NAME, key);
     }
 }
