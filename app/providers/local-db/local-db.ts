@@ -473,7 +473,8 @@ export class LocalDB {
     deleteTreeStoreItem(key: number) {
         return this.deleteStoreItem(DB_TREE_STORE_NAME, key);
     }
-
+}
+/*
     ///////////////////////////////////////////////////////////////////////////
     // HIGH LEVEL CRUD FUNCTIONS
     ///////////////////////////////////////////////////////////////////////////
@@ -510,9 +511,6 @@ export class LocalDB {
         return source;
     }
 
-}
-
-/*
     createTreeStoreItem(name: string, parentKey: number, data?: any) {
         if (parentKey === DB_NO_KEY) {
             // folder we're creating is a root of a tree in the forest
