@@ -511,3 +511,75 @@ export class LocalDB {
     }
 
 }
+
+/*
+    createTreeStoreItem(name: string, parentKey: number, data?: any) {
+        if (parentKey === DB_NO_KEY) {
+            // folder we're creating is a root of a tree in the forest
+            return this.createTreeAndDataStoreItems(
+                            name,
+                            parentKey,
+                            data
+                        );
+                        
+        }
+        // folder we're creating is not a root folder
+        let source: Observable<number> = Observable.create((observer) => {
+            if (!verifyKey(parentKey)) {
+                observer.error("invalid parent key");
+            }
+            else {
+                this.readTreeStoreItemsByName(name).subscribe(
+                    (nodes: TreeNode[]) => {
+                        for (let i in nodes) {
+                            if (isFolder(nodes[i]) &&
+                                (nodes[i].parentKey === parentKey)) {
+                                // already got folder by same name in parent
+                                observer.error("folder unique name violation");
+                            }
+                        }
+                    },
+                    (error) => {
+                        observer.error("read tree nodes by name");
+                    },
+                    () => {
+                        this.createTreeAndDataStoreItems(
+                            name,
+                            parentKey,
+                            data
+                        ).subscribe(
+                                (key: number) => {
+                                    observer.next(key);
+                                    observer.complete();
+                                },
+                                (error) => {
+                                    observer.error("create tree/data node")
+                                }
+                                
+                            )
+                        }
+                        else {
+                            // no data
+                            this.createStoreItem(
+                                DB_TREE_STORE_NAME,
+                                makeTreeNode(
+                                    name,
+                                    parentKey,
+                                    DB_NO_KEY
+                                )).subscribe(
+                                (key: number) => {
+                                    observer.next(key);
+                                    observer.complete();
+                                },
+                                (error) => {
+                                    observer.error("create store item");
+                                }
+                                );
+                        }
+                    }
+                );
+            }
+        });
+        return source;
+    }
+*/
