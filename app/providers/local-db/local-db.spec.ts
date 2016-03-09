@@ -28,7 +28,8 @@ export function main(): void {
     let localDB: LocalDB = null,
         localDB2: LocalDB = null,
         db: IDBDatabase = null,
-        addItemKey: number;
+        createdItemKey: number,
+        createdItemDataKey: number;
 
     beforeEach((done: Function) => {
         localDB = LocalDB.Instance;
@@ -175,7 +176,7 @@ export function main(): void {
                 localDB.createDataStoreItem(RANDOM_WORD_1).subscribe(
                     (key: number) => {
                         // expect key to be 1 due to deleting db on each run
-                        addItemKey = key;
+                        createdItemKey = key;
                         expect(key).toBe(1);
                         done();
                     },
@@ -188,7 +189,7 @@ export function main(): void {
 
         it("can read the added item from the data store", (done) => {
             setTimeout(() => {
-                localDB.readDataStoreItem(addItemKey).subscribe(
+                localDB.readDataStoreItem(createdItemKey).subscribe(
                     (data: any) => {
                         expect(data.data).toBe(RANDOM_WORD_1);
                         done();
@@ -202,7 +203,7 @@ export function main(): void {
 
         it("can update an item in the data store", (done) => {
             setTimeout(() => {
-                localDB.updateDataStoreItem(addItemKey, RANDOM_WORD_2).subscribe(
+                localDB.updateDataStoreItem(createdItemKey, RANDOM_WORD_2).subscribe(
                     (success: boolean) => {
                         expect(success).toBe(true);
                         done();
@@ -216,7 +217,7 @@ export function main(): void {
 
         it("can read the updated item from the data store", (done) => {
             setTimeout(() => {
-                localDB.readDataStoreItem(addItemKey).subscribe(
+                localDB.readDataStoreItem(createdItemKey).subscribe(
                     (data: any) => {
                         expect(data.data).toBe(RANDOM_WORD_2);
                         done();
@@ -230,7 +231,7 @@ export function main(): void {
 
         it("can delete the added item from the data store", (done) => {
             setTimeout(() => {
-                localDB.deleteDataStoreItem(addItemKey).subscribe(
+                localDB.deleteDataStoreItem(createdItemKey).subscribe(
                     (success: boolean) => {
                         expect(success).toBe(true);
                         done();
@@ -244,7 +245,7 @@ export function main(): void {
 
         it("cannot read the deleted item from the data store", (done) => {
             setTimeout(() => {
-                localDB.readDataStoreItem(addItemKey).subscribe(
+                localDB.readDataStoreItem(createdItemKey).subscribe(
                     (data: any) => {
                         expect(data).toBe(undefined);
                         done();
@@ -298,7 +299,7 @@ export function main(): void {
                 localDB.createItem(RANDOM_WORD_1, DB_NO_KEY).subscribe(
                     (key: number) => {
                         // expect key to be 1 due to deleting db on each run
-                        addItemKey = key;
+                        createdItemKey = key;
                         expect(key).toBe(1);
                         done();
                     },
@@ -333,7 +334,7 @@ export function main(): void {
         it("can update the folder item name", (done) => {
             setTimeout(() => {
                 localDB.updateItem(
-                    addItemKey,
+                    createdItemKey,
                     makeTreeNode(RANDOM_WORD_2, DB_NO_KEY, DB_NO_KEY)
                 ).subscribe(
                     (success: boolean) => {
@@ -348,7 +349,7 @@ export function main(): void {
 
         it("can read the updated folder name", (done) => {
             setTimeout(() => {
-                localDB.readItem(addItemKey).subscribe(
+                localDB.readItem(createdItemKey).subscribe(
                     (data: any) => {
                         expect(data.name).toBe(RANDOM_WORD_2);
                         done();
@@ -362,7 +363,7 @@ export function main(): void {
 
         it("can delete the folder just created", (done) => {
             setTimeout(() => {
-                localDB.deleteItem(addItemKey).subscribe(
+                localDB.deleteItem(createdItemKey).subscribe(
                     (success: boolean) => {
                         expect(success).toBe(true);
                         done();
@@ -376,7 +377,7 @@ export function main(): void {
 
         it("cannot delete again the folder just deleted", (done) => {
             setTimeout(() => {
-                localDB.deleteItem(addItemKey).subscribe(
+                localDB.deleteItem(createdItemKey).subscribe(
                     (success: boolean) => {
                         fail("expected an error");
                     },
@@ -390,6 +391,60 @@ export function main(): void {
                     },
                     () => {
                         fail("expected an error");
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can create an item", (done) => {
+            setTimeout(() => {
+                localDB.createItem(RANDOM_WORD_1, DB_NO_KEY, { a: 1 }).subscribe(
+                    (key: number) => {
+                        // expect key to be 1 due to deleting db on each run
+                        createdItemKey = key;
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can read the added item from the data store", (done) => {
+            setTimeout(() => {
+                localDB.readItem(createdItemKey).subscribe(
+                    (treeNode: any) => {
+                        expect(treeNode).toBeDefined();
+                        expect(treeNode.id).toBe(createdItemKey);
+                        expect(treeNode.dataKey).not.toBe(null);
+                        localDB.readDataStoreItem(treeNode.dataKey).subscribe(
+                            (dataItem: any) => {
+                                createdItemDataKey = dataItem.id;
+                                expect(dataItem.data).toEqual({ a: 1 });
+                                done();
+                            },
+                            (error) => {
+                                fail(error);
+                            }
+                        );
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can update the item just created", (done) => {
+            setTimeout(() => {
+                localDB.updateItem(createdItemKey, {a: 2}).subscribe(
+                    (success: boolean) => {
+                        expect(success).toBe(true);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
                     }
                 );
             }, MAX_DB_INIT_TIME);

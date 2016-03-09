@@ -63,15 +63,15 @@ const validKey = function(key: number): boolean {
     );
 };
 
-const copyObject = function(objFrom: Object, objTo: Object): Object {
-    console.log("copyObject(" + objFrom + "," + objTo + ")");
-    for (let i in objFrom) {
-        if (objFrom.hasOwnProperty(i)) {
+const copyObject = function(src: Object, dest: Object): Object {
+    console.log("copyObject(" + src + "," + dest + ")");
+    for (let i in src) {
+        if (src.hasOwnProperty(i)) {
             // console.log("copyObject: copying " + i);
-            objTo[i] = objFrom[i];
+            dest[i] = src[i];
         }
     }
-    return objTo;
+    return dest;
 };
 
 @Injectable()
@@ -555,13 +555,12 @@ export class LocalDB {
     ///////////////////////////////////////////////////////////////////////////
 
     // returns an observble<number> of key of created tree node
-    createItem(name: string, parentKey: number, data?: any) {
-        if (data) {
-            return this.createDataTreeStoreItem(name, parentKey, data);
-        }
-        else {
-            return this.createFolderTreeStoreItem(name, parentKey);
-        }
+    createFolder(name: string, parentKey: number) {
+        return this.createFolderTreeStoreItem(name, parentKey);
+    }
+
+    createItem(name: string, parentKey: number, data: any) {
+        return this.createDataTreeStoreItem(name, parentKey, data);
     }
 
     // returns an Observable<any> of the read tree node
@@ -569,13 +568,45 @@ export class LocalDB {
         return this.readTreeStoreItem(key);
     }
 
+    updateFolderName(key: number, newName: string) {
+        return this.updateTreeStoreItem(key, { name: newName });
+    }
+    
     // returns an Observable<> 
-    updateItem(key: number, newItem: any) {
-        return this.updateTreeStoreItem(key, newItem);
+    updateItem(key: number, data: any) {
+        // return this.updateTreeStoreItem(key, newItem);
+        let source: Observable<boolean> = Observable.create((observer) => {
+            this.readItem(key).subscribe(
+                (treeNode: any) => {
+                    console.dir(treeNode);
+
+                    if (treeNode === undefined) {
+                        // the read failed
+                        observer.error("item does not exist");
+                    }
+                    else {
+                        // the read succeeded, data key?
+                        if (treeNode.dataKey) {
+                            this.updateDataStoreItem(
+                                treeNode.dataKey,
+                                data
+                            ).subscribe(
+                                (success: boolean) => {
+                                    observer.next(true);
+                                    observer.complete();
+                                },
+                                (error) => { observer.error(error); });
+                        }
+                        else {
+                            observer.error("item has no data key");
+                        }
+                    }
+                },
+                (error) => { observer.error(error); });
+        });
+        return source;
     }
 
-    // TODO: extend this to delete data table item when needed
-    // returns an Observable<boolean> of delete success
     deleteItem(key: number) {
         // return this.deleteTreeStoreItem(key);
         let source: Observable<boolean> = Observable.create((observer) => {
