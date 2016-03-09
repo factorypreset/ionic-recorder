@@ -232,11 +232,9 @@ export class LocalDB {
             else {
                 this.getStore(storeName, "readonly").subscribe(
                     (store: IDBObjectStore) => {
-                        console.log("store = " + store);
                         let getRequest: IDBRequest = store.get(key);
 
                         getRequest.onsuccess = (event: IDBEvent) => {
-                            console.log("getDataItem success");
                             if (!getRequest.result) {
                                 observer.next(undefined);
                                 observer.complete();
