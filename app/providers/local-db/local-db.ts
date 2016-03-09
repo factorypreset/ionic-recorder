@@ -141,18 +141,18 @@ export class LocalDB {
         return source;
     }
 
-    // returns an Observable<IDBObjectStore> of the tree store
-    getTreeStore(mode: string) {
-        return this.getStore(DB_TREE_STORE_NAME, mode);
-    }
-
     // returns an Observable<IDBObjectStore> of the data store
     getDataStore(mode: string) {
         return this.getStore(DB_DATA_STORE_NAME, mode);
     }
 
+    // returns an Observable<IDBObjectStore> of the tree store
+    getTreeStore(mode: string) {
+        return this.getStore(DB_TREE_STORE_NAME, mode);
+    }
+
     // returns an Observable<IDBObjectStore> of the store that was cleared
-    clearObjectStore(storeName: string) {
+    clearStore(storeName: string) {
         let source: Observable<IDBObjectStore> = Observable.create((observer) => {
             this.getStore(storeName, "readwrite").subscribe(
                 (store: IDBObjectStore) => {
@@ -170,15 +170,15 @@ export class LocalDB {
 
     // returns an Observable<number> (number of stores cleared)
     // clears both stores
-    clearDB() {
+    clearBothStores() {
         // (this is an example of chaining one observable (the one
         // returned with two other observables)
         let source: Observable<number> = Observable.create((observer) => {
             let nCleared: number = 0;
-            this.clearObjectStore(DB_DATA_STORE_NAME).subscribe(
+            this.clearStore(DB_DATA_STORE_NAME).subscribe(
                 (store: IDBObjectStore) => {
                     nCleared += 1;
-                    this.clearObjectStore(DB_TREE_STORE_NAME).subscribe(
+                    this.clearStore(DB_TREE_STORE_NAME).subscribe(
                         (store: IDBObjectStore) => {
                             nCleared += 1;
                             observer.next(nCleared);
@@ -267,8 +267,6 @@ export class LocalDB {
     getTreeStoreItem(key: number) {
         return this.getStoreItem(DB_TREE_STORE_NAME, key);
     }
-
-
 
     // returns an Observable<boolean> of data item
     deleteStoreItem(storeName: string, key: number) {

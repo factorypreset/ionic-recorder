@@ -114,7 +114,7 @@ export function main(): void {
 
         it("clears both stores, twice in a row without erring", (done) => {
             setTimeout(() => {
-                localDB.clearDB().subscribe(
+                localDB.clearBothStores().subscribe(
                     (cleared: number) => {
                         expect(cleared).toBe(2);
                         done();
