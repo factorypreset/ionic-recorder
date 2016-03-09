@@ -11,6 +11,9 @@ export const DB_NO_KEY: number = 0;
 
 const STORE_EXISTS_ERROR_CODE: number = 0;
 
+function verifyKey(key: number) {
+    return key && !isNaN(key) && (key === Math.floor(key));
+}
 
 @Injectable()
 export class LocalDB {
@@ -198,7 +201,7 @@ export class LocalDB {
     }
 
     // returns an Observable<number> of the added item's key
-    addStoreItem(storeName: string, item: any) {
+    createStoreItem(storeName: string, item: any) {
         let source: Observable<number> = Observable.create((observer) => {
             if (!item) {
                 observer.error("cannot add falsy item");
@@ -228,18 +231,31 @@ export class LocalDB {
         return source;
     }
 
-    addDataStoreItem(item: any) {
-        return this.addStoreItem(DB_DATA_STORE_NAME, item);
+    createDataStoreItem(item: any) {
+        return this.createStoreItem(DB_DATA_STORE_NAME, item);
     }
 
-    addTreeStoreItem(item: any) {
-        return this.addStoreItem(DB_TREE_STORE_NAME, item);
+    createTreeStoreItem(item: any) {
+        return this.createStoreItem(DB_TREE_STORE_NAME, item);
+    }
+
+    // returns an Observable<boolean> of success in updating item
+    updateStoreItem(storeName: string, key: number, newItem: any) {
+        let source: Observable<boolean> = Observable.create((observer) => {
+            if (!verifyKey(key)) {
+                observer.error("invalid key");
+            }
+            else {
+
+            }
+        });
+        return source;
     }
 
     // returns an Observable<any> of data item
-    getStoreItem(storeName: string, key: number) {
+    readStoreItem(storeName: string, key: number) {
         let source: Observable<any> = Observable.create((observer) => {
-            if (!key) {
+            if (!verifyKey(key)) {
                 observer.error("invalid key");
             }
             else {
@@ -259,7 +275,7 @@ export class LocalDB {
                         };
 
                         getRequest.onerror = (event: IDBErrorEvent) => {
-                            observer.error("getStoreItem: request error");
+                            observer.error("readStoreItem: request error");
                         };
                     },
                     (error) => {
@@ -272,13 +288,13 @@ export class LocalDB {
     }
 
     // returns an Observable<any> of data item
-    getDataStoreItem(key: number) {
-        return this.getStoreItem(DB_DATA_STORE_NAME, key);
+    readDataStoreItem(key: number) {
+        return this.readStoreItem(DB_DATA_STORE_NAME, key);
     }
 
     // returns an Observable<any> of data item
-    getTreeStoreItem(key: number) {
-        return this.getStoreItem(DB_TREE_STORE_NAME, key);
+    readTreeStoreItem(key: number) {
+        return this.readStoreItem(DB_TREE_STORE_NAME, key);
     }
 
     // returns an Observable<boolean> of data item

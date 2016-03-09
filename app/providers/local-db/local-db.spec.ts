@@ -79,7 +79,7 @@ export function main(): void {
 
         it("cannot get a data store item with an invalid key", (done) => {
             setTimeout(() => {
-                localDB.getDataStoreItem(addItemKey).subscribe(
+                localDB.readDataStoreItem(addItemKey).subscribe(
                     (data: any) => {
                         fail("expected an error");
                     },
@@ -100,7 +100,7 @@ export function main(): void {
 
         it("cannot get a non-existing data store item (valid key)", (done) => {
             setTimeout(() => {
-                localDB.getDataStoreItem(1).subscribe(
+                localDB.readDataStoreItem(1).subscribe(
                     (data: any) => {
                         expect(data).toBe(undefined);
                         done();
@@ -128,7 +128,7 @@ export function main(): void {
 
         it("can add an item to the data store", (done) => {
             setTimeout(() => {
-                localDB.addDataStoreItem(RANDOM_WORD).subscribe(
+                localDB.createDataStoreItem(RANDOM_WORD).subscribe(
                     (key: number) => {
                         // expect key to be 1 due to deleting db on each run
                         addItemKey = key;
@@ -144,7 +144,7 @@ export function main(): void {
 
         it("can get the added item from the data store", (done) => {
             setTimeout(() => {
-                localDB.getDataStoreItem(addItemKey).subscribe(
+                localDB.readDataStoreItem(addItemKey).subscribe(
                     (data: any) => {
                         expect(data).toBe(RANDOM_WORD);
                         done();
@@ -172,7 +172,7 @@ export function main(): void {
 
         it("cannot get the deleted item from the data store", (done) => {
             setTimeout(() => {
-                localDB.getDataStoreItem(addItemKey).subscribe(
+                localDB.readDataStoreItem(addItemKey).subscribe(
                     (data: any) => {
                         expect(data).toBe(undefined);
                         done();
