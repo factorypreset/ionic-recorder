@@ -15,7 +15,7 @@ function verifyKey(key: number) {
     return key && !isNaN(key) && (key === Math.floor(key));
 }
 
-function objectify(item: any) {
+function makeDataStoreItem(item: any) {
     if (typeof item === "object") {
         return item;
     }
@@ -232,8 +232,7 @@ export class LocalDB {
             else {
                 this.getStore(storeName, "readwrite").subscribe(
                     (store: IDBObjectStore) => {
-                        let addRequest: IDBRequest =
-                            store.add(objectify(item));
+                        let addRequest: IDBRequest = store.add(item);
                         addRequest.onsuccess = (event: IDBEvent) => {
                             observer.next(addRequest.result);
                             observer.complete();
@@ -252,7 +251,10 @@ export class LocalDB {
     }
 
     createDataStoreItem(item: any) {
-        return this.createStoreItem(DB_DATA_STORE_NAME, item);
+        return this.createStoreItem(
+            DB_DATA_STORE_NAME,
+            makeDataStoreItem(item)
+        );
     }
 
     createTreeStoreItem(item: any) {
@@ -271,18 +273,12 @@ export class LocalDB {
                         let getRequest: IDBRequest = store.get(key);
 
                         getRequest.onsuccess = (event: IDBEvent) => {
-                            if (!getRequest.result) {
-                                observer.next(undefined);
-                                observer.complete();
-                            }
-                            else {
-                                observer.next(getRequest.result.data);
-                                observer.complete();
-                            }
+                            observer.next(getRequest.result);
+                            observer.complete();
                         };
 
                         getRequest.onerror = (event: IDBErrorEvent) => {
-                            observer.error(" get request error");
+                            observer.error("get request error");
                         };
                     },
                     (error) => {
@@ -328,7 +324,7 @@ export class LocalDB {
                                 else {
                                     let dbItem = getRequest.result,
                                         updatedItem: Object = copyObject(
-                                            objectify(newItem),
+                                            newItem,
                                             dbItem
                                         ),
                                         putRequest: IDBRequest =
@@ -364,7 +360,11 @@ export class LocalDB {
 
     // returns an Observable<boolean> of success in updating item
     updateDataStoreItem(key: number, newItem: any) {
-        return this.updateStoreItem(DB_DATA_STORE_NAME, key, newItem);
+        return this.updateStoreItem(
+            DB_DATA_STORE_NAME,
+            key,
+            makeDataStoreItem(newItem)
+        );
     }
 
     // returns an Observable<boolean> of success in updating item
@@ -404,5 +404,7 @@ export class LocalDB {
     deleteTreeStoreItem(key: number) {
         return this.deleteStoreItem(DB_TREE_STORE_NAME, key);
     }
+
+
 
 }
