@@ -2,8 +2,10 @@ import {LocalDB, DB_NAME} from "./local-db";
 import {Observable} from "rxjs/Rx";
 
 const MAX_DB_INIT_TIME = 200;
-const RANDOM_WORD: string =
-    "aWh9Xs5ytKuvEjdBhuLUVjED4dp5UPZd3QZFTLuejYNbuLvBVeP9Qq5xaBPAY7RE";
+const RANDOM_WORD_1: string =
+    "1Wh9Xs5ytKuvEjdBhuLUVjED4dp5UPZd3QZFTLuejYNbuLvBVeP9Qq5xaBPAY7RE";
+const RANDOM_WORD_2: string =
+    "2Wh9Xs5ytKuvEjdBhuLUVjED4dp5UPZd3QZFTLuejYNbuLvBVeP9Qq5xaBPAY7RE";
 
 let request: IDBOpenDBRequest = indexedDB.deleteDatabase(DB_NAME);
 
@@ -126,9 +128,9 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
-        it("can add an item to the data store", (done) => {
+        it("can create an item in the data store", (done) => {
             setTimeout(() => {
-                localDB.createDataStoreItem(RANDOM_WORD).subscribe(
+                localDB.createDataStoreItem(RANDOM_WORD_1).subscribe(
                     (key: number) => {
                         // expect key to be 1 due to deleting db on each run
                         addItemKey = key;
@@ -142,11 +144,39 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
-        it("can get the added item from the data store", (done) => {
+        it("can read the added item from the data store", (done) => {
             setTimeout(() => {
                 localDB.readDataStoreItem(addItemKey).subscribe(
                     (data: any) => {
-                        expect(data).toBe(RANDOM_WORD);
+                        expect(data).toBe(RANDOM_WORD_1);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can update an item in the data store", (done) => {
+            setTimeout(() => {
+                localDB.updateDataStoreItem(addItemKey, RANDOM_WORD_2).subscribe(
+                    (success: boolean) => {
+                        expect(success).toBe(true);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can read the updated item from the data store", (done) => {
+            setTimeout(() => {
+                localDB.readDataStoreItem(addItemKey).subscribe(
+                    (data: any) => {
+                        expect(data).toBe(RANDOM_WORD_2);
                         done();
                     },
                     (error) => {

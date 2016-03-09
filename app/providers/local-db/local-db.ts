@@ -15,6 +15,26 @@ function verifyKey(key: number) {
     return key && !isNaN(key) && (key === Math.floor(key));
 }
 
+function objectify(item: any) {
+    if (typeof item === "object") {
+        return item;
+    }
+    else {
+        return { data: item };
+    }
+}
+
+function copyObject(objFrom: Object, objTo: Object) {
+    console.log("copyObject(" + objFrom + "," + objTo + ")");
+    for (let i in objFrom) {
+        if (objFrom.hasOwnProperty(i)) {
+            // console.log("copyObject: copying " + i);
+            objTo[i] = objFrom[i];
+        }
+    }
+    return objTo;
+}
+
 @Injectable()
 export class LocalDB {
     // Singleton pattern implementation
@@ -209,11 +229,7 @@ export class LocalDB {
             else {
                 this.getStore(storeName, "readwrite").subscribe(
                     (store: IDBObjectStore) => {
-                        if (!item.hasOwnProperty("data")) {
-                            // enforce only objects with a 'data' property 
-                            item = { data: item };
-                        }
-                        let addRequest: IDBRequest = store.add(item);
+                        let addRequest: IDBRequest = store.add(objectify(item));
                         addRequest.onsuccess = (event: IDBEvent) => {
                             observer.next(addRequest.result);
                             observer.complete();
@@ -237,19 +253,6 @@ export class LocalDB {
 
     createTreeStoreItem(item: any) {
         return this.createStoreItem(DB_TREE_STORE_NAME, item);
-    }
-
-    // returns an Observable<boolean> of success in updating item
-    updateStoreItem(storeName: string, key: number, newItem: any) {
-        let source: Observable<boolean> = Observable.create((observer) => {
-            if (!verifyKey(key)) {
-                observer.error("invalid key");
-            }
-            else {
-
-            }
-        });
-        return source;
     }
 
     // returns an Observable<any> of data item
@@ -297,7 +300,71 @@ export class LocalDB {
         return this.readStoreItem(DB_TREE_STORE_NAME, key);
     }
 
-    // returns an Observable<boolean> of data item
+    // returns an Observable<true> of success in updating item
+    updateStoreItem(storeName: string, key: number, newItem: any) {
+        let source: Observable<boolean> = Observable.create((observer) => {
+            if (!verifyKey(key)) {
+                observer.error("invalid key");
+            }
+            else {
+                this.getStore(storeName, "readwrite").subscribe(
+                    (store: IDBObjectStore) => {
+                        let getRequest: IDBRequest = store.get(key);
+
+                        getRequest.onsuccess = (event: IDBEvent) => {
+                            if (!getRequest.result) {
+                                // request success, but we got nothing. ERROR:
+                                // we expect what we're updating to be there
+                                observer.error("no item to update");
+                            }
+                            else {
+                                if (getRequest.result.id !== key) {
+                                    observer.error("got an item with no id");
+                                }
+                                else {
+                                    let dbItem = getRequest.result,
+                                        updatedItem: Object =
+                                            copyObject(objectify(newItem), dbItem),
+                                        putRequest: IDBRequest =
+                                            store.put(updatedItem);
+
+                                    putRequest.onsuccess =
+                                        (event: IDBErrorEvent) => {
+                                            observer.next(true);
+                                            observer.complete();
+                                        };
+
+                                    putRequest.onerror =
+                                        (event: IDBErrorEvent) => {
+                                            observer.error("put error");
+                                        };
+                                }
+                            };
+
+                            getRequest.onerror = (event: IDBErrorEvent) => {
+                                observer.error("readStoreItem: request error");
+                            };
+                        }; // getRequest.onsuccess = 
+                    },
+                    (error) => {
+                        observer.error("getDataItem: getStore error");
+                    }
+                );
+            }
+        });
+        return source;
+    }
+
+    // returns an Observable<boolean> of success in updating item
+    updateDataStoreItem(key: number, newItem: any) {
+        return this.updateStoreItem(DB_DATA_STORE_NAME, key, newItem);
+    }
+
+    // returns an Observable<boolean> of success in updating item
+    updateTreeStoreItem(key: number, newItem: any) {
+        return this.updateStoreItem(DB_TREE_STORE_NAME, key, newItem);
+    }
+
     deleteStoreItem(storeName: string, key: number) {
         let source: Observable<boolean> = Observable.create((observer) => {
             this.getStore(storeName, "readwrite").subscribe(
