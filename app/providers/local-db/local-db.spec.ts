@@ -41,7 +41,8 @@ export function main(): void {
         );
     });
 
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = MAX_DB_INIT_TIME * 100;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = MAX_DB_INIT_TIME * 2;
+
     describe("When localDB initialized", () => {
         it("localDB is not falsy", (done) => {
             setTimeout(() => {
