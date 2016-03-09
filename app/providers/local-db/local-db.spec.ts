@@ -76,22 +76,36 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
-        it("cannot get a data store item with an invalid key from", (done) => {
+        it("cannot get a data store item with an invalid key", (done) => {
             setTimeout(() => {
-                let cachedData: any = "notFalsy";
                 localDB.getDataItem(addItemKey).subscribe(
                     (data: any) => {
-                        cachedData = data;
+                        fail("expected an error");
+                    },
+                    (error) => {
+                        if (error === "invalid key") {
+                            done();
+                        }
+                        else {
+                            fail(error);
+                        }
+                    },
+                    () => {
+                        fail("expected an error");
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("cannot get a non-existing data store item (valid key)", (done) => {
+            setTimeout(() => {
+                localDB.getDataItem(1).subscribe(
+                    (data: any) => {
                         expect(data).toBe(undefined);
                         done();
                     },
                     (error) => {
-                        done();
-                        // fail(error);
-                    },
-                    () => {
-                        expect(cachedData).toBe(undefined);
-                        done();
+                        fail(error);
                     }
                 );
             }, MAX_DB_INIT_TIME);
