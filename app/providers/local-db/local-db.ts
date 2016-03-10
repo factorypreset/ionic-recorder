@@ -5,7 +5,7 @@ export const DB_NAME: string = "ionic-recorder-db";
 export const DB_VERSION: number = 1;
 export const DB_TREE_STORE_NAME = "blobTree";
 export const DB_DATA_STORE_NAME: string = "dataTable";
-export const DB_ID_PATH: string = "id";
+export const DB_KEY_PATH: string = "id";
 export const DB_NO_ID: number = 0;
 
 const STORE_EXISTS_ERROR_CODE: number = 0;
@@ -62,7 +62,7 @@ const copyObject = function(src: Object, dest: Object): Object {
     console.log("copyObject(" + src + "," + dest + ")");
     for (let i in src) {
         if (src.hasOwnProperty(i)) {
-            // console.log("copyObject: copying " + i);
+            console.log("copyObject: copying " + i);
             dest[i] = src[i];
         }
     }
@@ -158,7 +158,7 @@ export class LocalDB {
                     let treeStore: IDBObjectStore =
                         openRequest.result.createObjectStore(
                             DB_TREE_STORE_NAME,
-                            { idPath: DB_ID_PATH, autoIncrement: true }
+                            { keyPath: DB_KEY_PATH, autoIncrement: true }
                         );
 
                     // index on name, idParent and timestamp
@@ -172,7 +172,7 @@ export class LocalDB {
                     // create internal data-table store
                     openRequest.result.createObjectStore(
                         DB_DATA_STORE_NAME,
-                        { idPath: DB_ID_PATH, autoIncrement: true }
+                        { keyPath: DB_KEY_PATH, autoIncrement: true }
                     );
                 }
                 catch (error) {
@@ -318,30 +318,30 @@ export class LocalDB {
                                 observer.error("no result to update");
                             }
                             else {
-                                if (getRequest.result.id !== id) {
-                                    observer.error("store.get() id mismatch");
-                                }
-                                else {
-                                    let dbItem = getRequest.result,
-                                        updatedItem: Object = copyObject(
-                                            newItem,
-                                            dbItem
-                                        ),
-                                        putRequest: IDBRequest =
-                                            store.put(updatedItem);
+                                let putRequest: IDBRequest = store.put(
+                                    copyObject(
+                                        newItem,
+                                        getRequest.result
+                                    ));
 
-                                    putRequest.onsuccess =
-                                        (event: IDBErrorEvent) => {
+                                putRequest.onsuccess =
+                                    (event: IDBErrorEvent) => {
+                                        // the id of the updated item is in
+                                        // putRequest.result, verify it
+                                        if (putRequest.result !== id) {
+                                            observer.error("put: bad id");
+                                        }
+                                        else {
                                             observer.next(true);
                                             observer.complete();
-                                        };
+                                        }
+                                    };
 
-                                    putRequest.onerror =
-                                        (event: IDBErrorEvent) => {
-                                            observer.error("put request");
-                                        };
-                                }
-                            };
+                                putRequest.onerror =
+                                    (event: IDBErrorEvent) => {
+                                        observer.error("put request");
+                                    };
+                            }
                         }; // getRequest.onsuccess =
 
                         getRequest.onerror = (event: IDBErrorEvent) => {
@@ -539,7 +539,7 @@ export class LocalDB {
             this.nameUniqueInParent(name, idParent).subscribe(
                 (unique: boolean) => {
                     if (!unique) {
-                            observer.error("unique name violation");
+                        observer.error("unique name violation");
                     }
                     else {
                         this.createDataStoreItem(data).subscribe(
@@ -646,7 +646,7 @@ export class LocalDB {
     updateNodeData(treeNode: TreeNode, newData: any) {
         return this.updateStoreItem(
             DB_DATA_STORE_NAME,
-            treeNode.id,
+            treeNode.idData,
             makeDataNode(newData)
         );
     }

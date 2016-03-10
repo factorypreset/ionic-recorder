@@ -3,7 +3,7 @@ import {LibraryPage} from "../library/library";
 import {VuGauge} from "../../components/vu-gauge/vu-gauge";
 import {AppState} from "../../providers/app-state/app-state";
 import {WebAudio} from "../../providers/web-audio/web-audio";
-import {LocalDB, DB_ID_PATH, DB_NO_ID} from "../../providers/local-db/local-db";
+import {LocalDB, DB_NO_ID} from "../../providers/local-db/local-db";
 import {num2str, msec2time} from "../../providers/utils/utils";
 
 // the volume monitor frequency, in Hz

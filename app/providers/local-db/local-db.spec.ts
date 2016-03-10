@@ -308,5 +308,33 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
+        it("can update item2 data to i2newData'", (done) => {
+            setTimeout(() => {
+                localDB.updateNodeData(item2, "i2newData").subscribe(
+                    (answer: boolean) => {
+                        expect(answer).toBe(true);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+        /*
+        it("can re-read item2 data and verify its 'i2newdata'", (done) => {
+            setTimeout(() => {
+                localDB.readNodeData(item2).subscribe(
+                    (data: any) => {
+                        expect(data).toEqual("i2newData");
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+        */
     });
 }
