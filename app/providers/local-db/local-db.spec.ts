@@ -1,4 +1,4 @@
-import {LocalDB, TreeNode, DB_NAME, DB_NO_ID, makeTreeNode} from "./local-db";
+import {LocalDB, TreeNode, DB_NAME, DB_NO_ID} from "./local-db";
 import {Observable} from "rxjs/Rx";
 
 const MAX_DB_INIT_TIME = 200;
@@ -321,8 +321,8 @@ export function main(): void {
                 );
             }, MAX_DB_INIT_TIME);
         });
-        /*
-        it("can re-read item2 data and verify its 'i2newdata'", (done) => {
+
+        it("can re-read item2 data and verify it's 'i2newdata'", (done) => {
             setTimeout(() => {
                 localDB.readNodeData(item2).subscribe(
                     (data: any) => {
@@ -335,6 +335,22 @@ export function main(): void {
                 );
             }, MAX_DB_INIT_TIME);
         });
-        */
+
+        it("can get child nodes of folder3 and verify them", (done) => {
+            setTimeout(() => {
+                localDB.readChildNodes(folder3).subscribe(
+                    (childNodes: TreeNode[]) => {
+                        expect(childNodes.length).toEqual(2);
+                        expect(childNodes).toContain(item4);
+                        expect(childNodes).toContain(folder5);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
     });
 }

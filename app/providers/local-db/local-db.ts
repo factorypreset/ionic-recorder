@@ -1,5 +1,7 @@
 import {Injectable} from "angular2/core";
 import {Observable} from "rxjs/Observable";
+import {copyFromObject} from "../utils/utils";
+
 
 export const DB_NAME: string = "ionic-recorder-db";
 export const DB_VERSION: number = 1;
@@ -23,51 +25,6 @@ export interface TreeNode {
     id?: number;
 }
 
-const makeDataNode = function(newData: any): DataNode {
-    if (typeof newData === "object") {
-        if (newData.data) {
-            return newData;
-        }
-        else {
-            return {
-                data: newData
-            };
-        }
-    }
-    else {
-        return {
-            data: newData
-        };
-    }
-};
-
-export const makeTreeNode = function(
-    name: string,
-    idParent: number,
-    idData: number
-): TreeNode {
-    return {
-        name: name,
-        idParent: idParent,
-        idData: idData,
-        timestamp: Date.now(),
-    };
-};
-
-const isFolder = function(node: TreeNode) {
-    return node.idData === DB_NO_ID;
-};
-
-const copyObject = function(src: Object, dest: Object): Object {
-    console.log("copyObject(" + src + "," + dest + ")");
-    for (let i in src) {
-        if (src.hasOwnProperty(i)) {
-            console.log("copyObject: copying " + i);
-            dest[i] = src[i];
-        }
-    }
-    return dest;
-};
 
 @Injectable()
 export class LocalDB {
@@ -101,6 +58,30 @@ export class LocalDB {
             id === Math.floor(id)
         );
     }
+
+    isFolder(node: TreeNode) {
+        return node.idData === DB_NO_ID;
+    }
+
+    makeDataNode(newData: any): DataNode {
+        if (typeof newData === "object" && newData.data) {
+            return newData;
+        }
+        else {
+            return {
+                data: newData
+            };
+        }
+    }
+
+    makeTreeNode(name: string, idParent: number, idData: number): TreeNode {
+        return {
+            name: name,
+            idParent: idParent,
+            idData: idData,
+            timestamp: Date.now(),
+        };
+    };
 
     // Returns an Observable<IDBDatabase> of the db, just like openDB() does,
     // but this time it's a smarter one that checks to see if we already
@@ -319,7 +300,7 @@ export class LocalDB {
                             }
                             else {
                                 let putRequest: IDBRequest = store.put(
-                                    copyObject(
+                                    copyFromObject(
                                         newItem,
                                         getRequest.result
                                     ));
@@ -394,7 +375,7 @@ export class LocalDB {
     createDataStoreItem(data: any) {
         let source: Observable<DataNode> = Observable.create((observer) => {
             this.createStoreItem(DB_DATA_STORE_NAME,
-                makeDataNode(data)).subscribe(
+                this.makeDataNode(data)).subscribe(
                 (dataNode: DataNode) => {
                     observer.next(dataNode);
                     observer.complete();
@@ -412,7 +393,7 @@ export class LocalDB {
     createTreeStoreItem(name: string, idParent: number, idData: number) {
         let source: Observable<TreeNode> = Observable.create((observer) => {
             this.createStoreItem(DB_TREE_STORE_NAME,
-                makeTreeNode(name, idParent, idData)).subscribe(
+                this.makeTreeNode(name, idParent, idData)).subscribe(
                 (treeNode: TreeNode) => {
                     observer.next(treeNode);
                     observer.complete();
@@ -449,7 +430,6 @@ export class LocalDB {
                         cursorRequest: IDBRequest = index.openCursor(idRange);
 
                     cursorRequest.onsuccess = (event: IDBEvent) => {
-                        console.dir(cursorRequest);
                         let cursor: IDBCursorWithValue = cursorRequest.result;
                         if (cursor) {
                             console.log("got item by name = " + name);
@@ -631,6 +611,40 @@ export class LocalDB {
         return source;
     }
 
+    // Returns an Observable<TreeNode[]> of all child nodes of parentNode
+    readChildNodes(parentNode: TreeNode) {
+        let source: Observable<TreeNode[]> = Observable.create((observer) => {
+            let childNodes: TreeNode[] = [];
+            this.getTreeStore("readonly").subscribe(
+                (store: IDBObjectStore) => {
+                    let index: IDBIndex = store.index("idParent"),
+                        idRange: IDBKeyRange = IDBKeyRange.only(parentNode.id),
+                        cursorRequest: IDBRequest = index.openCursor(idRange);
+
+                    cursorRequest.onsuccess = (event: IDBEvent) => {
+                        let cursor: IDBCursorWithValue = cursorRequest.result;
+                        if (cursor) {
+                            // console.log("got child of id " + parentNode.id);
+                            childNodes.push(cursor.value);
+                            cursor.continue();
+                        }
+                        else {
+                            observer.next(childNodes);
+                            observer.complete();
+                        }
+                    };
+                    cursorRequest.onerror = (event: IDBErrorEvent) => {
+                        observer.error("cursor");
+                    };
+                },
+                (error) => {
+                    observer.error(error);
+                }
+            ); // getTreeStore().subscribe(
+        });
+        return source;
+    }
+
     // Returns an Observable<boolean> of success in updating tree store item
     // Input is a tree node that has been updated already with new
     // field values, it must have the id property set to the right
@@ -647,10 +661,10 @@ export class LocalDB {
         return this.updateStoreItem(
             DB_DATA_STORE_NAME,
             treeNode.idData,
-            makeDataNode(newData)
+            this.makeDataNode(newData)
         );
     }
-    /*
+
     deleteNode(treeNode: TreeNode) {
         if (treeNode.idData) {
             // it's a a leaf node, non-folder, no need to recurse
@@ -660,6 +674,5 @@ export class LocalDB {
             // this.recursiveDeleteTreeNode(), which we have to write...
         }
     }
-    */
 }
 
