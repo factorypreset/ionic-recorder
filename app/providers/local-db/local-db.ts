@@ -2,20 +2,23 @@ import {Injectable} from "angular2/core";
 import {Observable} from "rxjs/Observable";
 import {copyFromObject} from "../utils/utils";
 
+// non-exported module globals
 
-export const DB_NAME: string = "ionic-recorder-db";
-export const DB_VERSION: number = 1;
-export const DB_TREE_STORE_NAME = "blobTree";
-export const DB_DATA_STORE_NAME: string = "dataTable";
-export const DB_KEY_PATH: string = "id";
-export const DB_NO_ID: number = 0;
-
+const DB_VERSION: number = 1;
+const DB_TREE_STORE_NAME = "blobTree";
+const DB_DATA_STORE_NAME: string = "dataTable";
+const DB_KEY_PATH: string = "id";
 const STORE_EXISTS_ERROR_CODE: number = 0;
 
-export interface DataNode {
+interface DataNode {
     data: any;
     id?: number;
 }
+
+// module exports
+
+export const DB_NAME: string = "ionic-recorder-db";
+export const DB_NO_ID: number = 0;
 
 export interface TreeNode {
     name: string;
@@ -25,10 +28,9 @@ export interface TreeNode {
     id?: number;
 }
 
-
 @Injectable()
 export class LocalDB {
-    // Singleton pattern implementation
+    // 'instance' is used as part of Singleton pattern implementation
     private static instance: LocalDB = null;
     private dbObservable: Observable<IDBDatabase> = null;
     private db: IDBDatabase = null;
