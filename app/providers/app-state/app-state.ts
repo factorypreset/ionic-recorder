@@ -1,5 +1,5 @@
 import {Injectable} from "angular2/core";
-import {LocalDB, DB_NO_KEY} from "../local-db/local-db";
+import {LocalDB, DB_NO_ID} from "../local-db/local-db";
 
 
 // make sure APP_STATE_ITEM_NAME will never be entered by a user
@@ -10,7 +10,7 @@ const APP_STATE_ITEM_NAME: string =
 @Injectable()
 export class AppState {
     lastViewedPage: string = "record";
-    lastViewedFolderKey: number = DB_NO_KEY;
+    lastViewedFolderKey: number = DB_NO_ID;
 
     constructor() {
         console.log("constructor():AppState");

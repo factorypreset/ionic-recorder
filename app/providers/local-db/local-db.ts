@@ -5,62 +5,57 @@ export const DB_NAME: string = "ionic-recorder-db";
 export const DB_VERSION: number = 1;
 export const DB_TREE_STORE_NAME = "blobTree";
 export const DB_DATA_STORE_NAME: string = "dataTable";
-export const DB_KEY_PATH: string = "id";
-export const DB_NO_KEY: number = 0;
+export const DB_ID_PATH: string = "id";
+export const DB_NO_ID: number = 0;
 
 const STORE_EXISTS_ERROR_CODE: number = 0;
 
-interface DataNode {
+export interface DataNode {
     data: any;
     id?: number;
 }
 
-interface TreeNode {
+export interface TreeNode {
     name: string;
-    parentKey: number;
-    dataKey: number;
-    date: number;
+    idParent: number;
+    idData: number;
+    timestamp: number;
     id?: number;
 }
 
-const makeDataNode = function(item: any): DataNode {
-    if (typeof item === "object") {
-        if (item.data) {
-            return item;
+const makeDataNode = function(newData: any): DataNode {
+    if (typeof newData === "object") {
+        if (newData.data) {
+            return newData;
         }
         else {
-            return { data: item };
+            return {
+                data: newData
+            };
         }
     }
     else {
-        return { data: item };
+        return {
+            data: newData
+        };
     }
 };
 
 export const makeTreeNode = function(
     name: string,
-    parentKey: number,
-    dataKey: number
+    idParent: number,
+    idData: number
 ): TreeNode {
     return {
-        name: name, parentKey:
-        parentKey,
-        dataKey: dataKey,
-        date: Date.now()
+        name: name,
+        idParent: idParent,
+        idData: idData,
+        timestamp: Date.now(),
     };
 };
 
 const isFolder = function(node: TreeNode) {
-    return node.dataKey === DB_NO_KEY;
-};
-
-const validKey = function(key: number): boolean {
-    return (
-        key &&
-        !isNaN(key) &&
-        key > 0 &&
-        key === Math.floor(key)
-    );
+    return node.idData === DB_NO_ID;
 };
 
 const copyObject = function(src: Object, dest: Object): Object {
@@ -98,7 +93,16 @@ export class LocalDB {
         return this.instance;
     }
 
-    // returns an Observable<IDBDatabase> of the db, just like openDB() does,
+    validateId(id: number): boolean {
+        return (
+            id &&
+            !isNaN(id) &&
+            id > 0 &&
+            id === Math.floor(id)
+        );
+    }
+
+    // Returns an Observable<IDBDatabase> of the db, just like openDB() does,
     // but this time it's a smarter one that checks to see if we already
     // have a DB opened, so that we don"t call open() more than once
     getDB() {
@@ -120,14 +124,16 @@ export class LocalDB {
                         observer.next(db);
                         observer.complete(db);
                     },
-                    (error) => { observer.error(error); }
-                );
+                    (error) => {
+                        observer.error(error);
+                    }
+                ); // dbObservable.subscribe(
             }
         });
         return source;
     }
 
-    // returns an Observable<IDBDatabase> of the db
+    // Returns an Observable<IDBDatabase> of the db
     openDB() {
         let source: Observable<IDBDatabase> = Observable.create((observer) => {
             let openRequest: IDBOpenDBRequest = indexedDB.open(
@@ -152,19 +158,21 @@ export class LocalDB {
                     let treeStore: IDBObjectStore =
                         openRequest.result.createObjectStore(
                             DB_TREE_STORE_NAME,
-                            { keyPath: DB_KEY_PATH, autoIncrement: true }
+                            { idPath: DB_ID_PATH, autoIncrement: true }
                         );
 
-                    // index on name, parentKey and date
-                    treeStore.createIndex("name", "name", { unique: false });
+                    // index on name, idParent and timestamp
                     treeStore.createIndex(
-                        "parentKey", "parentKey", { unique: false });
-                    treeStore.createIndex("date", "date", { unique: true });
+                        "name", "name", { unique: false });
+                    treeStore.createIndex(
+                        "idParent", "idParent", { unique: false });
+                    treeStore.createIndex(
+                        "timestamp", "timestamp", { unique: true });
 
                     // create internal data-table store
                     openRequest.result.createObjectStore(
                         DB_DATA_STORE_NAME,
-                        { keyPath: DB_KEY_PATH, autoIncrement: true }
+                        { idPath: DB_ID_PATH, autoIncrement: true }
                     );
                 }
                 catch (error) {
@@ -175,12 +183,12 @@ export class LocalDB {
                     }
                 }
                 console.log("openDB:onupgradeended DONE");
-            }; // openRequest.onupgradeneeded = ...
-        }); // let source: Observable<IDBDatabase> =
+            }; // openRequest.onupgradeneeded =
+        });
         return source;
     }
 
-    // returns an Observable<IDBObjectStore of a store
+    // Returns an Observable<IDBObjectStore> of a store
     getStore(storeName: string, mode: string) {
         let source: Observable<IDBObjectStore> =
             Observable.create((observer) => {
@@ -194,114 +202,85 @@ export class LocalDB {
                         );
                         observer.complete();
                     },
-                    (error) => { observer.error(error); }
-                );
+                    (error) => {
+                        observer.error(error);
+                    }
+                ); // getDB().subscribe(
             });
         return source;
     }
 
-    // returns an Observable<IDBObjectStore> of the data store
+    // Returns an Observable<IDBObjectStore> of the data store
     getDataStore(mode: string) {
         return this.getStore(DB_DATA_STORE_NAME, mode);
     }
 
-    // returns an Observable<IDBObjectStore> of the tree store
+    // Returns an Observable<IDBObjectStore> of the tree store
     getTreeStore(mode: string) {
         return this.getStore(DB_TREE_STORE_NAME, mode);
     }
-
-    // returns an Observable<IDBObjectStore> of the store that was cleared
+    // Returns an Observable<bool> of the success in clearing
     clearStore(storeName: string) {
-        let source: Observable<IDBObjectStore> =
-            Observable.create((observer) => {
-                this.getStore(storeName, "readwrite").subscribe(
-                    (store: IDBObjectStore) => {
-                        store.clear();
-                        observer.next(store);
-                        observer.complete();
-                    },
-                    (error) => { observer.error(error); }
-                );
-            });
-        return source;
-    }
-
-    // returns an Observable<number> (number of stores cleared)
-    // clears both stores
-    clearBothStores() {
-        // (this is an example of chaining one observable (the one
-        // returned with two other observables)
-        let source: Observable<number> = Observable.create((observer) => {
-            let nCleared: number = 0;
-            this.clearStore(DB_DATA_STORE_NAME).subscribe(
+        let source: Observable<boolean> = Observable.create((observer) => {
+            this.getStore(storeName, "readwrite").subscribe(
                 (store: IDBObjectStore) => {
-                    nCleared += 1;
-                    this.clearStore(DB_TREE_STORE_NAME).subscribe(
-                        (store: IDBObjectStore) => {
-                            nCleared += 1;
-                            observer.next(nCleared);
-                            observer.complete();
-                        },
-                        (error2) => {
-                            observer.error("clear tree store");
-                        }
-                    );
+                    store.clear();
+                    observer.next(true);
+                    observer.complete();
                 },
-                (error) => { observer.error(error); }
-            );
+                (error) => {
+                    observer.error(error);
+                }
+            ); // getStore().subscribe(
         });
         return source;
     }
 
-    // returns an Observable<number> of the added item's key
+    /*
+    * START: generic low-level CRUD methods
+    */
+
+    // Returns an Observable<any> of the added item
     createStoreItem(storeName: string, item: any) {
-        let source: Observable<number> = Observable.create((observer) => {
+        let source: Observable<any> = Observable.create((observer) => {
             if (!item) {
                 observer.error("add falsy item");
+            }
+            else if (item.id) {
+                observer.error("cannot create item when it has an id");
             }
             else {
                 this.getStore(storeName, "readwrite").subscribe(
                     (store: IDBObjectStore) => {
                         let addRequest: IDBRequest = store.add(item);
                         addRequest.onsuccess = (event: IDBEvent) => {
-                            observer.next(addRequest.result);
+                            item.id = addRequest.result;
+                            observer.next(item);
                             observer.complete();
                         };
                         addRequest.onerror = (event: IDBEvent) => {
                             observer.error("add request");
                         };
                     },
-                    (error) => { observer.error(error); }
-                );
+                    (error) => {
+                        observer.error(error);
+                    }
+                ); // getStore().subscribe(
             }
         });
         return source;
     }
 
-    createDataStoreItem(item: any) {
-        return this.createStoreItem(
-            DB_DATA_STORE_NAME,
-            makeDataNode(item)
-        );
-    }
-
-    createTreeStoreItem(name: string, parentKey: number, dataKey: number) {
-        return this.createStoreItem(
-            DB_TREE_STORE_NAME,
-            makeTreeNode(name, parentKey, dataKey)
-        );
-    }
-
-    // returns an Observable<any> of data item
-    readStoreItem(storeName: string, key: number) {
+    // Returns an Observable<any> of data item
+    readStoreItem(storeName: string, id: number) {
         let source: Observable<any> = Observable.create((observer) => {
-            if (!validKey(key)) {
-                observer.error("invalid key");
+            if (!this.validateId(id)) {
+                observer.error("invalid id");
             }
             else {
                 this.getStore(storeName, "readonly").subscribe(
                     (store: IDBObjectStore) => {
-                        let getRequest: IDBRequest = store.get(key);
+                        let getRequest: IDBRequest = store.get(id);
 
                         getRequest.onsuccess = (event: IDBEvent) => {
                             observer.next(getRequest.result);
@@ -312,66 +291,25 @@ export class LocalDB {
                             observer.error("get request");
                         };
                     },
-                    (error) => { observer.error(error); }
-                );
+                    (error) => {
+                        observer.error(error);
+                    }
+                ); // getStore().subscribe(
             }
         });
         return source;
     }
 
-    // returns an Observable<any> of data item
-    readDataStoreItem(key: number) {
-        return this.readStoreItem(DB_DATA_STORE_NAME, key);
-    }
-
-    // returns an Observable<any> of data item
-    readTreeStoreItem(key: number) {
-        return this.readStoreItem(DB_TREE_STORE_NAME, key);
-    }
-
-    // returns an Observable<TreeNode[]> of all nodes obtained by name
-    readTreeStoreItemsByName(name: string) {
-        let source: Observable<TreeNode[]> = Observable.create((observer) => {
-            let nodes: TreeNode[] = [];
-            this.getTreeStore("readonly").subscribe(
-                (store: IDBObjectStore) => {
-                    let index: IDBIndex = store.index("name"),
-                        keyRange: IDBKeyRange = IDBKeyRange.only(name),
-                        cursorRequest: IDBRequest = index.openCursor(keyRange);
-
-                    cursorRequest.onsuccess = (event: IDBEvent) => {
-                        console.dir(cursorRequest);
-                        let cursor: IDBCursorWithValue = cursorRequest.result;
-                        if (cursor) {
-                            console.log("got item by name = " + name);
-                            nodes.push(cursor.value);
-                            cursor.continue();
-                        }
-                        else {
-                            observer.next(nodes);
-                            observer.complete();
-                        }
-                    };
-                    cursorRequest.onerror = (event: IDBErrorEvent) => {
-                        observer.error("cursor");
-                    };
-                },
-                (error) => { observer.error(error); }
-            );
-        });
-        return source;
-    }
-
-    // returns an Observable<true> of success in updating item
-    updateStoreItem(storeName: string, key: number, newItem: any) {
+    // Returns an Observable<boolean> of success in updating item
+    updateStoreItem(storeName: string, id: number, newItem: any) {
         let source: Observable<boolean> = Observable.create((observer) => {
-            if (!validKey(key)) {
-                observer.error("invalid key");
+            if (!this.validateId(id)) {
+                observer.error("invalid id");
             }
             else {
                 this.getStore(storeName, "readwrite").subscribe(
                     (store: IDBObjectStore) => {
-                        let getRequest: IDBRequest = store.get(key);
+                        let getRequest: IDBRequest = store.get(id);
 
                         getRequest.onsuccess = (event: IDBEvent) => {
                             if (!getRequest.result) {
@@ -380,8 +318,8 @@ export class LocalDB {
                                 observer.error("no result to update");
                             }
                             else {
-                                if (getRequest.result.id !== key) {
-                                    observer.error("item with no id");
+                                if (getRequest.result.id !== id) {
+                                    observer.error("store.get() id mismatch");
                                 }
                                 else {
                                     let dbItem = getRequest.result,
@@ -404,39 +342,27 @@ export class LocalDB {
                                         };
                                 }
                             };
+                        }; // getRequest.onsuccess =
 
-                            getRequest.onerror = (event: IDBErrorEvent) => {
-                                observer.error("get request");
-                            };
-                        }; // getRequest.onsuccess = 
+                        getRequest.onerror = (event: IDBErrorEvent) => {
+                            observer.error("get request");
+                        };
                     },
-                    (error) => { observer.error(error); }
-                );
+                    (error) => {
+                        observer.error(error);
+                    }
+                ); // getStore().subscribe(
             }
         });
         return source;
     }
 
-    // returns an Observable<boolean> of success in updating item
-    updateDataStoreItem(key: number, newItem: any) {
-        return this.updateStoreItem(
-            DB_DATA_STORE_NAME,
-            key,
-            makeDataNode(newItem)
-        );
-    }
-
-    // returns an Observable<boolean> of success in updating item
-    updateTreeStoreItem(key: number, newItem: any) {
-        return this.updateStoreItem(DB_TREE_STORE_NAME, key, newItem);
-    }
-
-    // returns an Observable<boolean> of success in deleting item
-    deleteStoreItem(storeName: string, key: number) {
+    // Returns an Observable<boolean> of success in deleting item
+    deleteStoreItem(storeName: string, id: number) {
         let source: Observable<boolean> = Observable.create((observer) => {
             this.getStore(storeName, "readwrite").subscribe(
                 (store: IDBObjectStore) => {
-                    let deleteRequest: IDBRequest = store.delete(key);
+                    let deleteRequest: IDBRequest = store.delete(id);
 
                     deleteRequest.onsuccess = (event: IDBEvent) => {
                         observer.next(true);
@@ -447,30 +373,114 @@ export class LocalDB {
                         observer.error("delete request");
                     };
                 },
-                (error) => { observer.error(error); }
-            );
+                (error) => {
+                    observer.error(error);
+                }
+            ); // getStore().subscribe(
         });
         return source;
     }
 
-    // returns an Observable<boolean> of success in deleting item
-    deleteDataStoreItem(key: number) {
-        return this.deleteStoreItem(DB_DATA_STORE_NAME, key);
+    /*
+     * END: generic low-level CRUD methods
+     */
+
+    /*
+     * START: TreeNode/DataNode methods
+     */
+
+    // Returns observable<DataNode> of data store item created, it has id
+    // set on it to the new key assigned to it by the databse
+    createDataStoreItem(data: any) {
+        let source: Observable<DataNode> = Observable.create((observer) => {
+            this.createStoreItem(DB_DATA_STORE_NAME,
+                makeDataNode(data)).subscribe(
+                (dataNode: DataNode) => {
+                    observer.next(dataNode);
+                    observer.complete();
+                },
+                (error) => {
+                    observer.error(error);
+                }
+                ); // this.createStoreItem().subscribe(
+        });
+        return source;
     }
 
-    // returns an Observable<boolean> of success in deleting item
-    deleteTreeStoreItem(key: number) {
-        return this.deleteStoreItem(DB_TREE_STORE_NAME, key);
+    // Returns observable<TreeNode> of tree node created, it has id
+    // set on it to the new key assigned to it by the databse
+    createTreeStoreItem(name: string, idParent: number, idData: number) {
+        let source: Observable<TreeNode> = Observable.create((observer) => {
+            this.createStoreItem(DB_TREE_STORE_NAME,
+                makeTreeNode(name, idParent, idData)).subscribe(
+                (treeNode: TreeNode) => {
+                    observer.next(treeNode);
+                    observer.complete();
+                },
+                (error) => {
+                    observer.error(error);
+                }
+                ); // this.createStoreItem().subscribe(
+        });
+        return source;
     }
 
-    // returns an Observable<boolean> of success if name is unique in parent
-    nameUniqueInParent(name: string, parentKey: number) {
+    // Returns an Observable<boolean> of success in deleting item
+    deleteDataStoreItem(id: number) {
+        return this.deleteStoreItem(DB_DATA_STORE_NAME, id);
+    }
+
+    // Returns an Observable<boolean> of success in deleting item
+    deleteTreeStoreItem(id: number) {
+        return this.deleteStoreItem(DB_TREE_STORE_NAME, id);
+    }
+
+    // Returns an Observable<TreeNode[]> of all nodes obtained by name
+    // regardless of where they are in the tree - this is a way to use
+    // the tree as a key/value pair, by the way: just put the key in
+    // name and the value goes in the data object of the node
+    getNodesByName(name: string) {
+        let source: Observable<TreeNode[]> = Observable.create((observer) => {
+            let nodes: TreeNode[] = [];
+            this.getTreeStore("readonly").subscribe(
+                (store: IDBObjectStore) => {
+                    let index: IDBIndex = store.index("name"),
+                        idRange: IDBKeyRange = IDBKeyRange.only(name),
+                        cursorRequest: IDBRequest = index.openCursor(idRange);
+
+                    cursorRequest.onsuccess = (event: IDBEvent) => {
+                        console.dir(cursorRequest);
+                        let cursor: IDBCursorWithValue = cursorRequest.result;
+                        if (cursor) {
+                            console.log("got item by name = " + name);
+                            nodes.push(cursor.value);
+                            cursor.continue();
+                        }
+                        else {
+                            observer.next(nodes);
+                            observer.complete();
+                        }
+                    };
+                    cursorRequest.onerror = (event: IDBErrorEvent) => {
+                        observer.error("cursor");
+                    };
+                },
+                (error) => {
+                    observer.error(error);
+                }
+            ); // getTreeStore().subscribe(
+        });
+        return source;
+    }
+
+    // Returns an Observable<boolean> of success if name is unique in parent
+    nameUniqueInParent(name: string, idParent: number) {
         let source: Observable<number> = Observable.create((observer) => {
-            this.readTreeStoreItemsByName(name).subscribe(
+            this.getNodesByName(name).subscribe(
                 (nodes: TreeNode[]) => {
                     let uniqueViolation: boolean = false;
                     for (let i in nodes) {
-                        if (nodes[i].parentKey === parentKey) {
+                        if (nodes[i].idParent === idParent) {
                             // found something by same name in parent
                             observer.next(false);
                             observer.complete();
@@ -478,176 +488,177 @@ export class LocalDB {
                         }
                     }
                 },
-                (error) => { observer.error(error); },
+                (error) => {
+                    observer.error(error);
+                },
                 () => {
                     // we've completed without an error
                     observer.next(true);
                     observer.complete();
                 }
-            );
+            ); // getNodesByName().subscribe(
         });
         return source;
     }
 
-    createDataTreeStoreItem(name: string, parentKey: number, data: any) {
-        let source: Observable<number> = Observable.create((observer) => {
-            // non falsy data supplied, store it in the data table first
-            this.nameUniqueInParent(name, parentKey).subscribe(
+    // Returns an Observable<TreeNode> of the id of this folder item
+    // verifies name is unique among siblings in parent
+    createTreeStoreFolderItem(name: string, idParent: number) {
+        let source: Observable<TreeNode> = Observable.create((observer) => {
+            this.nameUniqueInParent(name, idParent).subscribe(
                 (unique: boolean) => {
                     if (!unique) {
                         observer.error("unique violation");
+                    }
+                    else {
+                        this.createTreeStoreItem(name, idParent, DB_NO_ID)
+                            .subscribe(
+                            (treeNode: TreeNode) => {
+                                observer.next(treeNode);
+                                observer.complete();
+                            },
+                            (error) => {
+                                observer.error(error);
+                            }
+                            ); // createTreeStoreItem().subscribe(
+                    }
+                },
+                (error) => {
+                    observer.error(error);
+                }
+            ); // nameUniqueInParent().subscribe(
+        });
+        return source;
+    }
+
+    // Returns an Observable<TreeNode> of the id of this data item
+    // verifies name is unique among siblings in parent
+    createTreeStoreDataItem(name: string, idParent: number, data: any) {
+        let source: Observable<TreeNode> = Observable.create((observer) => {
+            // non falsy data supplied, store it in the data table first
+            this.nameUniqueInParent(name, idParent).subscribe(
+                (unique: boolean) => {
+                    if (!unique) {
+                        observer.error("unique name violation");
                     }
                     else {
                         this.createDataStoreItem(data).subscribe(
-                            (dataKey: number) => {
-                                this.createStoreItem(
-                                    DB_TREE_STORE_NAME,
-                                    makeTreeNode(
-                                        name,
-                                        parentKey,
-                                        dataKey
-                                    )).subscribe(
-                                    (treeKey: number) => {
-                                        observer.next(treeKey);
+                            (dataNode: DataNode) => {
+                                this.createTreeStoreItem(
+                                    name,
+                                    idParent,
+                                    dataNode.id).subscribe(
+                                    (treeNode: TreeNode) => {
+                                        observer.next(treeNode);
                                         observer.complete();
                                     },
-                                    (error) => { observer.error(error); });
+                                    (error) => {
+                                        observer.error(error);
+                                    }
+                                    ); // createTreeStoreItem().subscribe(
                             },
-                            (error) => { observer.error(error); });
+                            (error) => {
+                                observer.error(error);
+                            }
+                        ); // createDataStoreItem().subscribe(
                     }
                 },
-                (error) => { observer.error(error); });
+                (error) => {
+                    observer.error(error);
+                }
+            ); // nameUniqueInParent().subscribe(
         });
         return source;
     }
 
-    // returns an Observable<number> of the key of this folder item
-    createFolderTreeStoreItem(name: string, parentKey: number) {
-        let source: Observable<number> = Observable.create((observer) => {
-            this.nameUniqueInParent(name, parentKey).subscribe(
-                (unique: boolean) => {
-                    if (!unique) {
-                        observer.error("unique violation");
-                    }
-                    else {
-                        this.createStoreItem(
-                            DB_TREE_STORE_NAME,
-                            makeTreeNode(
-                                name,
-                                parentKey,
-                                DB_NO_KEY
-                            )).subscribe(
-                            (key: number) => {
-                                observer.next(key);
-                                observer.complete();
-                            },
-                            (error) => { observer.error(error); });
-                    }
-                },
-                (error) => { observer.error(error); }
-            );
-        });
-        return source;
-    }
+    /*
+     * END: TreeNode/DataNode methods
+     */
 
     ///////////////////////////////////////////////////////////////////////////
-    // HIGH LEVEL API - these are the only functions you should be using   
+    // HIGH LEVEL API - these are the only functions you should be using
+    //     TreeNode functions
+    // We only have nodes, you can think of them as art of a tree (if you
+    // pay attention to the idParent field) or a flat data table that is
+    // kept lightweight by not storing data in it, instead storing pointers
+    // to the hefty data that resides in a separate table.  If you want to
+    // use this as a flat structure, use idParent of DB_NO_ID. Names of all
+    // items in this flat structure must be unique.  If you want to use this
+    // as a tree, use idParent to designate parent node, names must be
+    // unique only among siblings of the same parent.
     ///////////////////////////////////////////////////////////////////////////
 
-    // returns an observble<number> of key of created tree node
-    createFolder(name: string, parentKey: number) {
-        return this.createFolderTreeStoreItem(name, parentKey);
+    // Returns an observble<TreeNode> of id of created tree node
+    createNode(name: string, idParent: number, data?: any) {
+        if (data) {
+            return this.createTreeStoreDataItem(name, idParent, data);
+        }
+        else {
+            return this.createTreeStoreFolderItem(name, idParent);
+        }
     }
 
-    createItem(name: string, parentKey: number, data: any) {
-        return this.createDataTreeStoreItem(name, parentKey, data);
-    }
-
-    // returns an Observable<any> of the read tree node
-    readItem(key: number) {
-        return this.readTreeStoreItem(key);
-    }
-
-    updateFolderName(key: number, newName: string) {
-        return this.updateTreeStoreItem(key, { name: newName });
-    }
-    
-    // returns an Observable<> 
-    updateItem(key: number, data: any) {
-        // return this.updateTreeStoreItem(key, newItem);
-        let source: Observable<boolean> = Observable.create((observer) => {
-            this.readItem(key).subscribe(
-                (treeNode: any) => {
-                    console.dir(treeNode);
-
-                    if (treeNode === undefined) {
-                        // the read failed
-                        observer.error("item does not exist");
-                    }
-                    else {
-                        // the read succeeded, data key?
-                        if (treeNode.dataKey) {
-                            this.updateDataStoreItem(
-                                treeNode.dataKey,
-                                data
-                            ).subscribe(
-                                (success: boolean) => {
-                                    observer.next(true);
-                                    observer.complete();
-                                },
-                                (error) => { observer.error(error); });
-                        }
-                        else {
-                            observer.error("item has no data key");
-                        }
-                    }
+    // Returns an Observable<TreeNode> of the read tree node, no data returned
+    readNode(id: number) {
+        let source: Observable<TreeNode> = Observable.create((observer) => {
+            this.readStoreItem(DB_TREE_STORE_NAME, id).subscribe(
+                (treeNode: TreeNode) => {
+                    observer.next(treeNode);
+                    observer.complete();
                 },
-                (error) => { observer.error(error); });
+                (error) => {
+                    observer.error(error);
+                }
+            ); // this.readStoreItem().subscribe(
         });
         return source;
     }
 
-    deleteItem(key: number) {
-        // return this.deleteTreeStoreItem(key);
-        let source: Observable<boolean> = Observable.create((observer) => {
-            this.readItem(key).subscribe(
-                (data: any) => {
-                    if (data === undefined) {
-                        // the read failed
-                        observer.error("item does not exist");
-                    }
-                    else {
-                        // the read succeeded, data key?
-                        if (data.dataKey) {
-                            // delete from data store
-                            this.deleteDataStoreItem(data.dataKey).subscribe(
-                                (success: boolean) => {
-                                    this.deleteTreeStoreItem(key).subscribe(
-                                        (success: boolean) => {
-                                            observer.next(true);
-                                            observer.complete();
-                                        },
-                                        (error) => { observer.error(error); }
-                                    );
-                                },
-                                (error) => { observer.error(error); }
-                            );
-                        }
-                        else {
-                            // no data key only delete from tree
-                            this.deleteTreeStoreItem(key).subscribe(
-                                (success: boolean) => {
-                                    observer.next(true);
-                                    observer.complete();
-                                },
-                                (error) => { observer.error(error); }
-                            );
-                        }
-                    }
+    // Returns an Observable<any> of data store item 'data' field value
+    readNodeData(treeNode: TreeNode) {
+        let source: Observable<any> = Observable.create((observer) => {
+            this.readStoreItem(DB_DATA_STORE_NAME, treeNode.id).subscribe(
+                (dataNode: DataNode) => {
+                    observer.next(dataNode.data);
+                    observer.complete();
                 },
-                (error) => { observer(error); });
+                (error) => {
+                    observer.error(error);
+                }
+            ); // this.readStoreItem().subscribe(
         });
         return source;
     }
 
+    // Returns an Observable<boolean> of success in updating tree store item
+    // Input is a tree node that has been updated already with new
+    // field values, it must have the id property set to the right
+    // id of the node in the tree store to update
+    updateNode(treeNode: TreeNode) {
+        return this.updateStoreItem(DB_TREE_STORE_NAME,
+            treeNode.id, treeNode);
+    }
+
+    // Returns an Observable<boolean> of success in updating data store item
+    // only updates the data that treeNode points to, not the
+    // treeNode itself
+    updateNodeData(treeNode: TreeNode, newData: any) {
+        return this.updateStoreItem(
+            DB_DATA_STORE_NAME,
+            treeNode.id,
+            makeDataNode(newData)
+        );
+    }
+    /*
+    deleteNode(treeNode: TreeNode) {
+        if (treeNode.idData) {
+            // it's a a leaf node, non-folder, no need to recurse
+            // chain deleteTreeNode and deleteDataNode
+        }
+        else {
+            // this.recursiveDeleteTreeNode(), which we have to write...
+        }
+    }
+    */
 }
+

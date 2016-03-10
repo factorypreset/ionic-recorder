@@ -1,4 +1,4 @@
-import {LocalDB, DB_NAME, DB_NO_KEY, makeTreeNode} from "./local-db";
+import {LocalDB, TreeNode, DB_NAME, DB_NO_ID, makeTreeNode} from "./local-db";
 import {Observable} from "rxjs/Rx";
 
 const MAX_DB_INIT_TIME = 200;
@@ -28,8 +28,14 @@ export function main(): void {
     let localDB: LocalDB = null,
         localDB2: LocalDB = null,
         db: IDBDatabase = null,
-        createdItemKey: number,
-        createdItemDataKey: number;
+        unfiledFolder: TreeNode,
+        folder1: TreeNode,
+        folder3: TreeNode,
+        folder5: TreeNode,
+        item2: TreeNode,
+        item4: TreeNode,
+        item6: TreeNode,
+        item7: TreeNode;
 
     beforeEach((done: Function) => {
         localDB = LocalDB.Instance;
@@ -40,8 +46,7 @@ export function main(): void {
             },
             (error) => {
                 fail(error);
-            }
-        );
+            });
     });
 
     jasmine.DEFAULT_TIMEOUT_INTERVAL = MAX_DB_INIT_TIME * 2;
@@ -80,375 +85,194 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
-        it("cannot read a data store item with an invalid key (0)", (done) => {
+        it("can create unfiledFolder - child of root", (done) => {
             setTimeout(() => {
-                localDB.readDataStoreItem(0).subscribe(
-                    (data: any) => {
-                        fail("expected an error");
+                localDB.createNode("Unfiled", DB_NO_ID).subscribe(
+                    (treeNode: TreeNode) => {
+                        unfiledFolder = treeNode;
+                        expect(localDB.validateId(treeNode.id)).toBe(true);
+                        expect(treeNode.idParent).toEqual(DB_NO_ID);
+                        expect(treeNode.idData).toBeFalsy();
+                        expect(treeNode.name).toEqual("Unfiled");
+                        expect(treeNode.timestamp).not.toBeFalsy();
+                        done();
                     },
                     (error) => {
-                        if (error === "invalid key") {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("cannot create unfiledFolder a second time in the same parent",
+            (done) => {
+                setTimeout(() => {
+                    localDB.createNode("Unfiled", DB_NO_ID).subscribe(
+                        (treeNode: TreeNode) => {
+                            fail("expected an error");
+                        },
+                        (error) => {
+                            expect(error).toEqual("unique violation");
                             done();
                         }
-                        else {
-                            fail(error);
-                        }
+                    );
+                }, MAX_DB_INIT_TIME);
+            });
+
+        it("can create folder1 - child of unfiledFolder", (done) => {
+            setTimeout(() => {
+                localDB.createNode("Folder 1", unfiledFolder.id).subscribe(
+                    (treeNode: TreeNode) => {
+                        folder1 = treeNode;
+                        expect(localDB.validateId(treeNode.id)).toBe(true);
+                        expect(treeNode.idParent).toEqual(unfiledFolder.id);
+                        expect(treeNode.idData).toBeFalsy();
+                        expect(treeNode.name).toEqual("Folder 1");
+                        expect(treeNode.timestamp).not.toBeFalsy();
+                        done();
                     },
-                    () => {
-                        fail("expected an error");
+                    (error) => {
+                        fail(error);
                     }
                 );
             }, MAX_DB_INIT_TIME);
         });
 
-        it("cannot read a data store item with invalid key (1.1)", (done) => {
+        it("can create item2 - child of folder1", (done) => {
             setTimeout(() => {
-                localDB.readDataStoreItem(1.1).subscribe(
-                    (data: any) => {
-                        fail("expected an error");
+                localDB.createNode("Item 2", folder1.id, "i2data").subscribe(
+                    (treeNode: TreeNode) => {
+                        item2 = treeNode;
+                        expect(localDB.validateId(treeNode.id)).toBe(true);
+                        expect(treeNode.idParent).toEqual(folder1.id);
+                        expect(localDB.validateId(treeNode.idData))
+                            .toBe(true);
+                        expect(treeNode.name).toEqual("Item 2");
+                        expect(treeNode.timestamp).not.toBeFalsy();
+                        done();
                     },
                     (error) => {
-                        if (error === "invalid key") {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can create folder3 - child of folder1", (done) => {
+            setTimeout(() => {
+                localDB.createNode("Folder 3", folder1.id).subscribe(
+                    (treeNode: TreeNode) => {
+                        folder3 = treeNode;
+                        expect(localDB.validateId(treeNode.id)).toBe(true);
+                        expect(treeNode.idParent).toEqual(folder1.id);
+                        expect(treeNode.idData).toBeFalsy();
+                        expect(treeNode.name).toEqual("Folder 3");
+                        expect(treeNode.timestamp).not.toBeFalsy();
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can create item4 - child of folder3", (done) => {
+            setTimeout(() => {
+                localDB.createNode("Item 4", folder3.id, "i4data").subscribe(
+                    (treeNode: TreeNode) => {
+                        item4 = treeNode;
+                        expect(localDB.validateId(treeNode.id)).toBe(true);
+                        expect(treeNode.idParent).toEqual(folder3.id);
+                        expect(localDB.validateId(treeNode.idData))
+                            .toBe(true);
+                        expect(treeNode.name).toEqual("Item 4");
+                        expect(treeNode.timestamp).not.toBeFalsy();
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can create folder5 - child of folder3", (done) => {
+            setTimeout(() => {
+                localDB.createNode("Folder 5", folder3.id).subscribe(
+                    (treeNode: TreeNode) => {
+                        folder5 = treeNode;
+                        expect(localDB.validateId(treeNode.id)).toBe(true);
+                        expect(treeNode.idParent).toEqual(folder3.id);
+                        expect(treeNode.idData).toBeFalsy();
+                        expect(treeNode.name).toEqual("Folder 5");
+                        expect(treeNode.timestamp).not.toBeFalsy();
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can create item6 - child of folder5", (done) => {
+            setTimeout(() => {
+                localDB.createNode("Item 6", folder5.id, "i6data").subscribe(
+                    (treeNode: TreeNode) => {
+                        item6 = treeNode;
+                        expect(localDB.validateId(treeNode.id)).toBe(true);
+                        expect(treeNode.idParent).toEqual(folder5.id);
+                        expect(localDB.validateId(treeNode.idData))
+                            .toBe(true);
+                        expect(treeNode.name).toEqual("Item 6");
+                        expect(treeNode.timestamp).not.toBeFalsy();
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can create item7 - child of folder5", (done) => {
+            setTimeout(() => {
+                localDB.createNode("Item 7", folder5.id, "i7data").subscribe(
+                    (treeNode: TreeNode) => {
+                        item7 = treeNode;
+                        expect(localDB.validateId(treeNode.id)).toBe(true);
+                        expect(treeNode.idParent).toEqual(folder5.id);
+                        expect(localDB.validateId(treeNode.idData))
+                            .toBe(true);
+                        expect(treeNode.name).toEqual("Item 7");
+                        expect(treeNode.timestamp).not.toBeFalsy();
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can create unfiledFolder a second time under a different parent",
+            (done) => {
+                setTimeout(() => {
+                    localDB.createNode("Unfiled", folder5.id).subscribe(
+                        (treeNode: TreeNode) => {
+                            expect(localDB.validateId(treeNode.id)).toBe(true);
+                            expect(treeNode.idParent).toEqual(folder5.id);
+                            expect(treeNode.idData).toBeFalsy();
+                            expect(treeNode.name).toEqual("Unfiled");
+                            expect(treeNode.timestamp).not.toBeFalsy();
                             done();
-                        }
-                        else {
+                        },
+                        (error) => {
                             fail(error);
                         }
-                    },
-                    () => {
-                        fail("expected an error");
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("cannot read a data store item invalid key (-1)", (done) => {
-            setTimeout(() => {
-                localDB.readDataStoreItem(-1).subscribe(
-                    (data: any) => {
-                        fail("expected an error");
-                    },
-                    (error) => {
-                        if (error === "invalid key") {
-                            done();
-                        }
-                        else {
-                            fail(error);
-                        }
-                    },
-                    () => {
-                        fail("expected an error");
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("cannot read existing data store item (valid key)", (done) => {
-            setTimeout(() => {
-                localDB.readDataStoreItem(1).subscribe(
-                    (data: any) => {
-                        expect(data).toBe(undefined);
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("clears both stores successfuly", (done) => {
-            setTimeout(() => {
-                localDB.clearBothStores().subscribe(
-                    (cleared: number) => {
-                        expect(cleared).toBe(2);
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("can create an item in the data store", (done) => {
-            setTimeout(() => {
-                localDB.createDataStoreItem(RANDOM_WORD_1).subscribe(
-                    (key: number) => {
-                        // expect key to be 1 due to deleting db on each run
-                        createdItemKey = key;
-                        expect(key).toBe(1);
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("can read the added item from the data store", (done) => {
-            setTimeout(() => {
-                localDB.readDataStoreItem(createdItemKey).subscribe(
-                    (data: any) => {
-                        expect(data.data).toBe(RANDOM_WORD_1);
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("can update an item in the data store", (done) => {
-            setTimeout(() => {
-                localDB.updateDataStoreItem(createdItemKey, RANDOM_WORD_2).subscribe(
-                    (success: boolean) => {
-                        expect(success).toBe(true);
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("can read the updated item from the data store", (done) => {
-            setTimeout(() => {
-                localDB.readDataStoreItem(createdItemKey).subscribe(
-                    (data: any) => {
-                        expect(data.data).toBe(RANDOM_WORD_2);
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("can delete the added item from the data store", (done) => {
-            setTimeout(() => {
-                localDB.deleteDataStoreItem(createdItemKey).subscribe(
-                    (success: boolean) => {
-                        expect(success).toBe(true);
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("cannot read the deleted item from the data store", (done) => {
-            setTimeout(() => {
-                localDB.readDataStoreItem(createdItemKey).subscribe(
-                    (data: any) => {
-                        expect(data).toBe(undefined);
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        // HIGH-LEVEL CRUD FUNCTION TESTS
-
-        it("cannot read an item with an invalid key (0)", (done) => {
-            setTimeout(() => {
-                localDB.readItem(0).subscribe(
-                    (data: any) => {
-                        fail("expected an error");
-                    },
-                    (error) => {
-                        if (error === "invalid key") {
-                            done();
-                        }
-                        else {
-                            fail(error);
-                        }
-                    },
-                    () => {
-                        fail("expected an error");
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("cannot read existing item (valid key)", (done) => {
-            setTimeout(() => {
-                localDB.readItem(1).subscribe(
-                    (data: any) => {
-                        expect(data).toBe(undefined);
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("can create a folder", (done) => {
-            setTimeout(() => {
-                localDB.createItem(RANDOM_WORD_1, DB_NO_KEY).subscribe(
-                    (key: number) => {
-                        // expect key to be 1 due to deleting db on each run
-                        createdItemKey = key;
-                        expect(key).toBe(1);
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("cannot create the same folder again", (done) => {
-            setTimeout(() => {
-                localDB.createItem(RANDOM_WORD_1, DB_NO_KEY).subscribe(
-                    (key: number) => {
-                        fail("expected an error");
-                    },
-                    (error: any) => {
-                        if (error === "unique violation") {
-                            done();
-                        }
-                        else {
-                            fail(error);
-                        }
-                    },
-                    () => {
-                        fail("expected an error");
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("can update the folder item name", (done) => {
-            setTimeout(() => {
-                localDB.updateItem(
-                    createdItemKey,
-                    makeTreeNode(RANDOM_WORD_2, DB_NO_KEY, DB_NO_KEY)
-                ).subscribe(
-                    (success: boolean) => {
-                        expect(success).toBe(true);
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    });
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("can read the updated folder name", (done) => {
-            setTimeout(() => {
-                localDB.readItem(createdItemKey).subscribe(
-                    (data: any) => {
-                        expect(data.name).toBe(RANDOM_WORD_2);
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("can delete the folder just created", (done) => {
-            setTimeout(() => {
-                localDB.deleteItem(createdItemKey).subscribe(
-                    (success: boolean) => {
-                        expect(success).toBe(true);
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("cannot delete again the folder just deleted", (done) => {
-            setTimeout(() => {
-                localDB.deleteItem(createdItemKey).subscribe(
-                    (success: boolean) => {
-                        fail("expected an error");
-                    },
-                    (error: any) => {
-                        if (error === "item does not exist") {
-                            done();
-                        }
-                        else {
-                            fail(error);
-                        }
-                    },
-                    () => {
-                        fail("expected an error");
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("can create an item", (done) => {
-            setTimeout(() => {
-                localDB.createItem(RANDOM_WORD_1, DB_NO_KEY, { a: 1 }).subscribe(
-                    (key: number) => {
-                        // expect key to be 1 due to deleting db on each run
-                        createdItemKey = key;
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("can read the added item from the data store", (done) => {
-            setTimeout(() => {
-                localDB.readItem(createdItemKey).subscribe(
-                    (treeNode: any) => {
-                        expect(treeNode).toBeDefined();
-                        expect(treeNode.id).toBe(createdItemKey);
-                        expect(treeNode.dataKey).not.toBe(null);
-                        localDB.readDataStoreItem(treeNode.dataKey).subscribe(
-                            (dataItem: any) => {
-                                createdItemDataKey = dataItem.id;
-                                expect(dataItem.data).toEqual({ a: 1 });
-                                done();
-                            },
-                            (error) => {
-                                fail(error);
-                            }
-                        );
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("can update the item just created", (done) => {
-            setTimeout(() => {
-                localDB.updateItem(createdItemKey, {a: 2}).subscribe(
-                    (success: boolean) => {
-                        expect(success).toBe(true);
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
+                    );
+                }, MAX_DB_INIT_TIME);
+            });
     });
 }
