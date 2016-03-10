@@ -691,38 +691,73 @@ export class LocalDB {
     }
 
     deleteNode(treeNode: TreeNode) {
-        if (!this.isFolder(treeNode)) {
-            return this.deleteDataNode(treeNode);
-        }
         // INV: treeNode is a folder node
         let source: Observable<boolean> = Observable.create((observer) => {
-            this.readChildNodes(treeNode).subscribe(
-                (childNodes: TreeNode[]) => {
-                    if (childNodes.length === 0) {
-                        this.deleteTreeStoreItem(treeNode.id).subscribe(
-                            (success: boolean) => {
-                                observer.next(success);
-                                observer.complete();
-                            },
-                            (error) => {
-                                observer.error(error);
-                            }
-                        ); // deleteTreeStoreItem().subscribe(
-                    }
-                    else {
-                        // recurse
-                        for (let i in childNodes) {
-                            this.deleteNode(childNodes[i]).subscribe(
+            if (this.isFolder(treeNode)) {
+                this.readChildNodes(treeNode).subscribe(
+                    (childNodes: TreeNode[]) => {
+                        console.log("readChild success n = " +
+                            childNodes.length);
+                        if (childNodes.length === 0) {
+                            // it's the empty folder
+                            this.deleteTreeStoreItem(treeNode.id).subscribe(
                                 (success: boolean) => {
+                                    console.log("deleted empty folder id: " +
+                                        treeNode.id);
+                                    observer.next(success);
+                                    observer.complete();
                                 },
                                 (error) => {
                                     observer.error(error);
                                 }
-                            ); // deleteNode().subscribe(
+                            ); // deleteTreeStoreItem().subscribe(
+                        }
+                        else {
+                            // recurse
+                            console.log("folder not empty, recursing on " +
+                                childNodes.length + " children");
+                            for (let i in childNodes) {
+                                this.deleteNode(childNodes[i]).subscribe(
+                                    (success: boolean) => {
+                                    },
+                                    (error) => {
+                                        observer.error(error);
+                                    },
+                                    () => {
+                                        // deleted all children, delete self
+                                        this.deleteTreeStoreItem(treeNode.id)
+                                            .subscribe(
+                                            (success: boolean) => {
+                                                console.log(
+                                                    "deleted empty folder id: " +
+                                                    treeNode.id);
+                                                observer.next(success);
+                                                observer.complete();
+                                            },
+                                            (error) => {
+                                                observer.error(error);
+                                            }
+                                            ); // deleteTreeStoreItem().subscribe(
+                                    }
+                                ); // deleteNode().subscribe(
+                            }
                         }
                     }
-                }
-            ); // readChildNodes().subscribe(
+                ); // readChildNodes().subscribe(
+            } // if (this.isFolder(treeNode)) {
+            else {
+                // not a folder, it's a data node, a base case
+                this.deleteDataNode(treeNode).subscribe(
+                    (success: boolean) => {
+                        console.log("deleted data node: " + treeNode.id);
+                        observer.next(success);
+                        observer.complete();
+                    },
+                    (error) => {
+                        observer.error(error);
+                    }
+                ); // deleteDataNode().subscribe(
+            }
         });
         return source;
     }

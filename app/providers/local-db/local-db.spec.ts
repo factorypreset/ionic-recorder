@@ -1,7 +1,7 @@
 import {LocalDB, TreeNode, DB_NAME, DB_NO_ID} from "./local-db";
 import {Observable} from "rxjs/Rx";
 
-const MAX_DB_INIT_TIME = 200;
+const FAILURE_TIMEOUT = 300;
 const RANDOM_WORD_1: string =
     "1Wh9Xs5ytKuvEjdBhuLUVjED4dp5UPZd3QZFTLuejYNbuLvBVeP9Qq5xaBPAY7RE";
 const RANDOM_WORD_2: string =
@@ -49,21 +49,21 @@ export function main(): void {
             });
     });
 
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = MAX_DB_INIT_TIME * 2;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = FAILURE_TIMEOUT * 2;
 
     describe("When localDB initialized", () => {
         it("localDB is not falsy", (done) => {
             setTimeout(() => {
                 expect(localDB).not.toBeFalsy();
                 done();
-            }, MAX_DB_INIT_TIME);
+            }, FAILURE_TIMEOUT);
         });
 
         it("indexedDB is available", (done) => {
             setTimeout(() => {
                 expect(localDB.getDB()).not.toBeFalsy();
                 done();
-            }, MAX_DB_INIT_TIME);
+            }, FAILURE_TIMEOUT);
         });
     });
 
@@ -73,7 +73,7 @@ export function main(): void {
                 localDB2 = LocalDB.Instance;
                 expect(localDB2).toBe(localDB);
                 done();
-            }, MAX_DB_INIT_TIME);
+            }, FAILURE_TIMEOUT);
         });
     });
 
@@ -82,7 +82,7 @@ export function main(): void {
             setTimeout(() => {
                 expect(db).not.toBeFalsy();
                 done();
-            }, MAX_DB_INIT_TIME);
+            }, FAILURE_TIMEOUT);
         });
 
         it("can create unfiledFolder - child of root", (done) => {
@@ -101,7 +101,7 @@ export function main(): void {
                         fail(error);
                     }
                 );
-            }, MAX_DB_INIT_TIME);
+            }, FAILURE_TIMEOUT);
         });
 
         it("cannot create unfiledFolder a second time in the same parent",
@@ -116,7 +116,7 @@ export function main(): void {
                             done();
                         }
                     );
-                }, MAX_DB_INIT_TIME);
+                }, FAILURE_TIMEOUT);
             });
 
         it("can create folder1 - child of unfiledFolder", (done) => {
@@ -135,7 +135,7 @@ export function main(): void {
                         fail(error);
                     }
                 );
-            }, MAX_DB_INIT_TIME);
+            }, FAILURE_TIMEOUT);
         });
 
         it("can create item2 - child of folder1", (done) => {
@@ -155,7 +155,7 @@ export function main(): void {
                         fail(error);
                     }
                 );
-            }, MAX_DB_INIT_TIME);
+            }, FAILURE_TIMEOUT);
         });
 
         it("can create folder3 - child of folder1", (done) => {
@@ -174,7 +174,7 @@ export function main(): void {
                         fail(error);
                     }
                 );
-            }, MAX_DB_INIT_TIME);
+            }, FAILURE_TIMEOUT);
         });
 
         it("can create item4 - child of folder3", (done) => {
@@ -194,7 +194,7 @@ export function main(): void {
                         fail(error);
                     }
                 );
-            }, MAX_DB_INIT_TIME);
+            }, FAILURE_TIMEOUT);
         });
 
         it("can create folder5 - child of folder3", (done) => {
@@ -213,7 +213,7 @@ export function main(): void {
                         fail(error);
                     }
                 );
-            }, MAX_DB_INIT_TIME);
+            }, FAILURE_TIMEOUT);
         });
 
         it("can create item6 - child of folder5", (done) => {
@@ -233,7 +233,7 @@ export function main(): void {
                         fail(error);
                     }
                 );
-            }, MAX_DB_INIT_TIME);
+            }, FAILURE_TIMEOUT);
         });
 
         it("can create item7 - child of folder5", (done) => {
@@ -253,7 +253,7 @@ export function main(): void {
                         fail(error);
                     }
                 );
-            }, MAX_DB_INIT_TIME);
+            }, FAILURE_TIMEOUT);
         });
 
         it("can create unfiledFolder a second time under a different parent",
@@ -272,7 +272,7 @@ export function main(): void {
                             fail(error);
                         }
                     );
-                }, MAX_DB_INIT_TIME);
+                }, FAILURE_TIMEOUT);
             });
 
         it("can read item2", (done) => {
@@ -291,7 +291,7 @@ export function main(): void {
                         fail(error);
                     }
                 );
-            }, MAX_DB_INIT_TIME);
+            }, FAILURE_TIMEOUT);
         });
 
         it("can read item2 data", (done) => {
@@ -305,7 +305,7 @@ export function main(): void {
                         fail(error);
                     }
                 );
-            }, MAX_DB_INIT_TIME);
+            }, FAILURE_TIMEOUT);
         });
 
         it("can update item2 data to i2newData'", (done) => {
@@ -319,7 +319,7 @@ export function main(): void {
                         fail(error);
                     }
                 );
-            }, MAX_DB_INIT_TIME);
+            }, FAILURE_TIMEOUT);
         });
 
         it("can re-read item2 data and verify it's 'i2newdata'", (done) => {
@@ -333,7 +333,7 @@ export function main(): void {
                         fail(error);
                     }
                 );
-            }, MAX_DB_INIT_TIME);
+            }, FAILURE_TIMEOUT);
         });
 
         it("can get child nodes of folder3 and verify them", (done) => {
@@ -349,7 +349,21 @@ export function main(): void {
                         fail(error);
                     }
                 );
-            }, MAX_DB_INIT_TIME);
+            }, FAILURE_TIMEOUT);
+        });
+
+        it("can delete node 5 recursively", (done) => {
+            setTimeout(() => {
+                localDB.deleteNode(folder5).subscribe(
+                    (success: boolean) => {
+                        expect(success).toBe(true);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, FAILURE_TIMEOUT);
         });
 
     });
