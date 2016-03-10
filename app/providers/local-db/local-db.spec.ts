@@ -1,7 +1,7 @@
 import {LocalDB, TreeNode, DB_NAME, DB_NO_ID} from "./local-db";
 import {Observable} from "rxjs/Rx";
 
-const FAILURE_TIMEOUT = 200;
+const FAILURE_TIMEOUT = 300;
 const RANDOM_WORD_1: string =
     "1Wh9Xs5ytKuvEjdBhuLUVjED4dp5UPZd3QZFTLuejYNbuLvBVeP9Qq5xaBPAY7RE";
 const RANDOM_WORD_2: string =
@@ -256,7 +256,7 @@ export function main(): void {
             }, FAILURE_TIMEOUT);
         });
 
-        it("can create unfiledFolder a second time under a different parent",
+        it("can create 'Unfiled' a second time under a different parent",
             (done) => {
                 setTimeout(() => {
                     localDB.createNode("Unfiled", folder5.id).subscribe(
