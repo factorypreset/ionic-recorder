@@ -723,7 +723,7 @@ export class LocalDB {
                                         observer.next(true);
                                         observer.complete();
                                     }
-                                ); // arraySource.subscribe(
+                                ); // fromArray.subscribe(
                             }
                         },
                         (readChildNodesError) => {
