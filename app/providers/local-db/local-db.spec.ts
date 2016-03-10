@@ -274,5 +274,39 @@ export function main(): void {
                     );
                 }, MAX_DB_INIT_TIME);
             });
+
+        it("can read item2", (done) => {
+            setTimeout(() => {
+                localDB.readNode(item2.id).subscribe(
+                    (treeNode: TreeNode) => {
+                        expect(treeNode.id).not.toBeFalsy();
+                        expect(treeNode.id).toEqual(item2.id);
+                        expect(treeNode.idParent).toEqual(item2.idParent);
+                        expect(treeNode.idData).toEqual(item2.idData);
+                        expect(treeNode.name).toEqual(item2.name);
+                        expect(treeNode.timestamp).toEqual(item2.timestamp);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can read item2 data", (done) => {
+            setTimeout(() => {
+                localDB.readNodeData(item2).subscribe(
+                    (data: any) => {
+                        expect(data).toEqual("i2data");
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
     });
 }

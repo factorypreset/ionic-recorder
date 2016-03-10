@@ -539,7 +539,7 @@ export class LocalDB {
             this.nameUniqueInParent(name, idParent).subscribe(
                 (unique: boolean) => {
                     if (!unique) {
-                        observer.error("unique name violation");
+                            observer.error("unique name violation");
                     }
                     else {
                         this.createDataStoreItem(data).subscribe(
@@ -603,6 +603,7 @@ export class LocalDB {
         let source: Observable<TreeNode> = Observable.create((observer) => {
             this.readStoreItem(DB_TREE_STORE_NAME, id).subscribe(
                 (treeNode: TreeNode) => {
+                    treeNode.id = id;
                     observer.next(treeNode);
                     observer.complete();
                 },
@@ -617,7 +618,7 @@ export class LocalDB {
     // Returns an Observable<any> of data store item 'data' field value
     readNodeData(treeNode: TreeNode) {
         let source: Observable<any> = Observable.create((observer) => {
-            this.readStoreItem(DB_DATA_STORE_NAME, treeNode.id).subscribe(
+            this.readStoreItem(DB_DATA_STORE_NAME, treeNode.idData).subscribe(
                 (dataNode: DataNode) => {
                     observer.next(dataNode.data);
                     observer.complete();
