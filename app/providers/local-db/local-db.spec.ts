@@ -1,7 +1,7 @@
 import {LocalDB, TreeNode, DB_NAME, DB_NO_ID} from "./local-db";
 import {Observable} from "rxjs/Rx";
 
-const FAILURE_TIMEOUT = 300;
+const FAILURE_TIMEOUT = 200;
 const RANDOM_WORD_1: string =
     "1Wh9Xs5ytKuvEjdBhuLUVjED4dp5UPZd3QZFTLuejYNbuLvBVeP9Qq5xaBPAY7RE";
 const RANDOM_WORD_2: string =
@@ -355,6 +355,20 @@ export function main(): void {
         it("can delete node 5 recursively", (done) => {
             setTimeout(() => {
                 localDB.deleteNode(folder5).subscribe(
+                    (success: boolean) => {
+                        expect(success).toBe(true);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, FAILURE_TIMEOUT);
+        });
+
+        it("can delete Unfiled folder (root) recursively", (done) => {
+            setTimeout(() => {
+                localDB.deleteNode(unfiledFolder).subscribe(
                     (success: boolean) => {
                         expect(success).toBe(true);
                         done();
