@@ -690,6 +690,9 @@ export class LocalDB {
         return source;
     }
 
+    // Returns an Observable<boolean> of success in deleting treeNode
+    // Recursively deletes tree node all the way down the tree
+    // (in depth-first order) if this is a folder node.
     deleteNode(treeNode: TreeNode) {
         // INV: treeNode is a folder node
         let source: Observable<boolean> = Observable.create((observer) => {
