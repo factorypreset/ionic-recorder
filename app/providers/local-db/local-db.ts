@@ -708,17 +708,11 @@ export class LocalDB {
                                 // there are children, observer is done after
                                 // we've deleted them all
                                 Observable.fromArray(childNodes).subscribe(
-                                    /*
-                                    let arraySource: Observable<TreeNode> =
-                                        Observable.fromArray(childNodes);
-                                    console.log("typeof obs: " + typeof arraySource);
-                                    arraySource.subscribe(
-                                    */
                                     (childNode: TreeNode) => {
                                         this.deleteNode(childNode).subscribe(
                                             (success: boolean) => { },
-                                            (deleteNodeError) => {
-                                                observer.error(deleteNodeError);
+                                            (childError) => {
+                                                observer.error(childError);
                                             }
                                         ); // deleteNode().subscribe(
                                     },
@@ -736,10 +730,6 @@ export class LocalDB {
                             observer.error(readChildNodesError);
                         }
                     ); // readChildNodes().subscribe(
-
-
-
-
                 },
                 (deleteSelfError) => {
                     observer.error(deleteSelfError);
@@ -757,6 +747,5 @@ export class LocalDB {
         else {
             return this.deleteDataNode(treeNode);
         }
-
     }
 }
