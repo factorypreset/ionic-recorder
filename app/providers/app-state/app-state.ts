@@ -7,6 +7,7 @@ interface State {
     lastSelectedTab: number;
     lastViewedFolderKey: number;
     unfiledFolderName: string;
+    unfiledFolderKey: number;
 }
 
 // make sure APP_STATE_ITEM_NAME will never be entered by a user
@@ -15,7 +16,8 @@ const STATE_NODE_NAME: string =
 const DEFAULT_STATE: State = {
     lastSelectedTab: 0,
     lastViewedFolderKey: DB_NO_KEY,
-    unfiledFolderName: "Unfiled"
+    unfiledFolderName: "Unfiled",
+    unfiledFolderKey: DB_NO_KEY
 };
 
 @Injectable()
@@ -41,7 +43,16 @@ export class AppState {
                         this.localDB.readOrCreateFolderNodeInParentByName(
                             DEFAULT_STATE.unfiledFolderName, DB_NO_KEY)
                             .subscribe(
-                            (result: any) => { },
+                            (unfiledFolderNode: TreeNode) => {
+                                this.updateProperty(
+                                    "unfiledFolderKey",
+                                    unfiledFolderNode.id).subscribe(
+                                    (result: boolean) => { },
+                                    (updateError: any) => {
+                                        throw new Error(updateError);
+                                    }
+                                    ); // updateProperty().subscribe(
+                            },
                             (rcFolderError: any) => {
                                 throw new Error(rcFolderError);
                             }
