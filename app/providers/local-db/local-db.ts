@@ -302,14 +302,9 @@ export class LocalDB {
                 this.getStore(storeName, "readwrite").subscribe(
                     (store: IDBObjectStore) => {
                         let getRequest: IDBRequest = store.get(id);
-
-                        console.log("get store request succeeded !!! " +
-                            id + " - " + getRequest.onsuccess);
-                        console.log("get store request succeeded !!! " +
-                            id + " - " + getRequest.onerror);
-
+                        console.log("GET STORE SUCCESS");
                         getRequest.onsuccess = (event: IDBEvent) => {
-                            console.log("get request on success called ... ");
+                            console.log("GET SUCCESS");
                             if (!getRequest.result) {
                                 // request success, but we got nothing. ERROR:
                                 // we expect what we're updating to be there
@@ -321,11 +316,12 @@ export class LocalDB {
                                         newItem,
                                         getRequest.result
                                     ));
-
+                                console.log("PUT SETUP");
                                 putRequest.onsuccess =
                                     (event: IDBErrorEvent) => {
                                         // the id of the updated item is in
                                         // putRequest.result, verify it
+                                        console.log("PUT SUCCESS");
                                         if (putRequest.result !== id) {
                                             observer.error("put: bad id");
                                         }
@@ -337,25 +333,23 @@ export class LocalDB {
 
                                 putRequest.onerror =
                                     (event: IDBErrorEvent) => {
+                                        console.log("PUT ERROR");
                                         observer.error("put request");
                                     };
                             }
                         }; // getRequest.onsuccess =
 
                         getRequest.onerror = (event: IDBErrorEvent) => {
+                            console.log("GET REQUEST ERROR");
                             observer.error("get request");
                         };
-                        console.log("get store request succeeded !!! " +
-                            id + " - " + getRequest.onsuccess);
-                        console.log("get store request succeeded !!! " +
-                            id + " - " + getRequest.onerror);
-
                     },
-                    (error) => {
-                        observer.error(error);
+                    (getStoreError) => {
+                        console.log("GET STORE ERROR");
+                        observer.error("WOWOWOWOW " + getStoreError);
                     }
                 ); // getStore().subscribe(
-            }
+            } // if (!this.validateId(id)) { .. else {
         });
         return source;
     }
@@ -686,7 +680,7 @@ export class LocalDB {
 
     readOrCreateDataNodeInParentByName(
         name: string, parentKey: number, data: any) {
-        let source: Observable<DataNode> =
+        let source: Observable<Object> =
             Observable.create((observer) => {
                 this.readNodeByNameInParent(name, parentKey).subscribe(
                     (readTreeNode: TreeNode) => {
@@ -696,7 +690,10 @@ export class LocalDB {
                             this.readNodeData(readTreeNode).subscribe(
                                 (dataNode: DataNode) => {
                                     // assume this always returns non null data
-                                    observer.next(dataNode);
+                                    observer.next({
+                                        treeNode: readTreeNode,
+                                        dataNode: dataNode
+                                    });
                                     observer.complete();
                                 },
                                 (readDataError: any) => {
@@ -714,7 +711,10 @@ export class LocalDB {
                                         this.makeDataNode(data);
                                     dataNode[DB_KEY_PATH] =
                                         createdTreeNode.dataKey;
-                                    observer.next(dataNode);
+                                    observer.next({
+                                        treeNode: createdTreeNode,
+                                        dataNode: dataNode
+                                    });
                                     observer.complete();
                                 },
                                 (createError: any) => {

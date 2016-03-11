@@ -33,27 +33,48 @@ export function main(): void {
                 done();
             }, MAX_DB_INIT_TIME);
         });
-/*
+
         it("can read lastSelectedTab to be 0", (done) => {
             setTimeout(() => {
                 expect(appState.getProperty("lastSelectedTab")).toBe(0);
                 done();
-            }, MAX_DB_INIT_TIME);
+            }, 3 * MAX_DB_INIT_TIME);
         });
 
         it("can update lastSelectedTab to be 1", (done) => {
             setTimeout(() => {
-                expect(appState.updateProperty("lastSelectedTab", 1)).not.toThrow();
+                appState.updateProperty("lastSelectedTab", 1).subscribe(
+                    (updated: boolean) => {
+                        expect(updated).toBe(true);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("update again lastSelectedTab to be 1 does nothing", (done) => {
+            setTimeout(() => {
+                appState.updateProperty("lastSelectedTab", 1).subscribe(
+                    (updated: boolean) => {
+                        expect(updated).toBe(false);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can read lastSelectedTab to be 1", (done) => {
+            setTimeout(() => {
+                expect(appState.getProperty("lastSelectedTab")).toBe(1);
                 done();
             }, MAX_DB_INIT_TIME);
         });
-  
-                it("can read lastSelectedTab to be 1", (done) => {
-                    setTimeout(() => {
-                        expect(appState.getProperty("lastSelectedTab")).toBe(1);
-                        done();
-                    }, MAX_DB_INIT_TIME);
-                });
-        */
+
     });
 }

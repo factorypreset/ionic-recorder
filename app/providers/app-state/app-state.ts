@@ -1,4 +1,5 @@
 import {Injectable} from "angular2/core";
+import {Observable} from "rxjs/Rx";
 import {LocalDB, TreeNode, DataNode, DB_NO_KEY, DB_KEY_PATH, MAX_DB_INIT_TIME}
 from "../local-db/local-db";
 
@@ -30,21 +31,22 @@ export class AppState {
     constructor() {
         console.log("constructor():AppState");
         this.localDB = LocalDB.Instance;
-/*        
-        setTimeout(() => {
-            this.localDB.readOrCreateDataNodeInParentByName(
-                STATE_NODE_NAME, DB_NO_KEY, DEFAULT_STATE).subscribe(
-                (result: any) => {
-                    console.log(result);
-                    this.treeNode = result.treeNode;
-                    this.dataNode = result.dataNode;
-                },
-                (rcError: any) => {
-                    throw new Error(rcError);
-                }
-                ); // readOrCreateDataNodeInParentByName().subscribe(
-        }, MAX_DB_INIT_TIME);
-*/
+
+        //        setTimeout(() => {
+        this.localDB.readOrCreateDataNodeInParentByName(
+            STATE_NODE_NAME, DB_NO_KEY, DEFAULT_STATE).subscribe(
+            (result: any) => {
+                console.log(result);
+                this.treeNode = result.treeNode;
+                this.dataNode = result.dataNode;
+                console.log("GOT EN BOTH " + result.treeNode + ", " + result.dataNode);
+            },
+            (rcError: any) => {
+                throw new Error(rcError);
+            }
+            ); // readOrCreateDataNodeInParentByName().subscribe(
+        //       }, MAX_DB_INIT_TIME);
+
     }
 
     // Singleton pattern implementation
@@ -55,72 +57,6 @@ export class AppState {
         return this.instance;
     }
 
-    // returns an Observable<TreeNode> of this.treeNode as it is in the db
-    // by name STATE_NODE_NAME under parent DB_NO_KEY (root folder)
-    readOrCreateDefaultState() {
-        console.log("readOrCreateDefaultState() ...");
-        this.localDB.readNodeByNameInParent(
-            STATE_NODE_NAME, DB_NO_KEY).subscribe(
-            (readTreeNode: TreeNode) => {
-                this.treeNode = readTreeNode;
-                if (this.treeNode) {
-                    console.log("state already in DB ...");
-                    // found a node in parent by name 'name'
-                    this.localDB.readNodeData(this.treeNode).subscribe(
-                        (dataNode: DataNode) => {
-                            // assume this always returns non null data
-                            this.dataNode = dataNode;
-                            console.log("state obtained ... " +
-                                "lastCreatedTab: " +
-                                this.getProperty("lastSelectedTab") + " - " +
-                                "lastViewedFolderKey: " +
-                                this.getProperty("lastViewedFolderKey"));
-                            console.dir(this.treeNode);
-                            console.dir(this.dataNode);
-                            console.dir(readTreeNode);
-                        },
-                        (readDataError: any) => {
-                            throw new Error(readDataError);
-                        } // readNodeData().subscribe(
-                    );
-                } // if (node) {
-                else {
-                    console.log("state not in DB, creating it ...");
-                    // found no node in parent by name 'name', create it
-                    this.localDB.createDataNodeInParent(
-                        STATE_NODE_NAME, DB_NO_KEY, DEFAULT_STATE).subscribe(
-                        (createdTreeNode: TreeNode) => {
-                            this.treeNode = createdTreeNode;
-                            this.dataNode =
-                                this.localDB.makeDataNode(DEFAULT_STATE);
-                            this.dataNode[DB_KEY_PATH] = createdTreeNode.dataKey;
-                            console.log("state created ... " +
-                                "lastCreatedTab: " +
-                                this.getProperty("lastSelectedTab") + " - " +
-                                "lastViewedFolderKey: " +
-                                this.getProperty("lastViewedFolderKey"));
-                            console.dir(this.treeNode);
-                            console.dir(this.dataNode);
-                            console.dir(readTreeNode);
-                        },
-                        (createError: any) => {
-                            console.log("create error " + createError);
-                            throw new Error(createError);
-                        }
-                        ); // .createDataNodeInParent().subscribe(
-                } // else {
-            },
-            (readNodeError: any) => {
-                throw new Error(readNodeError);
-            }
-            ); // readNodeByNameInParent().subscribe(
-    }
-    getTreeNode() {
-        return this.treeNode;
-    }
-    getDataNode() {
-        return this.dataNode;
-    }
     getProperty(propertyName) {
         if (!this.dataNode || !this.dataNode.data) {
             throw new Error("app state not properly read");
@@ -136,47 +72,54 @@ export class AppState {
     }
 
     updateProperty(propertyName: string, propertyValue: any) {
-        console.log("update(" + propertyName + ", " + propertyValue + ") ...");
-        console.dir(this.getTreeNode());
-        console.dir(this.getDataNode());
-        console.log("update(" + propertyName + ", " + propertyValue + ") ...");
-        if (!this.dataNode) {
-            console.log("state has no data node in update");
-            // we expected to have read the state at least once
-            // before calling update, which sets this.dataNode
-            throw Error("state has no data node in update");
-        }
-        if (!this.dataNode[DB_KEY_PATH]) {
-            console.log("state has no key path in update");
-            // we expected to have read the state at least once
-            // before calling update, which tags on the property
-            // DB_KEY_PATH onto the this.state's State object
-            throw Error("state has no key path in update");
-        }
-        if (!this.treeNode) {
-            console.log("state has no tree node in update");
-            // we expected to have read the state at least once
-            // before calling update, which sets this.treeNode
-            throw Error("state has no tree node in update");
-        }
-        let treeNode: TreeNode = this.getTreeNode();
-        let dataNode: DataNode = this.getDataNode();
-        if (this.getProperty(propertyName) !== propertyValue) {
-            console.log("property update ...");
-            console.dir(treeNode);
-            console.dir(dataNode);
-            // only not update if propertyValue is different
-            // update in memory:
-            this.dataNode.data[propertyName] = propertyValue;
-            // update in DB:
-            this.localDB.updateNodeData(this.getTreeNode(), this.getDataNode().data)
-                .subscribe(
-                (success: boolean) => { console.log("update success"); },
-                (error: any) => {
-                    console.log("update error: " + error);
-                    throw new Error(error);
-                }
-                ); // updateNodeData().subscribe(
-        }
+        let source: Observable<boolean> = Observable.create((observer) => {
+            console.log("update(" + propertyName + ", " + propertyValue + ") ...");
+            console.log("update(" + propertyName + ", " + propertyValue + ") ...");
+            if (!this.dataNode) {
+                console.log("state has no data node in update");
+                // we expected to have read the state at least once
+                // before calling update, which sets this.dataNode
+                observer.error("state has no data node in update");
+            }
+            else if (!this.dataNode[DB_KEY_PATH]) {
+                console.log("state has no key path in update");
+                // we expected to have read the state at least once
+                // before calling update, which tags on the property
+                // DB_KEY_PATH onto the this.state's State object
+                observer.error("state has no key path in update");
+            }
+            else if (!this.treeNode) {
+                console.log("state has no tree node in update");
+                // we expected to have read the state at least once
+                // before calling update, which sets this.treeNode
+                observer.error("state has no tree node in update");
+            }
+            else if (this.getProperty(propertyName) !== propertyValue) {
+                console.log("property update ...");
+                console.log(this.treeNode.dataKey);
+                console.log(this.dataNode.data);
+                // only not update if propertyValue is different
+                // update in memory:
+                this.dataNode.data[propertyName] = propertyValue;
+                // update in DB:
+                this.localDB.updateNodeData(this.treeNode, this.dataNode.data)
+                    .subscribe(
+                    (success: boolean) => {
+                        console.log("update success");
+                        observer.next(true);
+                        observer.complete();
+                    },
+                    (error: any) => {
+                        console.log("update error: " + error);
+                        observer.error(error);
+                    }
+                    ); // updateNodeData().subscribe(
+            }
+            else {
+                observer.next(false);
+                observer.complete();
+            }
+        });
+        return source;
     }
 }
