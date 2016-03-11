@@ -2,7 +2,7 @@ import {App, IonicApp, Platform} from "ionic-angular";
 import {Type, enableProdMode} from "angular2/core";
 import {TabsPage} from "./pages/tabs/tabs";
 import {WebAudio} from "./providers/web-audio/web-audio";
-import {LocalDB} from "./providers/local-db/local-db";
+import {LocalDB, MAX_DB_INIT_TIME} from "./providers/local-db/local-db";
 import {AppState} from "./providers/app-state/app-state";
 
 // enableProdMode();
@@ -16,33 +16,9 @@ import {AppState} from "./providers/app-state/app-state";
 })
 export class TracktunesApp {
     private rootPage: Type = TabsPage;
+    private appState: AppState = AppState.Instance;
 
-    constructor(private app: IonicApp, private platform: Platform,
-        private appState: AppState) {
-
+    constructor(private app: IonicApp, private platform: Platform) {
         console.log("constructor():MyApp");
-        this.initializeApp();
-    }
-
-    initializeApp() {
-        this.platform.ready().then(() => {
-            // The platform is now ready. Note: if this callback fails
-            // to fire, follow the Troubleshooting guide for a number
-            // of possible solutions:
-            //
-            // Okay, so the platform is ready and our plugins are
-            // available.  Here you can do any higher level native
-            // things you might need.
-            //
-            // First, let"s hide the keyboard accessory bar (only
-            // works natively) since that"s a better default:
-            //
-            // Keyboard.setAccessoryBarVisible(false);
-            //
-            // For example, we might change the StatusBar color. This
-            // one below is good for dark backgrounds and light text:
-            // StatusBar.setStyle(StatusBar.LIGHT_CONTENT)
-            // console.log("App:this.platform.ready!");
-        });
     }
 }
