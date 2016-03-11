@@ -369,7 +369,7 @@ export class LocalDB {
      */
 
     /*
-     * START: TreeNode/DataNode methods
+     * START: TreeStore- / DataStore- specific methods
      */
 
     // Returns observable<DataNode> of data store item created, it has id
@@ -418,11 +418,129 @@ export class LocalDB {
         return this.deleteStoreItem(DB_TREE_STORE_NAME, id);
     }
 
+    /*
+     * END: TreeStore- / DataStore- specific methods
+     */
+
+    ///////////////////////////////////////////////////////////////////////////
+    // HIGH LEVEL API - these are the only functions you should be using
+    //     TreeNode functions
+    // We only have nodes, you can think of them as art of a tree (if you
+    // pay attention to the idParent field) or a flat data table that is
+    // kept lightweight by not storing data in it, instead storing pointers
+    // to the hefty data that resides in a separate table.  If you want to
+    // use this as a flat structure, use idParent of DB_NO_ID. Names of all
+    // items in this flat structure must be unique.  If you want to use this
+    // as a tree, use idParent to designate parent node, names must be
+    // unique only among siblings of the same parent.
+    ///////////////////////////////////////////////////////////////////////////
+
+    // Returns an observble<TreeNode> of id of created tree node
+    createNode(name: string, idParent: number, data?: any) {
+        if (data) {
+            return this.createDataNodeInParent(name, idParent, data);
+        }
+        else {
+            return this.createFolderNodeInParent(name, idParent);
+        }
+    }
+
+    // Returns an Observable<TreeNode> of the id of this folder item
+    // verifies name is unique among siblings in parent
+    createFolderNodeInParent(name: string, idParent: number) {
+        let source: Observable<TreeNode> = Observable.create((observer) => {
+            this.readNodeByNameInParent(name, idParent).subscribe(
+                (nodeInParent: TreeNode) => {
+                    if (nodeInParent) {
+                        observer.error("unique name violation");
+                    }
+                    else {
+                        this.createTreeStoreItem(name, idParent, DB_NO_ID)
+                            .subscribe(
+                            (treeNode: TreeNode) => {
+                                observer.next(treeNode);
+                                observer.complete();
+                            },
+                            (createError) => {
+                                observer.error(createError);
+                            }
+                            ); // createTreeStoreItem().subscribe(
+                    }
+                },
+                (readError) => {
+                    observer.error(readError);
+                }
+            ); // readNodeByNameInParent().subscribe(
+        });
+        return source;
+    }
+
+    // Returns an Observable<TreeNode> of the id of this data item
+    // verifies name is unique among siblings in parent
+    createDataNodeInParent(name: string, idParent: number, data: any) {
+        let source: Observable<TreeNode> = Observable.create((observer) => {
+            // non falsy data supplied, store it in the data table first
+            this.readNodeByNameInParent(name, idParent).subscribe(
+                (nodeInParent: TreeNode) => {
+                    if (nodeInParent) {
+                        observer.error("unique name violation");
+                    }
+                    else {
+                        this.createDataStoreItem(data).subscribe(
+                            (dataNode: DataNode) => {
+                                this.createTreeStoreItem(
+                                    name,
+                                    idParent,
+                                    dataNode.id).subscribe(
+                                    (treeNode: TreeNode) => {
+                                        observer.next(treeNode);
+                                        observer.complete();
+                                    },
+                                    (error) => {
+                                        observer.error(error);
+                                    }
+                                    ); // createTreeStoreItem().subscribe(
+                            },
+                            (error) => {
+                                observer.error(error);
+                            }
+                        ); // createDataStoreItem().subscribe(
+                    }
+                },
+                (error) => {
+                    observer.error(error);
+                }
+            ); // readNodeByNameInParent().subscribe(
+        });
+        return source;
+    }
+
+    // Returns an Observable<TreeNode> of the read tree node, no data returned
+    // If a node with id 'id' is not in the tree, null TreeNode object is returned
+    readNode(id: number) {
+        let source: Observable<TreeNode> = Observable.create((observer) => {
+            this.readStoreItem(DB_TREE_STORE_NAME, id).subscribe(
+                (treeNode: TreeNode) => {
+                    if (!treeNode) {
+                        observer.error("node does not exist");
+                    }
+                    treeNode.id = id;
+                    observer.next(treeNode);
+                    observer.complete();
+                },
+                (error) => {
+                    observer.error(error);
+                }
+            ); // this.readStoreItem().subscribe(
+        });
+        return source;
+    }
+
     // Returns an Observable<TreeNode[]> of all nodes obtained by name
     // regardless of where they are in the tree - this is a way to use
     // the tree as a key/value pair, by the way: just put the key in
     // name and the value goes in the data object of the node
-    getNodesByName(name: string) {
+    readNodesByName(name: string) {
         let source: Observable<TreeNode[]> = Observable.create((observer) => {
             let nodes: TreeNode[] = [];
             this.getTreeStore("readonly").subscribe(
@@ -434,7 +552,7 @@ export class LocalDB {
                     cursorRequest.onsuccess = (event: IDBEvent) => {
                         let cursor: IDBCursorWithValue = cursorRequest.result;
                         if (cursor) {
-                            console.log("got item by name = " + name);
+                            // console.log("got item by name = " + name);
                             nodes.push(cursor.value);
                             cursor.continue();
                         }
@@ -455,148 +573,30 @@ export class LocalDB {
         return source;
     }
 
-    // Returns an Observable<boolean> of success if name is unique in parent
-    nameNotInParent(name: string, idParent: number) {
-        let source: Observable<number> = Observable.create((observer) => {
-            this.getNodesByName(name).subscribe(
+    // Returns an Observable<TreeNode> of node read by name 'name'
+    // in parent folder whose id is 'idParent'.  If such a node does
+    // not exist the TreeNode object returned is null.
+    readNodeByNameInParent(name: string, idParent: number) {
+        let source: Observable<TreeNode> = Observable.create((observer) => {
+            this.readNodesByName(name).subscribe(
                 (nodes: TreeNode[]) => {
-                    let uniqueViolation: boolean = false;
+                    let nodeFound: TreeNode = null;
                     for (let i in nodes) {
                         if (nodes[i].idParent === idParent) {
-                            // found something by same name in parent
-                            observer.next(false);
-                            observer.complete();
-                            break;
+                            if (nodeFound) {
+                                // we already found one, unique violation
+                                observer.error("unique name violation");
+                            }
+                            nodeFound = nodes[i];
                         }
                     }
-                },
-                (error) => {
-                    observer.error(error);
-                },
-                () => {
-                    // we've completed without an error
-                    observer.next(true);
-                    observer.complete();
-                }
-            ); // getNodesByName().subscribe(
-        });
-        return source;
-    }
-
-    // Returns an Observable<TreeNode> of the id of this folder item
-    // verifies name is unique among siblings in parent
-    createTreeStoreFolderItem(name: string, idParent: number) {
-        let source: Observable<TreeNode> = Observable.create((observer) => {
-            this.nameNotInParent(name, idParent).subscribe(
-                (unique: boolean) => {
-                    if (!unique) {
-                        observer.error("unique violation");
-                    }
-                    else {
-                        this.createTreeStoreItem(name, idParent, DB_NO_ID)
-                            .subscribe(
-                            (treeNode: TreeNode) => {
-                                observer.next(treeNode);
-                                observer.complete();
-                            },
-                            (error) => {
-                                observer.error(error);
-                            }
-                            ); // createTreeStoreItem().subscribe(
-                    }
-                },
-                (error) => {
-                    observer.error(error);
-                }
-            ); // nameNotInParent().subscribe(
-        });
-        return source;
-    }
-
-    // Returns an Observable<TreeNode> of the id of this data item
-    // verifies name is unique among siblings in parent
-    createTreeStoreDataItem(name: string, idParent: number, data: any) {
-        let source: Observable<TreeNode> = Observable.create((observer) => {
-            // non falsy data supplied, store it in the data table first
-            this.nameNotInParent(name, idParent).subscribe(
-                (unique: boolean) => {
-                    if (unique) {
-                        this.createDataStoreItem(data).subscribe(
-                            (dataNode: DataNode) => {
-                                this.createTreeStoreItem(
-                                    name,
-                                    idParent,
-                                    dataNode.id).subscribe(
-                                    (treeNode: TreeNode) => {
-                                        observer.next(treeNode);
-                                        observer.complete();
-                                    },
-                                    (error) => {
-                                        observer.error(error);
-                                    }
-                                    ); // createTreeStoreItem().subscribe(
-                            },
-                            (error) => {
-                                observer.error(error);
-                            }
-                        ); // createDataStoreItem().subscribe(
-                    } // if (unique) {
-                    else {
-                        observer.error("unique name violation");
-                    }
-                },
-                (error) => {
-                    observer.error(error);
-                }
-            ); // nameNotInParent().subscribe(
-        });
-        return source;
-    }
-
-    /*
-     * END: TreeNode/DataNode methods
-     */
-
-    ///////////////////////////////////////////////////////////////////////////
-    // HIGH LEVEL API - these are the only functions you should be using
-    //     TreeNode functions
-    // We only have nodes, you can think of them as art of a tree (if you
-    // pay attention to the idParent field) or a flat data table that is
-    // kept lightweight by not storing data in it, instead storing pointers
-    // to the hefty data that resides in a separate table.  If you want to
-    // use this as a flat structure, use idParent of DB_NO_ID. Names of all
-    // items in this flat structure must be unique.  If you want to use this
-    // as a tree, use idParent to designate parent node, names must be
-    // unique only among siblings of the same parent.
-    ///////////////////////////////////////////////////////////////////////////
-
-    // Returns an observble<TreeNode> of id of created tree node
-    createNode(name: string, idParent: number, data?: any) {
-        if (data) {
-            return this.createTreeStoreDataItem(name, idParent, data);
-        }
-        else {
-            return this.createTreeStoreFolderItem(name, idParent);
-        }
-    }
-
-    // Returns an Observable<TreeNode> of the read tree node, no data returned
-    // If a node with id 'id' is not in the tree, the observable errs
-    readNode(id: number) {
-        let source: Observable<TreeNode> = Observable.create((observer) => {
-            this.readStoreItem(DB_TREE_STORE_NAME, id).subscribe(
-                (treeNode: TreeNode) => {
-                    if (!treeNode) {
-                        observer.error("node does not exist");
-                    }
-                    treeNode.id = id;
-                    observer.next(treeNode);
+                    observer.next(nodeFound);
                     observer.complete();
                 },
                 (error) => {
                     observer.error(error);
                 }
-            ); // this.readStoreItem().subscribe(
+            ); // readNodesByName().subscribe(
         });
         return source;
     }

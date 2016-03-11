@@ -85,7 +85,7 @@ export function main(): void {
             }, FAILURE_TIMEOUT);
         });
 
-        it("can create unfiledFolder - child of root", (done) => {
+        it("can create Unfiled folder (at root)", (done) => {
             setTimeout(() => {
                 localDB.createNode("Unfiled", DB_NO_ID).subscribe(
                     (treeNode: TreeNode) => {
@@ -104,7 +104,7 @@ export function main(): void {
             }, FAILURE_TIMEOUT);
         });
 
-        it("cannot create unfiledFolder a second time in the same parent",
+        it("cannot create Unfiled (at root) again",
             (done) => {
                 setTimeout(() => {
                     localDB.createNode("Unfiled", DB_NO_ID).subscribe(
@@ -112,14 +112,14 @@ export function main(): void {
                             fail("expected an error");
                         },
                         (error) => {
-                            expect(error).toEqual("unique violation");
+                            expect(error).toEqual("unique name violation");
                             done();
                         }
                     );
                 }, FAILURE_TIMEOUT);
             });
 
-        it("can create folder1 - child of unfiledFolder", (done) => {
+        it("can create folder1 - child of Unfiled folder", (done) => {
             setTimeout(() => {
                 localDB.createNode("Folder 1", unfiledFolder.id).subscribe(
                     (treeNode: TreeNode) => {
@@ -256,7 +256,7 @@ export function main(): void {
             }, FAILURE_TIMEOUT);
         });
 
-        it("can create 'Unfiled' a second time under a different parent",
+        it("can create Unfiled folder (at folder5)",
             (done) => {
                 setTimeout(() => {
                     localDB.createNode("Unfiled", folder5.id).subscribe(

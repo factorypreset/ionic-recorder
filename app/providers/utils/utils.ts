@@ -27,10 +27,10 @@ export function msec2time(msec: number) {
 
 export function copyFromObject(src: Object, dest: Object): Object {
     "use strict";
-    console.log("copyObject(" + src + "," + dest + ")");
+    // console.log("copyObject(" + src + "," + dest + ")");
     for (let i in src) {
         if (src.hasOwnProperty(i)) {
-            console.log("copyObject: copying " + i);
+            // console.log("copyObject: copying " + i);
             dest[i] = src[i];
         }
     }
