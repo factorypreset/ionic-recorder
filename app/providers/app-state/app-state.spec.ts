@@ -1,4 +1,4 @@
-import {LocalDB, MAX_DB_INIT_TIME} from "../local-db/local-db";
+import {MAX_DB_INIT_TIME} from "../local-db/local-db";
 import {AppState} from "./app-state";
 
 const RANDOM_WORD_1: string =
@@ -9,19 +9,11 @@ const RANDOM_WORD_2: string =
 export function main(): void {
     "use strict";
 
-    let appState: AppState,
-        localDB: LocalDB = LocalDB.Instance;
+    let appState: AppState = null;
 
     beforeEach((done: Function) => {
         appState = AppState.Instance;
-        localDB.getDB().subscribe(
-            (database: IDBDatabase) => {
-                console.log("got DB for tests!");
-                done();
-            },
-            (error) => {
-                fail(error);
-            });
+        done();
     });
 
     jasmine.DEFAULT_TIMEOUT_INTERVAL = MAX_DB_INIT_TIME * 2;
@@ -33,12 +25,21 @@ export function main(): void {
                 done();
             }, MAX_DB_INIT_TIME);
         });
+    });
+
+    describe("When appState initialized again", () => {
+        it("appState is not falsy", (done) => {
+            setTimeout(() => {
+                expect(appState).not.toBeFalsy();
+                done();
+            }, MAX_DB_INIT_TIME);
+        });
 
         it("can read lastSelectedTab to be 0", (done) => {
             setTimeout(() => {
                 expect(appState.getProperty("lastSelectedTab")).toBe(0);
                 done();
-            }, 3 * MAX_DB_INIT_TIME);
+            }, MAX_DB_INIT_TIME);
         });
 
         it("can update lastSelectedTab to be 1", (done) => {

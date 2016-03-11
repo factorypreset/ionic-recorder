@@ -12,8 +12,6 @@ const MAX_APP_INIT_TIME = 60;
 setBaseTestProviders(TEST_BROWSER_PLATFORM_PROVIDERS,
     TEST_BROWSER_APPLICATION_PROVIDERS);
 
-let tracktunesApp: TracktunesApp = null;
-
 function getComponentStub(name: string): any {
     "use strict";
 
@@ -27,13 +25,15 @@ function getComponentStub(name: string): any {
 export function main(): void {
     "use strict";
 
+    let ionicApp: IonicApp = new IonicApp(null, null, null),
+        platform: Platform = new Platform(),
+        tracktunesApp: TracktunesApp =
+            new TracktunesApp(ionicApp, platform);
+
     describe("TracktunesApp", () => {
 
         beforeEach((done: Function) => {
-            let ionicApp: IonicApp = new IonicApp(null, null, null),
-                platform: Platform = new Platform();
-                tracktunesApp = new TracktunesApp(ionicApp, platform);
-                done();
+            done();
         });
 
         it("initialises with a root page and an app", (done) => {

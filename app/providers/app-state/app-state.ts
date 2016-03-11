@@ -32,21 +32,25 @@ export class AppState {
         console.log("constructor():AppState");
         this.localDB = LocalDB.Instance;
 
-        //        setTimeout(() => {
-        this.localDB.readOrCreateDataNodeInParentByName(
-            STATE_NODE_NAME, DB_NO_KEY, DEFAULT_STATE).subscribe(
-            (result: any) => {
-                console.log(result);
-                this.treeNode = result.treeNode;
-                this.dataNode = result.dataNode;
-                console.log("GOT EN BOTH " + result.treeNode + ", " + result.dataNode);
+        this.localDB.waitForDB().subscribe(
+            (db: IDBDatabase) => {
+                this.localDB.readOrCreateDataNodeInParentByName(
+                    STATE_NODE_NAME, DB_NO_KEY, DEFAULT_STATE).subscribe(
+                    (result: any) => {
+                        this.treeNode = result.treeNode;
+                        this.dataNode = result.dataNode;
+                    },
+                    (rcError: any) => {
+                        console.log("ER.....................");
+                        throw new Error(rcError);
+                    }
+                    ); // readOrCreateDataNodeInParentByName().subscribe(
+                //       }, MAX_DB_INIT_TIME);
             },
-            (rcError: any) => {
-                throw new Error(rcError);
+            (waitError: any) => {
+                throw new Error(waitError);
             }
-            ); // readOrCreateDataNodeInParentByName().subscribe(
-        //       }, MAX_DB_INIT_TIME);
-
+        ); // waitForDB().subscribe(
     }
 
     // Singleton pattern implementation
@@ -65,39 +69,28 @@ export class AppState {
             throw new Error("no property by this name in dataNode");
         }
 
-        console.log("getProperty(" + propertyName + ") = " +
-            this.dataNode.data[propertyName]);
-
         return this.dataNode.data[propertyName];
     }
 
     updateProperty(propertyName: string, propertyValue: any) {
         let source: Observable<boolean> = Observable.create((observer) => {
-            console.log("update(" + propertyName + ", " + propertyValue + ") ...");
-            console.log("update(" + propertyName + ", " + propertyValue + ") ...");
             if (!this.dataNode) {
-                console.log("state has no data node in update");
                 // we expected to have read the state at least once
                 // before calling update, which sets this.dataNode
                 observer.error("state has no data node in update");
             }
             else if (!this.dataNode[DB_KEY_PATH]) {
-                console.log("state has no key path in update");
                 // we expected to have read the state at least once
                 // before calling update, which tags on the property
                 // DB_KEY_PATH onto the this.state's State object
                 observer.error("state has no key path in update");
             }
             else if (!this.treeNode) {
-                console.log("state has no tree node in update");
                 // we expected to have read the state at least once
                 // before calling update, which sets this.treeNode
                 observer.error("state has no tree node in update");
             }
             else if (this.getProperty(propertyName) !== propertyValue) {
-                console.log("property update ...");
-                console.log(this.treeNode.dataKey);
-                console.log(this.dataNode.data);
                 // only not update if propertyValue is different
                 // update in memory:
                 this.dataNode.data[propertyName] = propertyValue;
@@ -105,12 +98,10 @@ export class AppState {
                 this.localDB.updateNodeData(this.treeNode, this.dataNode.data)
                     .subscribe(
                     (success: boolean) => {
-                        console.log("update success");
                         observer.next(true);
                         observer.complete();
                     },
                     (error: any) => {
-                        console.log("update error: " + error);
                         observer.error(error);
                     }
                     ); // updateNodeData().subscribe(

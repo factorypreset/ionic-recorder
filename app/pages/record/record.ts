@@ -40,11 +40,12 @@ export class RecordPage {
     private recordingDuration: number;
 
     private localDB: LocalDB;
+    private appState: AppState;
 
-    constructor(private platform: Platform, private webAudio: WebAudio,
-        private appState: AppState) {
+    constructor(private platform: Platform, private webAudio: WebAudio) {
 
         this.localDB = LocalDB.Instance;
+        this.appState = AppState.Instance;
 
         console.log("constructor():RecordPage");
         this.gain = 100;
@@ -109,21 +110,6 @@ export class RecordPage {
 
         // start volume monitoring infinite loop
         this.monitorVolume();
-    }
-
-    onPageDidEnter() {
-        console.log("RecordPage:onPageDidEnter()");
-        this.localDB = LocalDB.Instance;
-        // by setting a small timeout here we're ensuring that the
-        // getDB operation that opens a new db happens only once
-        // even when it happens more than once, it works, but this
-        // keeps things more efficient by opening the db only once
-        // for the entire app
-        setTimeout(() => {
-            this.localDB.getDB().subscribe((db: IDBDatabase) => {
-                console.log("record page got db: " + db);
-            });
-        }, OPEN_DB_MAX_TIMEOUT);
     }
 
     monitorVolume() {

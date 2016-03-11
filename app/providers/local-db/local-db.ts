@@ -39,17 +39,22 @@ export interface TreeNode {
 export class LocalDB {
     // 'instance' is used as part of Singleton pattern implementation
     private static instance: LocalDB = null;
-    private dbObservable: Observable<IDBDatabase> = null;
     private db: IDBDatabase = null;
 
     constructor() {
+        console.log("constructor():LocalDB");
         if (!indexedDB) {
             throw new Error("Browser does not support indexedDB");
         }
-
-        console.log("constructor():LocalDB");
-
-        this.dbObservable = this.openDB();
+        this.openDB().subscribe(
+            (db: IDBDatabase) => {
+                // console.log("got DB in constructor");
+                this.db = db;
+            },
+            (error: any) => {
+                throw new Error(error);
+            }
+        );
     }
 
     // Singleton pattern implementation
@@ -93,33 +98,19 @@ export class LocalDB {
         };
     };
 
-    // Returns an Observable<IDBDatabase> of the db, just like openDB() does,
-    // but this time it's a smarter one that checks to see if we already
-    // have a DB opened, so that we don"t call open() more than once
-    getDB() {
-        // subscribe to dbObservable, which opens the db, but only
-        // do so if you don"t already have the db opened before
-        // (this is an example of chaining one observable (the one
-        // returned) with another)
+    waitForDB() {
         let source: Observable<IDBDatabase> = Observable.create((observer) => {
-            if (this.db) {
-                console.log("... already got DB: " + this.db);
-                observer.next(this.db);
-                observer.complete();
-            }
-            else {
-                this.dbObservable.subscribe(
-                    (db: IDBDatabase) => {
-                        console.log("... and the DB is: " + db);
-                        this.db = db;
-                        observer.next(db);
-                        observer.complete();
-                    },
-                    (error) => {
-                        observer.error(error);
-                    }
-                ); // dbObservable.subscribe(
-            }
+            let repeat = () => {
+                if (this.db) {
+                    observer.next(this.db);
+                    observer.complete();
+                }
+                else {
+                    // console.log("... no DB yet ...");
+                    setTimeout(repeat, MAX_DB_INIT_TIME);
+                }
+            };
+            repeat();
         });
         return source;
     }
@@ -183,7 +174,7 @@ export class LocalDB {
     getStore(storeName: string, mode: string) {
         let source: Observable<IDBObjectStore> =
             Observable.create((observer) => {
-                this.getDB().subscribe(
+                this.waitForDB().subscribe(
                     (db: IDBDatabase) => {
                         observer.next(
                             db.transaction(
@@ -196,7 +187,7 @@ export class LocalDB {
                     (error) => {
                         observer.error(error);
                     }
-                ); // getDB().subscribe(
+                ); // waitForDB().subscribe(
             });
         return source;
     }
@@ -293,7 +284,6 @@ export class LocalDB {
 
     // Returns an Observable<boolean> of success in updating item
     updateStoreItem(storeName: string, id: number, newItem: any) {
-        console.log("updateStoreItem");
         let source: Observable<boolean> = Observable.create((observer) => {
             if (!this.validateId(id)) {
                 observer.error("invalid id");
@@ -302,9 +292,7 @@ export class LocalDB {
                 this.getStore(storeName, "readwrite").subscribe(
                     (store: IDBObjectStore) => {
                         let getRequest: IDBRequest = store.get(id);
-                        console.log("GET STORE SUCCESS");
                         getRequest.onsuccess = (event: IDBEvent) => {
-                            console.log("GET SUCCESS");
                             if (!getRequest.result) {
                                 // request success, but we got nothing. ERROR:
                                 // we expect what we're updating to be there
@@ -316,14 +304,12 @@ export class LocalDB {
                                         newItem,
                                         getRequest.result
                                     ));
-                                console.log("PUT SETUP");
                                 putRequest.onsuccess =
                                     (event: IDBErrorEvent) => {
                                         // the id of the updated item is in
                                         // putRequest.result, verify it
-                                        console.log("PUT SUCCESS");
                                         if (putRequest.result !== id) {
-                                            observer.error("put: bad id");
+                                            observer.error("bad id in put");
                                         }
                                         else {
                                             observer.next(true);
@@ -333,20 +319,17 @@ export class LocalDB {
 
                                 putRequest.onerror =
                                     (event: IDBErrorEvent) => {
-                                        console.log("PUT ERROR");
                                         observer.error("put request");
                                     };
                             }
                         }; // getRequest.onsuccess =
 
                         getRequest.onerror = (event: IDBErrorEvent) => {
-                            console.log("GET REQUEST ERROR");
                             observer.error("get request");
                         };
                     },
                     (getStoreError) => {
-                        console.log("GET STORE ERROR");
-                        observer.error("WOWOWOWOW " + getStoreError);
+                        observer.error(getStoreError);
                     }
                 ); // getStore().subscribe(
             } // if (!this.validateId(id)) { .. else {
@@ -466,7 +449,7 @@ export class LocalDB {
             this.readNodeByNameInParent(name, parentKey).subscribe(
                 (nodeInParent: TreeNode) => {
                     if (nodeInParent) {
-                        observer.error("unique name violation");
+                        observer.error("unique name violation 3");
                     }
                     else {
                         this.createTreeStoreItem(name, parentKey, DB_NO_KEY)
@@ -497,7 +480,7 @@ export class LocalDB {
             this.readNodeByNameInParent(name, parentKey).subscribe(
                 (nodeInParent: TreeNode) => {
                     if (nodeInParent) {
-                        observer.error("unique name violation");
+                        observer.error("unique name violation 2");
                     }
                     else {
                         this.createDataStoreItem(data).subscribe(
@@ -567,7 +550,6 @@ export class LocalDB {
                     cursorRequest.onsuccess = (event: IDBEvent) => {
                         let cursor: IDBCursorWithValue = cursorRequest.result;
                         if (cursor) {
-                            // console.log("got item by name = " + name);
                             nodes.push(cursor.value);
                             cursor.continue();
                         }
@@ -607,7 +589,7 @@ export class LocalDB {
                         }
                     }
                     if (nFound > 1) {
-                        observer.error("unique name violation");
+                        observer.error("unique name violation 1");
                     }
                     else {
                         observer.next(nodeFound);
@@ -685,7 +667,7 @@ export class LocalDB {
                     (readTreeNode: TreeNode) => {
                         if (readTreeNode) {
                             console.log(
-                                "folder node already in DB, returning it ...");
+                                "folder node in DB, returning it ...");
                             observer.next(readTreeNode);
                             observer.complete();
                         }
@@ -719,7 +701,7 @@ export class LocalDB {
                 this.readNodeByNameInParent(name, parentKey).subscribe(
                     (readTreeNode: TreeNode) => {
                         if (readTreeNode) {
-                            console.log("data node already in DB ...");
+                            console.log("data node in DB, returning it ...");
                             // found a node in parent by name 'name'
                             this.readNodeData(readTreeNode).subscribe(
                                 (dataNode: DataNode) => {
@@ -778,7 +760,6 @@ export class LocalDB {
     // only updates the data that treeNode points to, not the
     // treeNode itself
     updateNodeData(treeNode: TreeNode, newData: any) {
-        console.log("updateNodeData: START " + newData);
         return this.updateStoreItem(
             DB_DATA_STORE_NAME,
             treeNode.dataKey,

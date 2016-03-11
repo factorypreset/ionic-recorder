@@ -16,9 +16,8 @@ import {AppState} from "./providers/app-state/app-state";
 })
 export class TracktunesApp {
     private rootPage: Type = TabsPage;
-    private appState: AppState = AppState.Instance;
 
     constructor(private app: IonicApp, private platform: Platform) {
-        console.log("constructor():MyApp");
+        console.log("constructor():TracktunesApp");
     }
 }

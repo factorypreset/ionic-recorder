@@ -37,7 +37,7 @@ export function main(): void {
 
     beforeEach((done: Function) => {
         localDB = LocalDB.Instance;
-        localDB.getDB().subscribe(
+        localDB.waitForDB().subscribe(
             (database: IDBDatabase) => {
                 db = database;
                 done();
@@ -57,13 +57,12 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
-        it("indexedDB is available", (done) => {
+        it("db is not falsy", (done) => {
             setTimeout(() => {
-                expect(localDB.getDB()).not.toBeFalsy();
+                expect(db).not.toBeFalsy();
                 done();
             }, MAX_DB_INIT_TIME);
         });
-
     });
 
     describe("When two LocalDB instances are initialized", () => {
@@ -134,7 +133,7 @@ export function main(): void {
                     (error) => {
                         fail(error);
                     }
-                );
+                    );
             }, MAX_DB_INIT_TIME);
         });
 
@@ -154,7 +153,7 @@ export function main(): void {
                     (error) => {
                         fail(error);
                     }
-                );
+                    );
             }, MAX_DB_INIT_TIME);
         });
 
@@ -166,7 +165,7 @@ export function main(): void {
                             fail("expected an error");
                         },
                         (error) => {
-                            expect(error).toEqual("unique name violation");
+                            expect(error).toEqual("unique name violation 3");
                             done();
                         }
                     );
