@@ -5,6 +5,7 @@ const RANDOM_WORD_1: string =
     "1Wh9Xs5ytKuvEjdBhuLUVjED4dp5UPZd3QZFTLuejYNbuLvBVeP9Qq5xaBPAY7RE";
 const RANDOM_WORD_2: string =
     "2Wh9Xs5ytKuvEjdBhuLUVjED4dp5UPZd3QZFTLuejYNbuLvBVeP9Qq5xaBPAY7RE";
+const UNFILED_FOLDER_NAME: string = "__unfiled__";
 
 let request: IDBOpenDBRequest = indexedDB.deleteDatabase(DB_NAME);
 
@@ -26,6 +27,7 @@ export function main(): void {
     let localDB: LocalDB = null,
         localDB2: LocalDB = null,
         db: IDBDatabase = null,
+        randomWord1: TreeNode,
         unfiledFolder: TreeNode,
         folder1: TreeNode,
         folder3: TreeNode,
@@ -89,8 +91,11 @@ export function main(): void {
                     RANDOM_WORD_1,
                     DB_NO_KEY,
                     RANDOM_WORD_2).subscribe(
-                    (dataNode: DataNode) => {
-                        expect(dataNode).not.toBeFalsy();
+                    (obj: any) => {
+                        randomWord1 = obj.treeNode;
+                        expect(obj.treeNode).not.toBeFalsy();
+                        expect(obj.dataNode).not.toBeFalsy();
+                        expect(obj.dataNode.data).toEqual(RANDOM_WORD_2);
                         done();
                     },
                     (error) => {
@@ -106,8 +111,11 @@ export function main(): void {
                     RANDOM_WORD_1,
                     DB_NO_KEY,
                     RANDOM_WORD_2).subscribe(
-                    (dataNode: DataNode) => {
-                        expect(dataNode).not.toBeFalsy();
+                    (obj: any) => {
+                        expect(obj.treeNode).not.toBeFalsy();
+                        expect(obj.dataNode).not.toBeFalsy();
+                        expect(obj.treeNode.name).toEqual(randomWord1.name);
+                        expect(obj.dataNode.data).toEqual(RANDOM_WORD_2);
                         done();
                     },
                     (error) => {
@@ -117,50 +125,69 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
-        it("can read or create Unfiled folder (at root)", (done) => {
+        it("can delete RANDOM_WORD_1 item in root", (done) => {
             setTimeout(() => {
-                localDB.readOrCreateFolderNodeInParentByName(
-                    "Unfiled", DB_NO_KEY).subscribe(
-                    (treeNode: TreeNode) => {
-                        unfiledFolder = treeNode;
-                        expect(localDB.validateId(treeNode.id)).toBe(true);
-                        expect(treeNode.parentKey).toEqual(DB_NO_KEY);
-                        expect(treeNode.dataKey).toBeFalsy();
-                        expect(treeNode.name).toEqual("Unfiled");
-                        expect(treeNode.timestamp).not.toBeFalsy();
+                localDB.deleteNode(randomWord1).subscribe(
+                    (success: boolean) => {
+                        expect(success).toBe(true);
                         done();
                     },
                     (error) => {
                         fail(error);
                     }
-                    );
+                );
             }, MAX_DB_INIT_TIME);
         });
 
-        it("can read or create Unfiled folder (at root) again", (done) => {
-            setTimeout(() => {
-                localDB.readOrCreateFolderNodeInParentByName(
-                    "Unfiled", DB_NO_KEY).subscribe(
-                    (treeNode: TreeNode) => {
-                        unfiledFolder = treeNode;
-                        expect(localDB.validateId(treeNode.id)).toBe(true);
-                        expect(treeNode.parentKey).toEqual(DB_NO_KEY);
-                        expect(treeNode.dataKey).toBeFalsy();
-                        expect(treeNode.name).toEqual("Unfiled");
-                        expect(treeNode.timestamp).not.toBeFalsy();
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                    );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("cannot create Unfiled (at root) again",
+        it("can read or create " + UNFILED_FOLDER_NAME +
+            " folder (at root)",
             (done) => {
                 setTimeout(() => {
-                    localDB.createNode("Unfiled", DB_NO_KEY).subscribe(
+                    localDB.readOrCreateFolderNodeInParentByName(
+                        UNFILED_FOLDER_NAME, DB_NO_KEY).subscribe(
+                        (treeNode: TreeNode) => {
+                            unfiledFolder = treeNode;
+                            expect(localDB.validateId(treeNode.id)).toBe(true);
+                            expect(treeNode.parentKey).toEqual(DB_NO_KEY);
+                            expect(treeNode.dataKey).toBeFalsy();
+                            expect(treeNode.name).toEqual(UNFILED_FOLDER_NAME);
+                            expect(treeNode.timestamp).not.toBeFalsy();
+                            done();
+                        },
+                        (error) => {
+                            fail(error);
+                        }
+                        );
+                }, MAX_DB_INIT_TIME);
+            });
+
+        it("can read or create " + UNFILED_FOLDER_NAME +
+            " folder (at root) again",
+            (done) => {
+                setTimeout(() => {
+                    localDB.readOrCreateFolderNodeInParentByName(
+                        UNFILED_FOLDER_NAME, DB_NO_KEY).subscribe(
+                        (treeNode: TreeNode) => {
+                            unfiledFolder = treeNode;
+                            expect(localDB.validateId(treeNode.id)).toBe(true);
+                            expect(treeNode.parentKey).toEqual(DB_NO_KEY);
+                            expect(treeNode.dataKey).toBeFalsy();
+                            expect(treeNode.name).toEqual(UNFILED_FOLDER_NAME);
+                            expect(treeNode.timestamp).not.toBeFalsy();
+                            done();
+                        },
+                        (error) => {
+                            fail(error);
+                        }
+                        );
+                }, MAX_DB_INIT_TIME);
+            });
+
+        it("cannot create " + UNFILED_FOLDER_NAME +
+            " folder (at root) again",
+            (done) => {
+                setTimeout(() => {
+                    localDB.createNode(UNFILED_FOLDER_NAME, DB_NO_KEY).subscribe(
                         (treeNode: TreeNode) => {
                             fail("expected an error");
                         },
@@ -172,24 +199,26 @@ export function main(): void {
                 }, MAX_DB_INIT_TIME);
             });
 
-        it("can create folder1 - child of Unfiled folder", (done) => {
-            setTimeout(() => {
-                localDB.createNode("Folder 1", unfiledFolder.id).subscribe(
-                    (treeNode: TreeNode) => {
-                        folder1 = treeNode;
-                        expect(localDB.validateId(treeNode.id)).toBe(true);
-                        expect(treeNode.parentKey).toEqual(unfiledFolder.id);
-                        expect(treeNode.dataKey).toBeFalsy();
-                        expect(treeNode.name).toEqual("Folder 1");
-                        expect(treeNode.timestamp).not.toBeFalsy();
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
+        it("can create folder1 - child of " + UNFILED_FOLDER_NAME + " folder",
+            (done) => {
+                setTimeout(() => {
+                    localDB.createNode("Folder 1", unfiledFolder.id).subscribe(
+                        (treeNode: TreeNode) => {
+                            folder1 = treeNode;
+                            expect(localDB.validateId(treeNode.id)).toBe(true);
+                            expect(treeNode.parentKey)
+                                .toEqual(unfiledFolder.id);
+                            expect(treeNode.dataKey).toBeFalsy();
+                            expect(treeNode.name).toEqual("Folder 1");
+                            expect(treeNode.timestamp).not.toBeFalsy();
+                            done();
+                        },
+                        (error) => {
+                            fail(error);
+                        }
+                    );
+                }, MAX_DB_INIT_TIME);
+            });
 
         it("can create item2 - child of folder1", (done) => {
             setTimeout(() => {
@@ -309,22 +338,23 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
-        it("can create Unfiled folder (at folder5)",
+        it("can create " + UNFILED_FOLDER_NAME + " folder (at folder5)",
             (done) => {
                 setTimeout(() => {
-                    localDB.createNode("Unfiled", folder5.id).subscribe(
+                    localDB.createNode(UNFILED_FOLDER_NAME, folder5.id)
+                        .subscribe(
                         (treeNode: TreeNode) => {
                             expect(localDB.validateId(treeNode.id)).toBe(true);
                             expect(treeNode.parentKey).toEqual(folder5.id);
                             expect(treeNode.dataKey).toBeFalsy();
-                            expect(treeNode.name).toEqual("Unfiled");
+                            expect(treeNode.name).toEqual(UNFILED_FOLDER_NAME);
                             expect(treeNode.timestamp).not.toBeFalsy();
                             done();
                         },
                         (error) => {
                             fail(error);
                         }
-                    );
+                        );
                 }, MAX_DB_INIT_TIME);
             });
 
@@ -405,7 +435,7 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
-        it("can delete node 5 recursively", (done) => {
+        it("can delete folder5 folder recursively", (done) => {
             setTimeout(() => {
                 localDB.deleteNode(folder5).subscribe(
                     (success: boolean) => {
@@ -461,33 +491,35 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
-        it("can delete Unfiled folder (at root) recursively", (done) => {
-            setTimeout(() => {
-                localDB.deleteNode(unfiledFolder).subscribe(
-                    (success: boolean) => {
-                        expect(success).toBe(true);
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("cannot now read Unfiled folder (at root)", (done) => {
-            setTimeout(() => {
-                localDB.readNode(unfiledFolder.id).subscribe(
-                    (treeNode: TreeNode) => {
-                        fail("expected an error");
-                    },
-                    (error) => {
-                        expect(error).toEqual("node does not exist");
-                        done();
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
+        it("can delete " + UNFILED_FOLDER_NAME +
+            " folder (at root) recursively",
+            (done) => {
+                setTimeout(() => {
+                    localDB.deleteNode(unfiledFolder).subscribe(
+                        (success: boolean) => {
+                            expect(success).toBe(true);
+                            done();
+                        },
+                        (error) => {
+                            fail(error);
+                        }
+                    );
+                }, MAX_DB_INIT_TIME);
+            });
+        it("cannot now read " + UNFILED_FOLDER_NAME +
+            " folder (at root)", (done) => {
+                setTimeout(() => {
+                    localDB.readNode(unfiledFolder.id).subscribe(
+                        (treeNode: TreeNode) => {
+                            fail("expected an error");
+                        },
+                        (error) => {
+                            expect(error).toEqual("node does not exist");
+                            done();
+                        }
+                    );
+                }, MAX_DB_INIT_TIME);
+            });
 
         it("cannot now read item2", (done) => {
             setTimeout(() => {

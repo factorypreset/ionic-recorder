@@ -1,4 +1,4 @@
-import {MAX_DB_INIT_TIME} from "../local-db/local-db";
+import {DB_NAME, MAX_DB_INIT_TIME} from "../local-db/local-db";
 import {AppState} from "./app-state";
 
 const RANDOM_WORD_1: string =
