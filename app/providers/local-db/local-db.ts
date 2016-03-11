@@ -95,7 +95,7 @@ export class LocalDB {
         // returned) with another)
         let source: Observable<IDBDatabase> = Observable.create((observer) => {
             if (this.db) {
-                console.log("... already got DB: " + this.db);
+                // console.log("... already got DB: " + this.db);
                 observer.next(this.db);
                 observer.complete();
             }
