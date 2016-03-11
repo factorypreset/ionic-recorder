@@ -6,6 +6,7 @@ from "../local-db/local-db";
 interface State {
     lastSelectedTab: number;
     lastViewedFolderKey: number;
+    unfiledFolderName: string;
 }
 
 
@@ -15,7 +16,8 @@ const STATE_NODE_NAME: string =
 
 const DEFAULT_STATE: State = {
     lastSelectedTab: 0,
-    lastViewedFolderKey: DB_NO_KEY
+    lastViewedFolderKey: DB_NO_KEY,
+    unfiledFolderName: "Unfiled"
 };
 
 
@@ -39,6 +41,15 @@ export class AppState {
                     (result: any) => {
                         this.treeNode = result.treeNode;
                         this.dataNode = result.dataNode;
+                        // CREATE UNFILED FOLDER
+                        this.localDB.readOrCreateFolderNodeInParentByName(
+                            DEFAULT_STATE.unfiledFolderName, DB_NO_KEY)
+                            .subscribe(
+                            (result: any) => { },
+                            (fError: any) => {
+                                throw new Error(fError);
+                            }
+                            ); // readOrCreateFolderNodeInParentByName().su ...
                     },
                     (rcError: any) => {
                         console.log("ER.....................");
