@@ -1,4 +1,5 @@
-import {LocalDB, TreeNode, DB_NAME, DB_NO_ID} from "./local-db";
+import {LocalDB, TreeNode, DataNode, DB_NAME, DB_NO_KEY}
+from "./local-db";
 import {Observable} from "rxjs/Rx";
 
 const FAILURE_TIMEOUT = 300;
@@ -87,11 +88,11 @@ export function main(): void {
 
         it("can create Unfiled folder (at root)", (done) => {
             setTimeout(() => {
-                localDB.createNode("Unfiled", DB_NO_ID).subscribe(
+                localDB.createNode("Unfiled", DB_NO_KEY).subscribe(
                     (treeNode: TreeNode) => {
                         unfiledFolder = treeNode;
                         expect(localDB.validateId(treeNode.id)).toBe(true);
-                        expect(treeNode.idParent).toEqual(DB_NO_ID);
+                        expect(treeNode.idParent).toEqual(DB_NO_KEY);
                         expect(treeNode.idData).toBeFalsy();
                         expect(treeNode.name).toEqual("Unfiled");
                         expect(treeNode.timestamp).not.toBeFalsy();
@@ -107,7 +108,7 @@ export function main(): void {
         it("cannot create Unfiled (at root) again",
             (done) => {
                 setTimeout(() => {
-                    localDB.createNode("Unfiled", DB_NO_ID).subscribe(
+                    localDB.createNode("Unfiled", DB_NO_KEY).subscribe(
                         (treeNode: TreeNode) => {
                             fail("expected an error");
                         },
@@ -297,8 +298,8 @@ export function main(): void {
         it("can read item2 data", (done) => {
             setTimeout(() => {
                 localDB.readNodeData(item2).subscribe(
-                    (data: any) => {
-                        expect(data).toEqual("i2data");
+                    (dataNode: DataNode) => {
+                        expect(dataNode.data).toEqual("i2data");
                         done();
                     },
                     (error) => {
@@ -325,8 +326,8 @@ export function main(): void {
         it("can re-read item2 data and verify it's 'i2newdata'", (done) => {
             setTimeout(() => {
                 localDB.readNodeData(item2).subscribe(
-                    (data: any) => {
-                        expect(data).toEqual("i2newData");
+                    (dataNode: DataNode) => {
+                        expect(dataNode.data).toEqual("i2newData");
                         done();
                     },
                     (error) => {

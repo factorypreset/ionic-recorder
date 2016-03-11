@@ -7,18 +7,20 @@ import {copyFromObject} from "../utils/utils";
 const DB_VERSION: number = 1;
 const DB_TREE_STORE_NAME = "blobTree";
 const DB_DATA_STORE_NAME: string = "dataTable";
-const DB_KEY_PATH: string = "id";
 const STORE_EXISTS_ERROR_CODE: number = 0;
-
-interface DataNode {
-    data: any;
-    id?: number;
-}
 
 // module exports
 
 export const DB_NAME: string = "ionic-recorder-db";
-export const DB_NO_ID: number = 0;
+export const DB_NO_KEY: number = 0;
+export const DB_KEY_PATH: string = "id";
+
+// NB: DB_KEY_PATH must be an optional field in both these interfaces
+
+export interface DataNode {
+    data: any;
+    id?: number;
+}
 
 export interface TreeNode {
     name: string;
@@ -62,7 +64,7 @@ export class LocalDB {
     }
 
     isFolder(node: TreeNode) {
-        return node.idData === DB_NO_ID;
+        return node.idData === DB_NO_KEY;
     }
 
     makeDataNode(newData: any): DataNode {
@@ -229,7 +231,7 @@ export class LocalDB {
             if (!item) {
                 observer.error("add falsy item");
             }
-            else if (item.id) {
+            else if (item[DB_KEY_PATH]) {
                 observer.error("cannot create item when it has an id");
             }
             else {
@@ -237,7 +239,7 @@ export class LocalDB {
                     (store: IDBObjectStore) => {
                         let addRequest: IDBRequest = store.add(item);
                         addRequest.onsuccess = (event: IDBEvent) => {
-                            item.id = addRequest.result;
+                            item[DB_KEY_PATH] = addRequest.result;
                             observer.next(item);
                             observer.complete();
                         };
@@ -429,7 +431,7 @@ export class LocalDB {
     // pay attention to the idParent field) or a flat data table that is
     // kept lightweight by not storing data in it, instead storing pointers
     // to the hefty data that resides in a separate table.  If you want to
-    // use this as a flat structure, use idParent of DB_NO_ID. Names of all
+    // use this as a flat structure, use idParent of DB_NO_KEY. Names of all
     // items in this flat structure must be unique.  If you want to use this
     // as a tree, use idParent to designate parent node, names must be
     // unique only among siblings of the same parent.
@@ -455,7 +457,7 @@ export class LocalDB {
                         observer.error("unique name violation");
                     }
                     else {
-                        this.createTreeStoreItem(name, idParent, DB_NO_ID)
+                        this.createTreeStoreItem(name, idParent, DB_NO_KEY)
                             .subscribe(
                             (treeNode: TreeNode) => {
                                 observer.next(treeNode);
@@ -491,7 +493,7 @@ export class LocalDB {
                                 this.createTreeStoreItem(
                                     name,
                                     idParent,
-                                    dataNode.id).subscribe(
+                                    dataNode[DB_KEY_PATH]).subscribe(
                                     (treeNode: TreeNode) => {
                                         observer.next(treeNode);
                                         observer.complete();
@@ -524,7 +526,7 @@ export class LocalDB {
                     if (!treeNode) {
                         observer.error("node does not exist");
                     }
-                    treeNode.id = id;
+                    treeNode[DB_KEY_PATH] = id;
                     observer.next(treeNode);
                     observer.complete();
                 },
@@ -539,7 +541,8 @@ export class LocalDB {
     // Returns an Observable<TreeNode[]> of all nodes obtained by name
     // regardless of where they are in the tree - this is a way to use
     // the tree as a key/value pair, by the way: just put the key in
-    // name and the value goes in the data object of the node
+    // name and the value goes in the data object of the node.  If nodes
+    // by name 'name' exist under any parent, returns []
     readNodesByName(name: string) {
         let source: Observable<TreeNode[]> = Observable.create((observer) => {
             let nodes: TreeNode[] = [];
@@ -601,13 +604,19 @@ export class LocalDB {
         return source;
     }
 
-    // Returns an Observable<any> of data store item 'data' field value
+    // Returns an Observable<DataNode> of data store item 'data' field value
     readNodeData(treeNode: TreeNode) {
-        let source: Observable<any> = Observable.create((observer) => {
+        let source: Observable<DataNode> = Observable.create((observer) => {
             this.readStoreItem(DB_DATA_STORE_NAME, treeNode.idData).subscribe(
                 (dataNode: DataNode) => {
-                    observer.next(dataNode.data);
-                    observer.complete();
+                    // assume data is an object and tag data store id onto it
+                    if (dataNode[DB_KEY_PATH] !== treeNode.idData) {
+                        observer.error("data store id mismatch");
+                    }
+                    else {
+                        observer.next(dataNode);
+                        observer.complete();
+                    }
                 },
                 (error) => {
                     observer.error(error);
@@ -624,13 +633,13 @@ export class LocalDB {
             this.getTreeStore("readonly").subscribe(
                 (store: IDBObjectStore) => {
                     let index: IDBIndex = store.index("idParent"),
-                        idRange: IDBKeyRange = IDBKeyRange.only(parentNode.id),
+                        idRange: IDBKeyRange =
+                            IDBKeyRange.only(parentNode[DB_KEY_PATH]),
                         cursorRequest: IDBRequest = index.openCursor(idRange);
 
                     cursorRequest.onsuccess = (event: IDBEvent) => {
                         let cursor: IDBCursorWithValue = cursorRequest.result;
                         if (cursor) {
-                            // console.log("got child of id " + parentNode.id);
                             childNodes.push(cursor.value);
                             cursor.continue();
                         }
@@ -657,7 +666,7 @@ export class LocalDB {
     // id of the node in the tree store to update
     updateNode(treeNode: TreeNode) {
         return this.updateStoreItem(DB_TREE_STORE_NAME,
-            treeNode.id, treeNode);
+            treeNode[DB_KEY_PATH], treeNode);
     }
 
     // Returns an Observable<boolean> of success in updating data store item
@@ -676,7 +685,7 @@ export class LocalDB {
         let source: Observable<boolean> = Observable.create((observer) => {
             this.deleteDataStoreItem(treeNode.idData).subscribe(
                 (success1: boolean) => {
-                    this.deleteTreeStoreItem(treeNode.id).subscribe(
+                    this.deleteTreeStoreItem(treeNode[DB_KEY_PATH]).subscribe(
                         (success2: boolean) => {
                             observer.next(success1 && success2);
                             observer.complete();
@@ -699,7 +708,7 @@ export class LocalDB {
     // (in depth-first order)
     deleteFolderNode(treeNode: TreeNode) {
         let source: Observable<boolean> = Observable.create((observer) => {
-            this.deleteTreeStoreItem(treeNode.id).subscribe(
+            this.deleteTreeStoreItem(treeNode[DB_KEY_PATH]).subscribe(
                 (success: boolean) => {
                     this.readChildNodes(treeNode).subscribe(
                         (childNodes: TreeNode[]) => {
