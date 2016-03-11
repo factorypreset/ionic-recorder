@@ -49,7 +49,7 @@ export function main(): void {
 
     jasmine.DEFAULT_TIMEOUT_INTERVAL = MAX_DB_INIT_TIME * 10;
 
-    xdescribe("When localDB initialized", () => {
+    describe("When localDB initialized", () => {
         it("localDB is not falsy", (done) => {
             setTimeout(() => {
                 expect(localDB).not.toBeFalsy();
@@ -66,7 +66,7 @@ export function main(): void {
 
     });
 
-    xdescribe("When two LocalDB instances are initialized", () => {
+    describe("When two LocalDB instances are initialized", () => {
         it("should be equal (singleton test)", (done) => {
             setTimeout(() => {
                 localDB2 = LocalDB.Instance;
@@ -76,7 +76,7 @@ export function main(): void {
         });
     });
 
-    xdescribe("When DB is available", () => {
+    describe("When DB is available", () => {
         it("db is not falsy", (done) => {
             setTimeout(() => {
                 expect(db).not.toBeFalsy();
@@ -84,9 +84,64 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
-        it("can create Unfiled folder (at root)", (done) => {
+        it("can read or create RANDOM_WORD_1 item in root", (done) => {
             setTimeout(() => {
-                localDB.createNode("Unfiled", DB_NO_KEY).subscribe(
+                localDB.readOrCreateDataNodeInParentByName(
+                    RANDOM_WORD_1,
+                    DB_NO_KEY,
+                    RANDOM_WORD_2).subscribe(
+                    (dataNode: DataNode) => {
+                        expect(dataNode).not.toBeFalsy();
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                    );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can read or create RANDOM_WORD_1 item in root again", (done) => {
+            setTimeout(() => {
+                localDB.readOrCreateDataNodeInParentByName(
+                    RANDOM_WORD_1,
+                    DB_NO_KEY,
+                    RANDOM_WORD_2).subscribe(
+                    (dataNode: DataNode) => {
+                        expect(dataNode).not.toBeFalsy();
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                    );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can read or create Unfiled folder (at root)", (done) => {
+            setTimeout(() => {
+                localDB.readOrCreateFolderNodeInParentByName(
+                    "Unfiled", DB_NO_KEY).subscribe(
+                    (treeNode: TreeNode) => {
+                        unfiledFolder = treeNode;
+                        expect(localDB.validateId(treeNode.id)).toBe(true);
+                        expect(treeNode.parentKey).toEqual(DB_NO_KEY);
+                        expect(treeNode.dataKey).toBeFalsy();
+                        expect(treeNode.name).toEqual("Unfiled");
+                        expect(treeNode.timestamp).not.toBeFalsy();
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it("can read or create Unfiled folder (at root) again", (done) => {
+            setTimeout(() => {
+                localDB.readOrCreateFolderNodeInParentByName(
+                    "Unfiled", DB_NO_KEY).subscribe(
                     (treeNode: TreeNode) => {
                         unfiledFolder = treeNode;
                         expect(localDB.validateId(treeNode.id)).toBe(true);
@@ -474,23 +529,6 @@ export function main(): void {
                         done();
                     }
                 );
-            }, MAX_DB_INIT_TIME);
-        });
-
-        it("can read or create RANDOM_WORD_1 item in root", (done) => {
-            setTimeout(() => {
-                localDB.readOrCreateDataNodeInParentByName(
-                    RANDOM_WORD_1,
-                    DB_NO_KEY,
-                    RANDOM_WORD_2).subscribe(
-                    (dataNode: DataNode) => {
-                        expect(dataNode).not.toBeFalsy();
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                    );
             }, MAX_DB_INIT_TIME);
         });
 

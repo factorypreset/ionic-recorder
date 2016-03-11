@@ -678,6 +678,40 @@ export class LocalDB {
         return source;
     }
 
+    readOrCreateFolderNodeInParentByName(name: string, parentKey: number) {
+        let source: Observable<TreeNode> =
+            Observable.create((observer) => {
+                this.readNodeByNameInParent(name, parentKey).subscribe(
+                    (readTreeNode: TreeNode) => {
+                        if (readTreeNode) {
+                            console.log(
+                                "folder node already in DB, returning it ...");
+                            observer.next(readTreeNode);
+                            observer.complete();
+                        }
+                        else {
+                            console.log(
+                                "folder node not in DB, creating it ...");
+                            this.createFolderNodeInParent(
+                                name, parentKey).subscribe(
+                                (createdTreeNode: TreeNode) => {
+                                    observer.next(createdTreeNode);
+                                    observer.complete();
+                                },
+                                (createError: any) => {
+                                    observer.error(createError);
+                                }
+                                ); // .createDataNodeInParent().subscribe(
+                        } // if (readTreeNode) { .. else {
+                    },
+                    (readNodeError: any) => {
+                        observer.error(readNodeError);
+                    }
+                ); // readNodeByNameInParent().subscribe(
+            });
+        return source;
+    }
+
     readOrCreateDataNodeInParentByName(
         name: string, parentKey: number, data: any) {
         let source: Observable<Object> =
