@@ -9,30 +9,26 @@ interface State {
     unfiledFolderName: string;
 }
 
-
 // make sure APP_STATE_ITEM_NAME will never be entered by a user
 const STATE_NODE_NAME: string =
     "Kwj7t9X2PTsPwLquD9qvZqaApMP8LGRjPFENUHnvrpmUE25rkrYHhzf9KBEradAU";
-
 const DEFAULT_STATE: State = {
     lastSelectedTab: 0,
     lastViewedFolderKey: DB_NO_KEY,
     unfiledFolderName: "Unfiled"
 };
 
-
 @Injectable()
 export class AppState {
     // 'instance' is used as part of Singleton pattern implementation
     private static instance: AppState = null;
 
-    private localDB: LocalDB = null;
+    private localDB: LocalDB = LocalDB.Instance;
     private treeNode: TreeNode = null;
     private dataNode: DataNode = null;
 
     constructor() {
         console.log("constructor():AppState");
-        this.localDB = LocalDB.Instance;
 
         this.localDB.waitForDB().subscribe(
             (db: IDBDatabase) => {
@@ -41,22 +37,20 @@ export class AppState {
                     (result: any) => {
                         this.treeNode = result.treeNode;
                         this.dataNode = result.dataNode;
-                        // CREATE UNFILED FOLDER
+                        // Create Unfiled folder for the auto-save in record.ts
                         this.localDB.readOrCreateFolderNodeInParentByName(
                             DEFAULT_STATE.unfiledFolderName, DB_NO_KEY)
                             .subscribe(
                             (result: any) => { },
-                            (fError: any) => {
-                                throw new Error(fError);
+                            (rcFolderError: any) => {
+                                throw new Error(rcFolderError);
                             }
                             ); // readOrCreateFolderNodeInParentByName().su ...
                     },
-                    (rcError: any) => {
-                        console.log("ER.....................");
-                        throw new Error(rcError);
+                    (rcDataError: any) => {
+                        throw new Error(rcDataError);
                     }
                     ); // readOrCreateDataNodeInParentByName().subscribe(
-                //       }, MAX_DB_INIT_TIME);
             },
             (waitError: any) => {
                 throw new Error(waitError);
