@@ -17,6 +17,7 @@ import {AppState} from "./providers/app-state/app-state";
 export class TracktunesApp {
     private rootPage: Type = TabsPage;
     // cause AppState and LocalDB singletons to be loaded as early as possible
+    private localDB: LocalDB = LocalDB.Instance;
     private appState: AppState = AppState.Instance;
 
     constructor(private app: IonicApp, private platform: Platform) {
