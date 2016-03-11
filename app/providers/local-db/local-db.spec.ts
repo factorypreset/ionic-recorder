@@ -366,7 +366,49 @@ export function main(): void {
             }, FAILURE_TIMEOUT);
         });
 
-        it("can delete Unfiled folder (root) recursively", (done) => {
+        it("cannot now read folder5", (done) => {
+            setTimeout(() => {
+                localDB.readNode(folder5.id).subscribe(
+                    (treeNode: TreeNode) => {
+                        fail("expected an error");
+                    },
+                    (error) => {
+                        expect(error).toEqual("node does not exist");
+                        done();
+                    }
+                );
+            }, FAILURE_TIMEOUT);
+        });
+
+        it("cannot now read item6", (done) => {
+            setTimeout(() => {
+                localDB.readNode(item6.id).subscribe(
+                    (treeNode: TreeNode) => {
+                        fail("expected an error");
+                    },
+                    (error) => {
+                        expect(error).toEqual("node does not exist");
+                        done();
+                    }
+                );
+            }, FAILURE_TIMEOUT);
+        });
+
+        it("cannot now read item7", (done) => {
+            setTimeout(() => {
+                localDB.readNode(item7.id).subscribe(
+                    (treeNode: TreeNode) => {
+                        fail("expected an error");
+                    },
+                    (error) => {
+                        expect(error).toEqual("node does not exist");
+                        done();
+                    }
+                );
+            }, FAILURE_TIMEOUT);
+        });
+
+        it("can delete Unfiled folder (at root) recursively", (done) => {
             setTimeout(() => {
                 localDB.deleteNode(unfiledFolder).subscribe(
                     (success: boolean) => {
@@ -375,6 +417,62 @@ export function main(): void {
                     },
                     (error) => {
                         fail(error);
+                    }
+                );
+            }, FAILURE_TIMEOUT);
+        });
+
+        it("cannot now read Unfiled folder (at root)", (done) => {
+            setTimeout(() => {
+                localDB.readNode(unfiledFolder.id).subscribe(
+                    (treeNode: TreeNode) => {
+                        fail("expected an error");
+                    },
+                    (error) => {
+                        expect(error).toEqual("node does not exist");
+                        done();
+                    }
+                );
+            }, FAILURE_TIMEOUT);
+        });
+
+        it("cannot now read item2", (done) => {
+            setTimeout(() => {
+                localDB.readNode(item2.id).subscribe(
+                    (treeNode: TreeNode) => {
+                        fail("expected an error");
+                    },
+                    (error) => {
+                        expect(error).toEqual("node does not exist");
+                        done();
+                    }
+                );
+            }, FAILURE_TIMEOUT);
+        });
+
+        it("cannot now read folder3", (done) => {
+            setTimeout(() => {
+                localDB.readNode(folder3.id).subscribe(
+                    (treeNode: TreeNode) => {
+                        fail("expected an error");
+                    },
+                    (error) => {
+                        expect(error).toEqual("node does not exist");
+                        done();
+                    }
+                );
+            }, FAILURE_TIMEOUT);
+        });
+
+        it("cannot now read item4", (done) => {
+            setTimeout(() => {
+                localDB.readNode(item4.id).subscribe(
+                    (treeNode: TreeNode) => {
+                        fail("expected an error");
+                    },
+                    (error) => {
+                        expect(error).toEqual("node does not exist");
+                        done();
                     }
                 );
             }, FAILURE_TIMEOUT);

@@ -456,7 +456,7 @@ export class LocalDB {
     }
 
     // Returns an Observable<boolean> of success if name is unique in parent
-    nameUniqueInParent(name: string, idParent: number) {
+    nameNotInParent(name: string, idParent: number) {
         let source: Observable<number> = Observable.create((observer) => {
             this.getNodesByName(name).subscribe(
                 (nodes: TreeNode[]) => {
@@ -487,7 +487,7 @@ export class LocalDB {
     // verifies name is unique among siblings in parent
     createTreeStoreFolderItem(name: string, idParent: number) {
         let source: Observable<TreeNode> = Observable.create((observer) => {
-            this.nameUniqueInParent(name, idParent).subscribe(
+            this.nameNotInParent(name, idParent).subscribe(
                 (unique: boolean) => {
                     if (!unique) {
                         observer.error("unique violation");
@@ -508,7 +508,7 @@ export class LocalDB {
                 (error) => {
                     observer.error(error);
                 }
-            ); // nameUniqueInParent().subscribe(
+            ); // nameNotInParent().subscribe(
         });
         return source;
     }
@@ -518,12 +518,9 @@ export class LocalDB {
     createTreeStoreDataItem(name: string, idParent: number, data: any) {
         let source: Observable<TreeNode> = Observable.create((observer) => {
             // non falsy data supplied, store it in the data table first
-            this.nameUniqueInParent(name, idParent).subscribe(
+            this.nameNotInParent(name, idParent).subscribe(
                 (unique: boolean) => {
-                    if (!unique) {
-                        observer.error("unique name violation");
-                    }
-                    else {
+                    if (unique) {
                         this.createDataStoreItem(data).subscribe(
                             (dataNode: DataNode) => {
                                 this.createTreeStoreItem(
@@ -543,12 +540,15 @@ export class LocalDB {
                                 observer.error(error);
                             }
                         ); // createDataStoreItem().subscribe(
+                    } // if (unique) {
+                    else {
+                        observer.error("unique name violation");
                     }
                 },
                 (error) => {
                     observer.error(error);
                 }
-            ); // nameUniqueInParent().subscribe(
+            ); // nameNotInParent().subscribe(
         });
         return source;
     }
@@ -581,10 +581,14 @@ export class LocalDB {
     }
 
     // Returns an Observable<TreeNode> of the read tree node, no data returned
+    // If a node with id 'id' is not in the tree, the observable errs
     readNode(id: number) {
         let source: Observable<TreeNode> = Observable.create((observer) => {
             this.readStoreItem(DB_TREE_STORE_NAME, id).subscribe(
                 (treeNode: TreeNode) => {
+                    if (!treeNode) {
+                        observer.error("node does not exist");
+                    }
                     treeNode.id = id;
                     observer.next(treeNode);
                     observer.complete();
