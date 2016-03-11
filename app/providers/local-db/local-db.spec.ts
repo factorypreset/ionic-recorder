@@ -308,7 +308,7 @@ export function main(): void {
             }, FAILURE_TIMEOUT);
         });
 
-        it("can update item2 data to i2newData'", (done) => {
+        it("can update item2 data to 'i2newData'", (done) => {
             setTimeout(() => {
                 localDB.updateNodeData(item2, "i2newData").subscribe(
                     (answer: boolean) => {
