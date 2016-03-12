@@ -71,6 +71,22 @@ export class AppState {
         ); // waitForDB().subscribe(
     }
 
+    waitForAppState() {
+        let source: Observable<boolean> = Observable.create((observer) => {
+            let repeat = () => {
+                if (this.treeNode && this.dataNode) {
+                    observer.next(true);
+                    observer.complete();
+                }
+                else {
+                    setTimeout(repeat, MAX_DB_INIT_TIME);
+                }
+            };
+            repeat();
+        });
+        return source;
+    }
+
     // Singleton pattern implementation
     static get Instance() {
         if (!this.instance) {

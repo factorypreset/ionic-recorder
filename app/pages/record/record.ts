@@ -1,10 +1,11 @@
-import {Page, Platform} from "ionic-angular";
+import {Page, Platform, IonicApp} from "ionic-angular";
 import {LibraryPage} from "../library/library";
 import {VuGauge} from "../../components/vu-gauge/vu-gauge";
 import {AppState} from "../../providers/app-state/app-state";
 import {WebAudio} from "../../providers/web-audio/web-audio";
 import {LocalDB, DB_NO_KEY} from "../../providers/local-db/local-db";
 import {num2str, msec2time} from "../../providers/utils/utils";
+
 
 // the volume monitor frequency, in Hz
 const MONITOR_FREQUENCY_HZ: number = 40;
@@ -42,7 +43,8 @@ export class RecordPage {
     private localDB: LocalDB;
     private appState: AppState;
 
-    constructor(private platform: Platform, private webAudio: WebAudio) {
+    constructor(private platform: Platform, private webAudio: WebAudio,
+        private app: IonicApp) {
 
         this.localDB = LocalDB.Instance;
         this.appState = AppState.Instance;
@@ -64,18 +66,21 @@ export class RecordPage {
                     now.toLocaleTimeString(),
                 itemCount: number = 0;
             console.dir(blob);
-            this.localDB.createDataNodeInParent(
-                name,
-                this.appState.getProperty("unfiledFolderKey"),
-                this.localDB.makeDataNode(blob)
-            ).subscribe(
-                (obj: any) => {
-                    console.log("SUCCESS: on stop save");
-                },
-                (error: any) => {
-                    console.log("FAIL: on stop save " + error);
+
+            this.localDB.waitForDB().subscribe(
+                (db: IDBDatabase) => {
+                    this.appState.waitForAppState().subscribe(
+                        (success: boolean) => {
+                            this.localDB.createDataNodeInParent(
+                                name,
+                                this.appState.getProperty("unfiledFolderKey"),
+                                this.localDB.makeDataNode(blob)
+                            ).subscribe();
+                        }
+                    );
                 }
-                );
+            );
+
         }; // webAudio.onStop = (blob: Blob) => { ...
 
         // start volume monitoring infinite loop

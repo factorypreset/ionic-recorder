@@ -22,25 +22,24 @@ export class TracktunesApp {
 
     constructor(private app: IonicApp, private platform: Platform) {
         console.log("constructor():TracktunesApp");
-        /*
-        
-        // uncomment this block of code to delete db (in firefox)
-        // then comment it again and resume the app.  otherwise
-        // firefox reports a version error
-        
-        let request: IDBOpenDBRequest = indexedDB.deleteDatabase(DB_NAME);
+        // NB: you can delete the DB here to get rid of it easily in Firefox
 
-        request.onsuccess = function() {
-            console.log("deleteDatabase: SUCCESS");
-        };
+        platform.ready().then(() => {
+            this.appState.waitForAppState().subscribe(
+                (success: boolean) => {
+                    this.app.getComponent("nav-tabs").select(
+                        this.appState.getProperty("lastSelectedTab"));
+                }
+            );
+        });
+    }
 
-        request.onerror = function() {
-            console.log("deleteDatabase: ERROR");
-        };
-
-        request.onblocked = function() {
-            console.log("deleteDatabase: BLOCKED");
-        };
-        */
+    selectTab(index: number) {
+        console.log("selectTab: " + index);
+        this.appState.updateProperty("lastSelectedTab", index).subscribe(
+            () => {
+                this.app.getComponent("nav-tabs").select(index);
+            }
+        );
     }
 }

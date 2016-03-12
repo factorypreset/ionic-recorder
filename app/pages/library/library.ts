@@ -21,9 +21,13 @@ export class LibraryPage {
     }
 
     onPageDidEnter() {
-        this.switchFolder(
-            this.appState.getProperty("lastViewedFolderKey"),
-            false);
+        this.appState.waitForAppState().subscribe(
+            (success: boolean) => {
+                this.switchFolder(
+                    this.appState.getProperty("lastViewedFolderKey"),
+                    false);
+            }
+        );
     }
 
     switchFolder(key: number, updateState: boolean) {
@@ -89,6 +93,8 @@ export class LibraryPage {
     }
 
     goToParent() {
-        this.switchFolder(this.folderNode.parentKey, true);
+        if (this.folderNode) {
+            this.switchFolder(this.folderNode.parentKey, true);
+        }
     }
 }
