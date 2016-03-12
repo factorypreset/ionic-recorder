@@ -265,14 +265,20 @@ export class LocalDB {
                         let getRequest: IDBRequest = store.get(key);
 
                         getRequest.onsuccess = (event: IDBEvent) => {
-                            if (getRequest.result.hasOwnProperty[
-                                DB_KEY_PATH]) {
+                            let mismatchOccured: boolean = false;
+                            if (getRequest.result) {
+                                // test for key mismatch or tag on the key
+                                if (getRequest.result.hasOwnProperty[
+                                    DB_KEY_PATH]) {
+                                    if (getRequest[DB_KEY_PATH] !== key) {
+                                        mismatchOccured = true;
+                                    }
+                                }
+                                else {
+                                    getRequest[DB_KEY_PATH] = key;
+                                }
                             }
-                            else {
-                                getRequest[DB_KEY_PATH] = key;
-                            }
-
-                            if (getRequest[DB_KEY_PATH] !== key) {
+                            if (mismatchOccured) {
                                 observer.error("key mismatch in read");
                             }
                             else {
