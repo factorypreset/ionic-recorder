@@ -6,7 +6,7 @@ import {AppState} from "../../providers/app-state/app-state";
     templateUrl: "build/pages/library/library.html"
 })
 export class LibraryPage {
-    private path: string = "/";
+    private path: string = "";
 
     private folderItems: TreeNode[] = [];
 
@@ -20,8 +20,16 @@ export class LibraryPage {
     }
 
     onPageDidEnter() {
+        this.localDB.getNodePath(
+            this.appState.getProperty("lastViewedFolderKey")
+        ).subscribe(
+            (path: string) => {
+                this.path = path;
+            }
+            );
+
         this.localDB.readChildNodes(
-            this.appState.getProperty("unfiledFolderKey")).subscribe(
+            this.appState.getProperty("lastViewedFolderKey")).subscribe(
             (childNodes: TreeNode[]) => {
                 this.folderItems = childNodes;
             },

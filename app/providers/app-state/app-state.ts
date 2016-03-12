@@ -46,8 +46,10 @@ export class AppState {
                             (unfiledFolderNode: TreeNode) => {
                                 this.updateProperty(
                                     "unfiledFolderKey",
-                                    unfiledFolderNode.id).subscribe(
-                                    (result: boolean) => { },
+                                    unfiledFolderNode[DB_KEY_PATH]
+                                ).subscribe(
+                                    (result: boolean) => {
+                                    },
                                     (updateError: any) => {
                                         throw new Error(updateError);
                                     }
