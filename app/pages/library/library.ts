@@ -22,13 +22,12 @@ export class LibraryPage {
     onPageDidEnter() {
         this.localDB.readChildNodes(
             this.appState.getProperty("unfiledFolderKey")).subscribe(
-              (childNodes: TreeNode[]) => {
-                  console.dir(childNodes);
-                  this.folderItems = childNodes;
-              },
-              (error: any) => {
-                  console.log("Error reading child nodes: " + error);
-              }
+            (childNodes: TreeNode[]) => {
+                this.folderItems = childNodes;
+            },
+            (error: any) => {
+                console.log("Error reading child nodes: " + error);
+            }
             );
     }
 }
