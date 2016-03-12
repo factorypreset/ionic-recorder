@@ -11,7 +11,7 @@ interface State {
 }
 
 // make sure APP_STATE_ITEM_NAME will never be entered by a user
-const STATE_NODE_NAME: string =
+export const STATE_NODE_NAME: string =
     "Kwj7t9X2PTsPwLquD9qvZqaApMP8LGRjPFENUHnvrpmUE25rkrYHhzf9KBEradAU";
 const DEFAULT_STATE: State = {
     lastSelectedTab: 0,

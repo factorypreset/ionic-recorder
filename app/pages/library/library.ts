@@ -1,6 +1,6 @@
 import {Page, Platform} from "ionic-angular";
-import {LocalDB, TreeNode} from "../../providers/local-db/local-db";
-import {AppState} from "../../providers/app-state/app-state";
+import {LocalDB, TreeNode, DB_NO_KEY} from "../../providers/local-db/local-db";
+import {AppState, STATE_NODE_NAME} from "../../providers/app-state/app-state";
 
 @Page({
     templateUrl: "build/pages/library/library.html"
@@ -29,9 +29,23 @@ export class LibraryPage {
             );
 
         this.localDB.readChildNodes(
-            this.appState.getProperty("lastViewedFolderKey")).subscribe(
+            this.appState.getProperty("lastViewedFolderKey")
+        ).subscribe(
             (childNodes: TreeNode[]) => {
-                this.folderItems = childNodes;
+                // this.folderItems = childNodes;
+                this.folderItems = [];
+                for (let i in childNodes) {
+                    let node: TreeNode = childNodes[i];
+                    if ((this.appState.getProperty("lastViewedFolderKey") ===
+                        DB_NO_KEY) &&
+                        !this.localDB.isFolder(node)) {
+                            // we're looking at the root folder and there
+                            // we only show folders, we don't allow non-folder
+                            // items to reside in the root folder
+                        continue;
+                    }
+                    this.folderItems.push(childNodes[i]);
+                }
             },
             (error: any) => {
                 console.log("Error reading child nodes: " + error);
