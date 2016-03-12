@@ -1,5 +1,5 @@
 import {Page, Platform} from "ionic-angular";
-import {LocalDB} from "../../providers/local-db/local-db";
+import {LocalDB, TreeNode} from "../../providers/local-db/local-db";
 import {AppState} from "../../providers/app-state/app-state";
 
 @Page({
@@ -7,7 +7,8 @@ import {AppState} from "../../providers/app-state/app-state";
 })
 export class LibraryPage {
     private path: string = "/";
-    private folderItems: Object[] = [];
+
+    private folderItems: TreeNode[] = [];
 
     private localDB: LocalDB;
     private appState: AppState;
@@ -19,6 +20,16 @@ export class LibraryPage {
     }
 
     onPageDidEnter() {
+        this.localDB.readChildNodes(
+            this.appState.getProperty("unfiledFolderKey")).subscribe(
+              (childNodes: TreeNode[]) => {
+                  console.dir(childNodes);
+                  this.folderItems = childNodes;
+              },
+              (error: any) => {
+                  console.log("Error reading child nodes: " + error);
+              }
+            );
         /*
         this.appState.db.getItemsByParentKey(
             this.appState.lastViewedFolderKey,

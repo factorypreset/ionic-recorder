@@ -1,5 +1,5 @@
-import {LocalDB, TreeNode, DataNode, DB_NAME, DB_NO_KEY, MAX_DB_INIT_TIME}
-from "./local-db";
+import {LocalDB, TreeNode, DataNode, DB_NAME, DB_NO_KEY, DB_KEY_PATH,
+MAX_DB_INIT_TIME} from "./local-db";
 
 const RANDOM_WORD_1: string =
     "1Wh9Xs5ytKuvEjdBhuLUVjED4dp5UPZd3QZFTLuejYNbuLvBVeP9Qq5xaBPAY7RE";
@@ -421,7 +421,7 @@ export function main(): void {
 
         it("can get child nodes of folder3 and verify them", (done) => {
             setTimeout(() => {
-                localDB.readChildNodes(folder3).subscribe(
+                localDB.readChildNodes(folder3[DB_KEY_PATH]).subscribe(
                     (childNodes: TreeNode[]) => {
                         expect(childNodes.length).toEqual(2);
                         expect(childNodes).toContain(item4);

@@ -16,13 +16,13 @@
             <ion-icon name="folder-open" medium-gray item-left></ion-icon>
             {{folderPath}}
         </ion-item-divider>
-        <ion-item *ngFor="#item of folderItems">
+        <ion-item *ngFor="#treeNode of folderItems">
             <ion-label>
-                <ion-icon *ngIf="item.dataTableKey"
+                <ion-icon *ngIf="treeNode['dataKey']"
                           name="document" medium-gray item-left></ion-icon>
-                <ion-icon *ngIf="!item.dataTableKey"
+                <ion-icon *ngIf="!treeNode['dataKey']"
                           name="folder" medium-gray item-left></ion-icon>
-                {{item.name}}
+                {{treeNode.name}}
             </ion-label>
             <ion-checkbox checked="false" medium-gray item-left></ion-checkbox>
         </ion-item>

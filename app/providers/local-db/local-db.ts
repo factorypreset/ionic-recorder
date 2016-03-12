@@ -626,15 +626,16 @@ export class LocalDB {
         return source;
     }
 
-    // Returns an Observable<TreeNode[]> of all child nodes of parentNode
-    readChildNodes(parentNode: TreeNode) {
+    // Returns an Observable<TreeNode[]> of all child nodes of parent node
+    // whose key is parentKey
+    readChildNodes(parentKey: number) {
         let source: Observable<TreeNode[]> = Observable.create((observer) => {
             let childNodes: TreeNode[] = [];
             this.getTreeStore("readonly").subscribe(
                 (store: IDBObjectStore) => {
                     let index: IDBIndex = store.index("parentKey"),
                         idRange: IDBKeyRange =
-                            IDBKeyRange.only(parentNode[DB_KEY_PATH]),
+                            IDBKeyRange.only(parentKey),
                         cursorRequest: IDBRequest = index.openCursor(idRange);
 
                     cursorRequest.onsuccess = (event: IDBEvent) => {
@@ -797,7 +798,7 @@ export class LocalDB {
         let source: Observable<boolean> = Observable.create((observer) => {
             this.deleteTreeStoreItem(treeNode[DB_KEY_PATH]).subscribe(
                 (success: boolean) => {
-                    this.readChildNodes(treeNode).subscribe(
+                    this.readChildNodes(treeNode[DB_KEY_PATH]).subscribe(
                         (childNodes: TreeNode[]) => {
                             if (childNodes.length === 0) {
                                 // observer is done if there are no children
