@@ -5,7 +5,5 @@ node_modules/
 www/build/
 platforms/
 plugins/
-*.swp
-.DS_Store
-Thumbs.db
 coverage
+hooks/
