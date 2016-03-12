@@ -63,49 +63,19 @@ export class RecordPage {
                 name: string = now.toLocaleDateString() + " " +
                     now.toLocaleTimeString(),
                 itemCount: number = 0;
-            /*
-            this.appState.db.getItemsByName(
-                this.appState.unfiledFolderName,
-                (item: any) => {
-                    if (item) {
-                        console.log("Unfiled folder already exists");
-                        itemCount += 1;
-                        if (itemCount > 1) {
-                            throw Error("More > 1 Unfiled folders in /");
-                        }
-                        console.log("unfiled exists, key = " +
-                            item.id);
-                        // unfiled folder already exists
-                        let parentKey: number = item[DB_KEY_PATH];
-                        this.appState.db.addItem(
-                            name,
-                            parentKey,
-                            blob,
-                            (itemKey: number) => {
-                                console.log("adding item " + itemKey +
-                                    " to folder " + parentKey);
-                            });
-                    }
-                    else {
-                        // unfiled folder does not yet exist
-                        console.log("no Unfiled folder, creating it");
-                        this.appState.db.addItem(
-                            this.appState.unfiledFolderName,
-                            DB_NO_KEY,
-                            null,
-                            (folderKey: number) => {
-                                this.appState.db.addItem(
-                                    name,
-                                    folderKey,
-                                    blob,
-                                    (itemKey: number) => {
-                                        console.log("adding item " + itemKey +
-                                            " to folder " + folderKey);
-                                    });
-                            });
-                    }
-                });
-            */
+            console.dir(blob);
+            this.localDB.createDataNodeInParent(
+                name,
+                this.appState.getProperty("unfiledFolderKey"),
+                this.localDB.makeDataNode(blob)
+            ).subscribe(
+                (obj: any) => {
+                    console.log("SUCCESS: on stop save");
+                },
+                (error: any) => {
+                    console.log("FAIL: on stop save " + error);
+                }
+                );
         }; // webAudio.onStop = (blob: Blob) => { ...
 
         // start volume monitoring infinite loop

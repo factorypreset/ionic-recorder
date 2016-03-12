@@ -1,6 +1,6 @@
 import {Page, Platform} from "ionic-angular";
+import {LocalDB} from "../../providers/local-db/local-db";
 import {AppState} from "../../providers/app-state/app-state";
-
 
 @Page({
     templateUrl: "build/pages/library/library.html"
@@ -9,7 +9,13 @@ export class LibraryPage {
     private path: string = "/";
     private folderItems: Object[] = [];
 
-    constructor(private platform: Platform, private appState: AppState) {
+    private localDB: LocalDB;
+    private appState: AppState;
+
+    constructor(private platform: Platform) {
+        console.log("constructor():LibraryPage");
+        this.localDB = LocalDB.Instance;
+        this.appState = AppState.Instance;
     }
 
     onPageDidEnter() {
