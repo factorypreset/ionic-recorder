@@ -1,6 +1,10 @@
 # TODO.md
 
+* library-page.ts:
+  * implement add-folder button, so that we can traverse
+    real trees - requires renaming it, do that first ...
 * local-db.ts:
+  * implement path on all folder nodes automatically computed
   * add TreeNode interface
   * add DataNode interface
   * type things with the above interfaces
