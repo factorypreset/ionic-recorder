@@ -872,11 +872,38 @@ export class LocalDB {
         }
     }
 
-    getNodePath(key: number) {
+    getNodePath(key: number, path: string = "") {
+        console.log("getNodePath(" + key + ", " + path + ")");
         let source: Observable<string> = Observable.create((observer) => {
-            observer.next("/");
-            observer.complete();
+            if (key === DB_NO_KEY) {
+                console.log("completing with path: /" + path);
+                observer.next("/" + path);
+                observer.complete();
+            }
+            else {
+                this.readNode(key).subscribe(
+                    (node: TreeNode) => {
+                        this.getNodePath(
+                            node.parentKey,
+                            node.name + "/" + path
+                        ).subscribe(
+                            (pathSoFar: string) => {
+                                console.log("pathSoFar: " + pathSoFar);
+                                observer.next(pathSoFar);
+                                observer.complete();
+                            },
+                            (pathError: any) => {
+                                observer.error(pathError);
+                            }
+                            );
+                    },
+                    (readError: any) => {
+                        observer.error(readError);
+                    }
+                );
+            }
         });
         return source;
     }
+
 }

@@ -8,7 +8,7 @@ import {AppState, STATE_NODE_NAME} from "../../providers/app-state/app-state";
 })
 export class LibraryPage {
     private folderPath: string = "";
-
+    private folderNode: TreeNode = null;
     private folderItems: TreeNode[] = [];
 
     private localDB: LocalDB;
@@ -21,20 +21,13 @@ export class LibraryPage {
     }
 
     onPageDidEnter() {
-        let key = this.appState.getProperty("lastViewedFolderKey");
-
-        console.log("KEY === " + key);
-
-        this.localDB.getNodePath(key).subscribe(
-            (path: string) => {
-                this.folderPath = path;
-            }
-        );
-
-        this.switchFolder(key, false);
+        this.switchFolder(
+            this.appState.getProperty("lastViewedFolderKey"),
+            false);
     }
 
     switchFolder(key: number, updateState: boolean) {
+        console.log("switchFolder(" + key + ", " + updateState + ")");
         this.localDB.readChildNodes(key).subscribe(
             (childNodes: TreeNode[]) => {
                 // this.folderItems = childNodes;
@@ -48,6 +41,30 @@ export class LibraryPage {
                         continue;
                     }
                     this.folderItems.push(childNodes[i]);
+                }
+
+                this.localDB.readNode(key).subscribe(
+                    (node: TreeNode) => {
+                        if (node[DB_KEY_PATH] !== key) {
+                            console.log("ERROR: key mismatch");
+                        }
+                        this.folderNode = node;
+                    },
+                    (error: any) => {
+                        console.log(error);
+                    }
+                );
+
+                this.localDB.getNodePath(key).subscribe(
+                    (path: string) => {
+                        console.log("path === " + path);
+                        this.folderPath = path;
+                    }
+                );
+
+                if (updateState) {
+                    this.appState.updateProperty("lastViewedFolderKey", key)
+                        .subscribe();
                 }
             },
             (error: any) => {
@@ -66,6 +83,12 @@ export class LibraryPage {
 
     itemClicked(node: TreeNode) {
         console.log("itemClicked(" + node.name + ") " + node[DB_KEY_PATH]);
-        this.switchFolder(node[DB_KEY_PATH], true);
+        if (this.localDB.isFolder(node)) {
+            this.switchFolder(node[DB_KEY_PATH], true);
+        }
+    }
+
+    goToParent() {
+        this.switchFolder(this.folderNode.parentKey, true);
     }
 }
