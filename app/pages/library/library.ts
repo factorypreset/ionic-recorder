@@ -30,26 +30,5 @@ export class LibraryPage {
                   console.log("Error reading child nodes: " + error);
               }
             );
-        /*
-        this.appState.db.getItemsByParentKey(
-            this.appState.lastViewedFolderKey,
-            (data: any) => {
-                this.folderItems.push(data);
-                if (this.folderItems.length === 1) {
-                    // on first item, we set the path
-                    let pathParts: string[] = [];
-                    console.log("first item! start");
-                    console.dir(data);
-                    console.log("first item! end");
-                    this.appState.db.iteratePath(
-                        data.parentKey, (name: string) => {
-                            pathParts.push(name);
-                            this.path = pathParts.join("/");
-                        });
-                }
-                console.dir(data);
-            }
-        );
-        */
     }
 }
