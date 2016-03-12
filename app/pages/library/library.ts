@@ -6,7 +6,7 @@ import {AppState} from "../../providers/app-state/app-state";
     templateUrl: "build/pages/library/library.html"
 })
 export class LibraryPage {
-    private path: string = "";
+    private folderPath: string = "";
 
     private folderItems: TreeNode[] = [];
 
@@ -24,7 +24,7 @@ export class LibraryPage {
             this.appState.getProperty("lastViewedFolderKey")
         ).subscribe(
             (path: string) => {
-                this.path = path;
+                this.folderPath = path;
             }
             );
 

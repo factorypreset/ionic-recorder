@@ -18,7 +18,7 @@ const STORE_EXISTS_ERROR_CODE: number = 0;
 export const MAX_DB_INIT_TIME = 600;
 export const DB_NAME: string = "ionic-recorder-db";
 export const DB_NO_KEY: number = 0;
-export const DB_KEY_PATH: string = "key";
+export const DB_KEY_PATH: string = "id";
 
 // NB: DB_KEY_PATH must be an optional field in both these interfaces
 
@@ -265,8 +265,20 @@ export class LocalDB {
                         let getRequest: IDBRequest = store.get(key);
 
                         getRequest.onsuccess = (event: IDBEvent) => {
-                            observer.next(getRequest.result);
-                            observer.complete();
+                            if (getRequest.result.hasOwnProperty[
+                                DB_KEY_PATH]) {
+                            }
+                            else {
+                                getRequest[DB_KEY_PATH] = key;
+                            }
+
+                            if (getRequest[DB_KEY_PATH] !== key) {
+                                observer.error("key mismatch in read");
+                            }
+                            else {
+                                observer.next(getRequest.result);
+                                observer.complete();
+                            }
                         };
 
                         getRequest.onerror = (event: IDBErrorEvent) => {
@@ -612,7 +624,10 @@ export class LocalDB {
                 (dataNode: DataNode) => {
                     // assume data is an object and tag data store key onto it
                     if (dataNode[DB_KEY_PATH] !== treeNode.dataKey) {
-                        observer.error("data store key mismatch");
+                        observer.error("data store key mismatch " +
+                            dataNode[DB_KEY_PATH] + " vs. " +
+                            treeNode.dataKey
+                        );
                     }
                     else {
                         observer.next(dataNode);
