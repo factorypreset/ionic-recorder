@@ -1,12 +1,12 @@
-import {Injectable} from "angular2/core";
-import {Observable} from "rxjs/Rx";
-import {copyFromObject} from "../utils/utils";
+import {Injectable} from 'angular2/core';
+import {Observable} from 'rxjs/Rx';
+import {copyFromObject} from '../utils/utils';
 
 // non-exported module globals
 
 const DB_VERSION: number = 1;
-const DB_TREE_STORE_NAME = "blobTree";
-const DB_DATA_STORE_NAME: string = "dataTable";
+const DB_TREE_STORE_NAME = 'blobTree';
+const DB_DATA_STORE_NAME: string = 'dataTable';
 const STORE_EXISTS_ERROR_CODE: number = 0;
 
 // module exports
@@ -16,9 +16,9 @@ const STORE_EXISTS_ERROR_CODE: number = 0;
 // the DB to initialize.  If DB does not initialize 
 // under this time (in msec) then some error will occur
 export const MAX_DB_INIT_TIME = 600;
-export const DB_NAME: string = "ionic-recorder-db";
+export const DB_NAME: string = 'ionic-recorder-db';
 export const DB_NO_KEY: number = 0;
-export const DB_KEY_PATH: string = "id";
+export const DB_KEY_PATH: string = 'id';
 
 // NB: DB_KEY_PATH must be an optional field in both these interfaces
 
@@ -42,13 +42,13 @@ export class LocalDB {
     private db: IDBDatabase = null;
 
     constructor() {
-        console.log("constructor():LocalDB");
+        console.log('constructor():LocalDB');
         if (!indexedDB) {
-            throw new Error("Browser does not support indexedDB");
+            throw new Error('Browser does not support indexedDB');
         }
         this.openDB().subscribe(
             (db: IDBDatabase) => {
-                // console.log("got DB in constructor");
+                // console.log('got DB in constructor');
                 this.db = db;
             },
             (error: any) => {
@@ -79,7 +79,7 @@ export class LocalDB {
     }
 
     makeDataNode(newData: any): DataNode {
-        if (typeof newData === "object" && newData.data) {
+        if (typeof newData === 'object' && newData.data) {
             return newData;
         }
         else {
@@ -106,7 +106,7 @@ export class LocalDB {
                     observer.complete();
                 }
                 else {
-                    // console.log("... no DB yet ...");
+                    // console.log('... no DB yet ...');
                     setTimeout(repeat, MAX_DB_INIT_TIME);
                 }
             };
@@ -127,14 +127,14 @@ export class LocalDB {
             };
 
             openRequest.onerror = (event: IDBErrorEvent) => {
-                observer.error("open DB");
+                observer.error('open DB');
             };
 
             openRequest.onblocked = (event: IDBErrorEvent) => {
-                observer.error("DB blocked");
+                observer.error('DB blocked');
             };
 
-            // This function is called when the database doesn"t exist
+            // This function is called when the database doesn't exist
             openRequest.onupgradeneeded = (event: IDBVersionChangeEvent) => {
                 try {
                     let treeStore: IDBObjectStore =
@@ -145,11 +145,11 @@ export class LocalDB {
 
                     // index on name, parentKey and timestamp
                     treeStore.createIndex(
-                        "name", "name", { unique: false });
+                        'name', 'name', { unique: false });
                     treeStore.createIndex(
-                        "parentKey", "parentKey", { unique: false });
+                        'parentKey', 'parentKey', { unique: false });
                     treeStore.createIndex(
-                        "timestamp", "timestamp", { unique: true });
+                        'timestamp', 'timestamp', { unique: true });
 
                     // create internal data-table store
                     openRequest.result.createObjectStore(
@@ -160,11 +160,11 @@ export class LocalDB {
                 catch (error) {
                     let ex: DOMException = error;
                     if (ex.code !== STORE_EXISTS_ERROR_CODE) {
-                        // ignore "store already exists" error
-                        observer.error("create store");
+                        // ignore 'store already exists' error
+                        observer.error('create store');
                     }
                 }
-                console.log("openDB:onupgradeended DONE");
+                console.log('openDB:onupgradeended DONE');
             }; // openRequest.onupgradeneeded =
         });
         return source;
@@ -204,7 +204,7 @@ export class LocalDB {
     // Returns an Observable<bool> of the success in clearing
     clearStore(storeName: string) {
         let source: Observable<boolean> = Observable.create((observer) => {
-            this.getStore(storeName, "readwrite").subscribe(
+            this.getStore(storeName, 'readwrite').subscribe(
                 (store: IDBObjectStore) => {
                     store.clear();
                     observer.next(true);
@@ -226,13 +226,13 @@ export class LocalDB {
     createStoreItem(storeName: string, item: any) {
         let source: Observable<any> = Observable.create((observer) => {
             if (!item) {
-                observer.error("add falsy item");
+                observer.error('add falsy item');
             }
             else if (item[DB_KEY_PATH]) {
-                observer.error("cannot create item when it has an key");
+                observer.error('cannot create item when it has an key');
             }
             else {
-                this.getStore(storeName, "readwrite").subscribe(
+                this.getStore(storeName, 'readwrite').subscribe(
                     (store: IDBObjectStore) => {
                         let addRequest: IDBRequest = store.add(item);
                         addRequest.onsuccess = (event: IDBEvent) => {
@@ -241,7 +241,7 @@ export class LocalDB {
                             observer.complete();
                         };
                         addRequest.onerror = (event: IDBEvent) => {
-                            observer.error("add request");
+                            observer.error('add request');
                         };
                     },
                     (error) => {
@@ -257,10 +257,10 @@ export class LocalDB {
     readStoreItem(storeName: string, key: number) {
         let source: Observable<any> = Observable.create((observer) => {
             if (!this.validateKey(key)) {
-                observer.error("invalid key");
+                observer.error('invalid key');
             }
             else {
-                this.getStore(storeName, "readonly").subscribe(
+                this.getStore(storeName, 'readonly').subscribe(
                     (store: IDBObjectStore) => {
                         let getRequest: IDBRequest = store.get(key);
 
@@ -279,7 +279,7 @@ export class LocalDB {
                                 }
                             }
                             if (mismatchOccured) {
-                                observer.error("key mismatch in read");
+                                observer.error('key mismatch in read');
                             }
                             else {
                                 observer.next(getRequest.result);
@@ -288,7 +288,7 @@ export class LocalDB {
                         };
 
                         getRequest.onerror = (event: IDBErrorEvent) => {
-                            observer.error("get request");
+                            observer.error('get request');
                         };
                     },
                     (error) => {
@@ -304,17 +304,17 @@ export class LocalDB {
     updateStoreItem(storeName: string, key: number, newItem: any) {
         let source: Observable<boolean> = Observable.create((observer) => {
             if (!this.validateKey(key)) {
-                observer.error("invalid key");
+                observer.error('invalid key');
             }
             else {
-                this.getStore(storeName, "readwrite").subscribe(
+                this.getStore(storeName, 'readwrite').subscribe(
                     (store: IDBObjectStore) => {
                         let getRequest: IDBRequest = store.get(key);
                         getRequest.onsuccess = (event: IDBEvent) => {
                             if (!getRequest.result) {
                                 // request success, but we got nothing. ERROR:
                                 // we expect what we're updating to be there
-                                observer.error("no result to update");
+                                observer.error('no result to update');
                             }
                             else {
                                 let putRequest: IDBRequest = store.put(
@@ -327,7 +327,7 @@ export class LocalDB {
                                         // the key of the updated item is in
                                         // putRequest.result, verify it
                                         if (putRequest.result !== key) {
-                                            observer.error("bad key in put");
+                                            observer.error('bad key in put');
                                         }
                                         else {
                                             observer.next(true);
@@ -337,13 +337,13 @@ export class LocalDB {
 
                                 putRequest.onerror =
                                     (event: IDBErrorEvent) => {
-                                        observer.error("put request");
+                                        observer.error('put request');
                                     };
                             }
                         }; // getRequest.onsuccess =
 
                         getRequest.onerror = (event: IDBErrorEvent) => {
-                            observer.error("get request");
+                            observer.error('get request');
                         };
                     },
                     (getStoreError) => {
@@ -358,7 +358,7 @@ export class LocalDB {
     // Returns an Observable<boolean> of success in deleting item
     deleteStoreItem(storeName: string, key: number) {
         let source: Observable<boolean> = Observable.create((observer) => {
-            this.getStore(storeName, "readwrite").subscribe(
+            this.getStore(storeName, 'readwrite').subscribe(
                 (store: IDBObjectStore) => {
                     let deleteRequest: IDBRequest = store.delete(key);
 
@@ -368,7 +368,7 @@ export class LocalDB {
                     };
 
                     deleteRequest.onerror = (event: IDBErrorEvent) => {
-                        observer.error("delete request");
+                        observer.error('delete request');
                     };
                 },
                 (error) => {
@@ -467,7 +467,7 @@ export class LocalDB {
             this.readNodeByNameInParent(name, parentKey).subscribe(
                 (nodeInParent: TreeNode) => {
                     if (nodeInParent) {
-                        observer.error("unique name violation 3");
+                        observer.error('unique name violation 3');
                     }
                     else {
                         this.createTreeStoreItem(name, parentKey, DB_NO_KEY)
@@ -498,7 +498,7 @@ export class LocalDB {
             this.readNodeByNameInParent(name, parentKey).subscribe(
                 (nodeInParent: TreeNode) => {
                     if (nodeInParent) {
-                        observer.error("unique name violation 2");
+                        observer.error('unique name violation 2');
                     }
                     else {
                         this.createDataStoreItem(data).subscribe(
@@ -538,7 +538,7 @@ export class LocalDB {
             this.readStoreItem(DB_TREE_STORE_NAME, key).subscribe(
                 (treeNode: TreeNode) => {
                     if (!treeNode) {
-                        observer.error("node does not exist");
+                        observer.error('node does not exist');
                     }
                     treeNode[DB_KEY_PATH] = key;
                     observer.next(treeNode);
@@ -560,9 +560,9 @@ export class LocalDB {
     readNodesByName(name: string) {
         let source: Observable<TreeNode[]> = Observable.create((observer) => {
             let nodes: TreeNode[] = [];
-            this.getTreeStore("readonly").subscribe(
+            this.getTreeStore('readonly').subscribe(
                 (store: IDBObjectStore) => {
-                    let index: IDBIndex = store.index("name"),
+                    let index: IDBIndex = store.index('name'),
                         keyRange: IDBKeyRange = IDBKeyRange.only(name),
                         cursorRequest: IDBRequest = index.openCursor(keyRange);
 
@@ -578,7 +578,7 @@ export class LocalDB {
                         }
                     };
                     cursorRequest.onerror = (event: IDBErrorEvent) => {
-                        observer.error("cursor");
+                        observer.error('cursor');
                     };
                 },
                 (error) => {
@@ -608,7 +608,7 @@ export class LocalDB {
                         }
                     }
                     if (nFound > 1) {
-                        observer.error("unique name violation 1");
+                        observer.error('unique name violation 1');
                     }
                     else {
                         observer.next(nodeFound);
@@ -630,8 +630,8 @@ export class LocalDB {
                 (dataNode: DataNode) => {
                     // assume data is an object and tag data store key onto it
                     if (dataNode[DB_KEY_PATH] !== treeNode.dataKey) {
-                        observer.error("data store key mismatch " +
-                            dataNode[DB_KEY_PATH] + " vs. " +
+                        observer.error('data store key mismatch ' +
+                            dataNode[DB_KEY_PATH] + ' vs. ' +
                             treeNode.dataKey
                         );
                     }
@@ -653,9 +653,9 @@ export class LocalDB {
     readChildNodes(parentKey: number) {
         let source: Observable<TreeNode[]> = Observable.create((observer) => {
             let childNodes: TreeNode[] = [];
-            this.getTreeStore("readonly").subscribe(
+            this.getTreeStore('readonly').subscribe(
                 (store: IDBObjectStore) => {
-                    let index: IDBIndex = store.index("parentKey"),
+                    let index: IDBIndex = store.index('parentKey'),
                         idRange: IDBKeyRange =
                             IDBKeyRange.only(parentKey),
                         cursorRequest: IDBRequest = index.openCursor(idRange);
@@ -672,7 +672,7 @@ export class LocalDB {
                         }
                     };
                     cursorRequest.onerror = (event: IDBErrorEvent) => {
-                        observer.error("cursor");
+                        observer.error('cursor');
                     };
                 },
                 (error) => {
@@ -690,13 +690,13 @@ export class LocalDB {
                     (readTreeNode: TreeNode) => {
                         if (readTreeNode) {
                             console.log(
-                                "folder node in DB, returning it ...");
+                                'folder node in DB, returning it ...');
                             observer.next(readTreeNode);
                             observer.complete();
                         }
                         else {
                             console.log(
-                                "folder node not in DB, creating it ...");
+                                'folder node not in DB, creating it ...');
                             this.createFolderNode(
                                 name, parentKey).subscribe(
                                 (createdTreeNode: TreeNode) => {
@@ -724,7 +724,7 @@ export class LocalDB {
                 this.readNodeByNameInParent(name, parentKey).subscribe(
                     (readTreeNode: TreeNode) => {
                         if (readTreeNode) {
-                            console.log("data node in DB, returning it ...");
+                            console.log('data node in DB, returning it ...');
                             // found a node in parent by name 'name'
                             this.readNodeData(readTreeNode).subscribe(
                                 (dataNode: DataNode) => {
@@ -741,7 +741,7 @@ export class LocalDB {
                             );
                         } // if (node) {
                         else {
-                            console.log("data node not in DB, creating it ...");
+                            console.log('data node not in DB, creating it ...');
                             // no node in parent by name 'name', create it
                             this.createDataNode(
                                 name, parentKey, data).subscribe(
@@ -872,12 +872,12 @@ export class LocalDB {
         }
     }
 
-    getNodePath(key: number, path: string = "") {
-        console.log("getNodePath(" + key + ", " + path + ")");
+    getNodePath(key: number, path: string = '') {
+        console.log('getNodePath(' + key + ', ' + path + ')');
         let source: Observable<string> = Observable.create((observer) => {
             if (key === DB_NO_KEY) {
-                console.log("completing with path: /" + path);
-                observer.next("/" + path);
+                console.log('completing with path: /' + path);
+                observer.next('/' + path);
                 observer.complete();
             }
             else {
@@ -885,10 +885,10 @@ export class LocalDB {
                     (node: TreeNode) => {
                         this.getNodePath(
                             node.parentKey,
-                            node.name + "/" + path
+                            node.name + '/' + path
                         ).subscribe(
                             (pathSoFar: string) => {
-                                console.log("pathSoFar: " + pathSoFar);
+                                console.log('pathSoFar: ' + pathSoFar);
                                 observer.next(pathSoFar);
                                 observer.complete();
                             },

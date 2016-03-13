@@ -1,5 +1,7 @@
 # TODO.md
 
+* [Excellent article](https://github.com/yeoman/yeoman/blob/master/contributing.md)
+  on CONTRIBUTING.md
 * once you start deploying, try this
   [page speed insights](http://developers.google.com/speed/pagespeed/insights/) 
 * you will also need new gulp tasks, e.g.

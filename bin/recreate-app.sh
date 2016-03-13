@@ -64,6 +64,11 @@ npm install --save-dev \
 
 /bin/rm -fr tslint.json
 ./bin/tslint --init
+# next line assumes first occurrence of the string "double" in tslint.json
+# is indeed in the "quotemark" section of tsling.json.  this next line makes
+# sure we continue to comfortably work with only single quotes (reduces left
+# pinky stress from reduced left-shift key clicks the single quote saves us). 
+perl -pi -e 's/\"double\"/\"single\"/' tslint.json
 
 /bin/rm -fr typings/*
 

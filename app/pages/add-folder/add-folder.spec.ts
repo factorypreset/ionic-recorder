@@ -1,3 +1,3 @@
 export function main(): void {
-    "use strict";
+    'use strict';
 }

@@ -43,9 +43,9 @@
         <ion-item clear *ngFor="#node of folderItems">
             <ion-label>
                 <button clear (click)="itemClicked(node)">
-                    <ion-icon *ngIf="node['dataKey']" name="document" medium-gray item-left>
+                    <ion-icon *ngIf="node.dataKey" name="document" medium-gray item-left>
                     </ion-icon>
-                    <ion-icon *ngIf="!node['dataKey']" name="folder" medium-gray item-left>
+                    <ion-icon *ngIf="!node.dataKey" name="folder" medium-gray item-left>
                     </ion-icon>
                     {{node.name}}
                 </button>

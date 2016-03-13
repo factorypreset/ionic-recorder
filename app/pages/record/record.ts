@@ -1,16 +1,16 @@
-import {Page, Platform, IonicApp} from "ionic-angular";
-import {LibraryPage} from "../library/library";
-import {VuGauge} from "../../components/vu-gauge/vu-gauge";
-import {AppState} from "../../providers/app-state/app-state";
-import {WebAudio} from "../../providers/web-audio/web-audio";
-import {LocalDB, DB_NO_KEY} from "../../providers/local-db/local-db";
-import {num2str, msec2time} from "../../providers/utils/utils";
+import {Page, Platform, IonicApp} from 'ionic-angular';
+import {LibraryPage} from '../library/library';
+import {VuGauge} from '../../components/vu-gauge/vu-gauge';
+import {AppState} from '../../providers/app-state/app-state';
+import {WebAudio} from '../../providers/web-audio/web-audio';
+import {LocalDB, DB_NO_KEY} from '../../providers/local-db/local-db';
+import {num2str, msec2time} from '../../providers/utils/utils';
 
 
 // the volume monitor frequency, in Hz
 const MONITOR_FREQUENCY_HZ: number = 40;
-const START_RESUME_ICON: string = "mic";
-const PAUSE_ICON: string = "pause";
+const START_RESUME_ICON: string = 'mic';
+const PAUSE_ICON: string = 'pause';
 // derived constants, please do not touch the constants below:
 const MONITOR_TIMEOUT_MSEC: number = 1000.0 / MONITOR_FREQUENCY_HZ;
 // the max amount of time we expect the db to finish initialization
@@ -18,7 +18,7 @@ const OPEN_DB_MAX_TIMEOUT: number = 50;
 
 
 @Page({
-    templateUrl: "build/pages/record/record.html",
+    templateUrl: 'build/pages/record/record.html',
     directives: [VuGauge]
 })
 export class RecordPage {
@@ -46,9 +46,9 @@ export class RecordPage {
     constructor(private platform: Platform, private webAudio: WebAudio,
         private app: IonicApp) {
 
-        console.log("constructor():RecordPage");
+        console.log('constructor():RecordPage');
         this.gain = 100;
-        this.dB = "0.00 dB";
+        this.dB = '0.00 dB';
         this.sliderValue = 100;
         this.maxVolume = 0;
         this.peaksAtMax = 1;
@@ -62,9 +62,9 @@ export class RecordPage {
                 itemCount: number = 0,
                 month: number = now.getMonth() + 1,
                 name: string =
-                    now.getFullYear() + "-" +
-                    month + "-" +
-                    now.getDate() + " -- " +
+                    now.getFullYear() + '-' +
+                    month + '-' +
+                    now.getDate() + ' -- ' +
                     now.toLocaleTimeString();
             console.dir(blob);
 
@@ -72,7 +72,7 @@ export class RecordPage {
                 (success: boolean) => {
                     this.localDB.createDataNode(
                         name,
-                        this.appState.getProperty("unfiledFolderKey"),
+                        this.appState.getProperty('unfiledFolderKey'),
                         blob
                     ).subscribe();
                 }
@@ -84,7 +84,7 @@ export class RecordPage {
     }
 
     monitorVolume() {
-        console.log("monitorVolume()");
+        console.log('monitorVolume()');
         this.totalPauseTime = this.monitorTotalTime = this.lastPauseTime = 0;
         this.monitorStartTime = Date.now();
 
@@ -123,11 +123,11 @@ export class RecordPage {
         this.gain = (<RangeInputEventTarget>event.target).value;
         let factor: number = this.gain / 100.0;
         if (factor === 0) {
-            this.dB = "Muted";
+            this.dB = 'Muted';
         }
         else {
             // convert factor (a number in [0, 1]) to decibels
-            this.dB = num2str(10.0 * Math.log10(factor), 2) + " dB";
+            this.dB = num2str(10.0 * Math.log10(factor), 2) + ' dB';
         }
         this.webAudio.setGainFactor(factor);
     }

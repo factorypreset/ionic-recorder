@@ -1,16 +1,16 @@
-import {Page, NavController, Platform, Modal} from "ionic-angular";
+import {Page, NavController, Platform, Modal} from 'ionic-angular';
 import {LocalDB, TreeNode, DB_NO_KEY, DB_KEY_PATH}
-from "../../providers/local-db/local-db";
-import {AppState, STATE_NODE_NAME} from "../../providers/app-state/app-state";
-import {AddFolderPage} from "../add-folder/add-folder";
-import {prependArray} from "../../providers/utils/utils";
+from '../../providers/local-db/local-db';
+import {AppState, STATE_NODE_NAME} from '../../providers/app-state/app-state';
+import {AddFolderPage} from '../add-folder/add-folder';
+import {prependArray} from '../../providers/utils/utils';
 
 
 @Page({
-    templateUrl: "build/pages/library/library.html"
+    templateUrl: 'build/pages/library/library.html'
 })
 export class LibraryPage {
-    private folderPath: string = "";
+    private folderPath: string = '';
     private folderNode: TreeNode = null;
     private folderNodeToAdd: TreeNode = null;
     private folderItems: TreeNode[] = [];
@@ -19,21 +19,21 @@ export class LibraryPage {
     private appState: AppState = AppState.Instance;
 
     constructor(private nav: NavController, private platform: Platform) {
-        console.log("constructor():LibraryPage");
+        console.log('constructor():LibraryPage');
     }
 
     onPageDidEnter() {
         this.appState.waitForAppState().subscribe(
             (success: boolean) => {
                 this.switchFolder(
-                    this.appState.getProperty("lastViewedFolderKey"),
+                    this.appState.getProperty('lastViewedFolderKey'),
                     false);
             }
         );
     }
 
     switchFolder(key: number, updateState: boolean) {
-        console.log("switchFolder(" + key + ", " + updateState + ")");
+        console.log('switchFolder(' + key + ', ' + updateState + ')');
         this.localDB.readChildNodes(key).subscribe(
             (childNodes: TreeNode[]) => {
                 // this.folderItems = childNodes;
@@ -52,7 +52,7 @@ export class LibraryPage {
                 this.localDB.readNode(key).subscribe(
                     (node: TreeNode) => {
                         if (node[DB_KEY_PATH] !== key) {
-                            console.log("ERROR: key mismatch");
+                            console.log('ERROR: key mismatch');
                         }
                         this.folderNode = node;
                     },
@@ -63,32 +63,32 @@ export class LibraryPage {
 
                 this.localDB.getNodePath(key).subscribe(
                     (path: string) => {
-                        console.log("path === " + path);
+                        console.log('path === ' + path);
                         this.folderPath = path;
                     }
                 );
 
                 if (updateState) {
-                    this.appState.updateProperty("lastViewedFolderKey", key)
+                    this.appState.updateProperty('lastViewedFolderKey', key)
                         .subscribe();
                 }
             },
             (error: any) => {
-                console.log("Error reading child nodes: " + error);
+                console.log('Error reading child nodes: ' + error);
             }
         ); // readChildNodes().subscribe(
     }
 
     itemCheckboxClicked() {
-        console.log("itemCheckboxClicked()");
+        console.log('itemCheckboxClicked()');
     }
 
     allCheckboxClicked() {
-        console.log("allCheckboxClicked()");
+        console.log('allCheckboxClicked()');
     }
 
     itemClicked(node: TreeNode) {
-        console.log("itemClicked(" + node.name + ") " + node[DB_KEY_PATH]);
+        console.log('itemClicked(' + node.name + ') ' + node[DB_KEY_PATH]);
         if (this.localDB.isFolder(node)) {
             this.switchFolder(node[DB_KEY_PATH], true);
         }
@@ -103,7 +103,7 @@ export class LibraryPage {
     onClickAddButton() {
         let parentKey: number = this.folderNode[DB_KEY_PATH];
         this.folderNodeToAdd =
-            this.localDB.makeTreeNode("", parentKey, DB_NO_KEY);
+            this.localDB.makeTreeNode('', parentKey, DB_NO_KEY);
         let modal = Modal.create(AddFolderPage, {
             parentPath: this.folderPath,
             parentItems: this.folderItems
@@ -111,7 +111,7 @@ export class LibraryPage {
         this.nav.present(modal);
         modal.onDismiss(data => {
             if (data) {
-                console.log("got data back: " + data);
+                console.log('got data back: ' + data);
                 this.folderNodeToAdd.name = data;
                 this.folderItems = prependArray(
                     this.folderNodeToAdd,

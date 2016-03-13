@@ -1,6 +1,6 @@
-import {Page, NavParams, ViewController} from "ionic-angular";
-import {Control, FormBuilder, ControlGroup, Validators} from "angular2/common";
-import {TreeNode} from "../../providers/local-db/local-db";
+import {Page, NavParams, ViewController} from 'ionic-angular';
+import {Control, FormBuilder, ControlGroup, Validators} from 'angular2/common';
+import {TreeNode} from '../../providers/local-db/local-db';
 
 
 interface ValidationResult {
@@ -8,7 +8,7 @@ interface ValidationResult {
 }
 
 @Page({
-    templateUrl: "build/pages/add-folder/add-folder.html"
+    templateUrl: 'build/pages/add-folder/add-folder.html'
 })
 export class AddFolderPage {
     private nameControl: Control;
@@ -24,8 +24,8 @@ export class AddFolderPage {
         this.parentPath = navParams.data.parentPath;
 
         let hasSlash = (control: Control): ValidationResult => {
-            console.log("HS validator control.value: " + control.value);
-            if (control.value !== "" && control.value.indexOf("/") !== -1) {
+            console.log('HS validator control.value: ' + control.value);
+            if (control.value !== '' && control.value.indexOf('/') !== -1) {
                 return { hasSlash: true };
             }
             return null;
@@ -40,23 +40,23 @@ export class AddFolderPage {
                 return null;
             }
 
-            if (control.value !== "" &&
+            if (control.value !== '' &&
                 this.navParams.data.parentItems.filter(
                     (node: TreeNode) => {
                         if (!node) {
-                            console.log("!node !!!!");
+                            console.log('!node !!!!');
                         }
                         else {
                             return control.value === node.name;
                         }
                     }).length > 0) {
-                return { "alreadyExists": true };
+                return { 'alreadyExists': true };
             }
             return null;
         };
 
         this.nameControl = new Control(
-            "",
+            '',
             Validators.compose([
                 Validators.required,
                 alreadyExists,
@@ -69,15 +69,15 @@ export class AddFolderPage {
     }
 
     onClickCancel() {
-        console.log("onClickCancel()");
-        this.viewController.dismiss("");
+        console.log('onClickCancel()');
+        this.viewController.dismiss('');
     }
 
     onClickAdd() {
-        console.log("onClickAdd()");
+        console.log('onClickAdd()');
         let result: string = this.form.value.nameControl;
         // trim the result before returning it
-        result = result.replace(/^\s+|\s+$/g, "");
+        result = result.replace(/^\s+|\s+$/g, '');
         this.viewController.dismiss(result);
     }
 
