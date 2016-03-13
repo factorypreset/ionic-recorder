@@ -41,4 +41,4 @@ to the top of
     node_modules/angular2/src/facade/promise.d.ts
 
 and then ionic serve will run with no warnings (see
-[this issue](https://github.com/angular/angular/issues/6468)
+[this issue](https://github.com/angular/angular/issues/6468))
