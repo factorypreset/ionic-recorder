@@ -25,12 +25,16 @@ export class TracktunesApp {
         console.log("constructor():TracktunesApp");
         // NB: you can delete the DB here to get rid of it easily in Firefox
 
-        this.appState.waitForAppState().subscribe(
-            (success: boolean) => {
-                this.app.getComponent("nav-tabs").select(
-                    this.appState.getProperty("lastSelectedTab"));
-            }
-        );
+        this.platform.ready().then(() => {
+            // we need to wait for platform.ready() in order to retrieve
+            // this.app.getComponent("nav-tabs") successfuly
+            this.appState.waitForAppState().subscribe(
+                (success: boolean) => {
+                    this.app.getComponent("nav-tabs").select(
+                        this.appState.getProperty("lastSelectedTab"));
+                }
+            );
+        });
     }
 
     selectTab(index: number) {

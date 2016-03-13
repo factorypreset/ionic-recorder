@@ -95,4 +95,10 @@ export class LibraryPage {
             this.switchFolder(this.folderNode.parentKey, true);
         }
     }
+
+    onClickAddButton() {
+        let parentKey: number = this.folderNode[DB_KEY_PATH],
+            newNode: TreeNode =
+                this.localDB.makeTreeNode("", parentKey, DB_NO_KEY);
+    }
 }

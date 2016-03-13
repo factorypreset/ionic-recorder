@@ -12,7 +12,7 @@ export class TabsPage {
     private tab1Root: Type = RecordPage;
     private tab2Root: Type = LibraryPage;
     private selectedIndex: number = -1;
-    
+
     constructor(private app: IonicApp) {
         console.log("constructor():TabsPage");
         this.tab1Root = RecordPage;
@@ -20,7 +20,7 @@ export class TabsPage {
 
         this.appState.waitForAppState().subscribe(
             (success: boolean) => {
-                this.selectedIndex = 
+                this.selectedIndex =
                     this.appState.getProperty("lastSelectedTab");
             }
         );
