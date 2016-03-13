@@ -104,7 +104,10 @@ export class LibraryPage {
         let parentKey: number = this.folderNode[DB_KEY_PATH];
         this.folderNodeToAdd =
             this.localDB.makeTreeNode("", parentKey, DB_NO_KEY);
-        let modal = Modal.create(AddFolderPage, this.folderPath);
+        let modal = Modal.create(AddFolderPage, {
+            parentPath: this.folderPath,
+            parentItems: this.folderItems
+        });
         this.nav.present(modal);
         modal.onDismiss(data => {
             if (data) {

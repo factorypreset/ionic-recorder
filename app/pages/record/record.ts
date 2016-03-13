@@ -59,9 +59,13 @@ export class RecordPage {
         // we hit the stop button - saves blob to local db
         webAudio.onStop = (blob: Blob) => {
             let now: Date = new Date(),
-                name: string = now.toLocaleDateString() + " - " +
-                    now.toLocaleTimeString(),
-                itemCount: number = 0;
+                itemCount: number = 0,
+                month: number = now.getMonth() + 1,
+                name: string =
+                    now.getFullYear() + "-" +
+                    month + "-" +
+                    now.getDate() + " -- " +
+                    now.toLocaleTimeString();
             console.dir(blob);
 
             this.appState.waitForAppState().subscribe(

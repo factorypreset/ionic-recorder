@@ -18,6 +18,9 @@
             </ion-item>
             <div class="error-message-container">
                 <div *ngIf="nameControl.dirty && !nameControl.valid">
+                    <p *ngIf="nameControl.errors.alreadyExists" logo-red padding-left>
+                        Name already exists in this folder
+                    </p>
                     <p *ngIf="nameControl.errors.required" logo-red padding-left>
                         Name cannot be empty
                     </p>
