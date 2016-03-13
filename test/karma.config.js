@@ -1,5 +1,8 @@
 // Karma configuration
-// Generated on Wed Jul 15 2015 09:44:02 GMT+0200 (Romance Daylight Time)
+// based on this article: 
+//     http://lathonez.github.io/2016/ionic-2-unit-testing/
+// and this github repository:
+// https://github.com/lathonez/clicker
 
 module.exports = function(config) {
   'use strict';
