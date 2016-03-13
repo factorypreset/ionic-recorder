@@ -885,7 +885,7 @@ export class LocalDB {
                     (node: TreeNode) => {
                         this.getNodePath(
                             node.parentKey,
-                            node.name + '/' + path
+                            path ? node.name + '/' + path : node.name
                         ).subscribe(
                             (pathSoFar: string) => {
                                 console.log('pathSoFar: ' + pathSoFar);

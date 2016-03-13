@@ -12,7 +12,6 @@ import {prependArray} from '../../providers/utils/utils';
 export class LibraryPage {
     private folderPath: string = '';
     private folderNode: TreeNode = null;
-    private folderNodeToAdd: TreeNode = null;
     private folderItems: TreeNode[] = [];
 
     private localDB: LocalDB = LocalDB.Instance;
@@ -102,8 +101,6 @@ export class LibraryPage {
 
     onClickAddButton() {
         let parentKey: number = this.folderNode[DB_KEY_PATH];
-        this.folderNodeToAdd =
-            this.localDB.makeTreeNode('', parentKey, DB_NO_KEY);
         let modal = Modal.create(AddFolderPage, {
             parentPath: this.folderPath,
             parentItems: this.folderItems
@@ -112,11 +109,13 @@ export class LibraryPage {
         modal.onDismiss(data => {
             if (data) {
                 console.log('got data back: ' + data);
-                this.folderNodeToAdd.name = data;
-                this.folderItems = prependArray(
-                    this.folderNodeToAdd,
-                    this.folderItems
-                );
+                this.localDB.createFolderNode(data, this.folderNode[DB_KEY_PATH])
+                    .subscribe((node: TreeNode) => {
+                        this.folderItems = prependArray(
+                            node,
+                            this.folderItems
+                        );
+                    });
             }
             else {
                 // assume cancel
