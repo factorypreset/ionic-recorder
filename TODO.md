@@ -1,5 +1,9 @@
 # TODO.md
 
+* add folder node to db when adding in library page now that it's
+  verified
+* compute path automatically at node creation (folder nodes only) in 
+  local-db.ts
 * refactoring: local-db calls wait db on all higher api functions,
   lower level api functions are made private, app-state calls 
   wait db, no need for app state to have a wait-app-state function
