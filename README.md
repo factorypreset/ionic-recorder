@@ -42,3 +42,7 @@ to the top of
 
 and then ionic serve will run with no warnings (see
 [this issue](https://github.com/angular/angular/issues/6468))
+
+## License
+
+This software is licensed under the [GNU General Public License, version 2 (GPL-2.0)](https://opensource.org/licenses/GPL-2.0)
