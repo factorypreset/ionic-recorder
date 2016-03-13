@@ -51,9 +51,8 @@ export class AddFolderPage {
         this.viewController.dismiss("");
     }
 
-    onClickAdd(addFolderForm) {
-        console.log("onClickDone()");
-        console.log("form valid: " + JSON.stringify(this.form.value));
+    onClickAdd() {
+        console.log("onClickAdd()");
         this.viewController.dismiss(this.form.value.nameControl);
     }
 
