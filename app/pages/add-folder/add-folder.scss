@@ -3,6 +3,6 @@
 // wraps error message with some height so that
 // when it disappears, the add button doesn't jump
 // too close to the input text input line
-ion-content ion-list form div.error-message-line {
+ion-content ion-list form div.error-message-container {
     height: 2em;
 }
