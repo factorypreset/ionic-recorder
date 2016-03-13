@@ -32,12 +32,23 @@ export class AddFolderPage {
         };
 
         let alreadyExists = (control: Control): ValidationResult => {
-            console.log("AE validator: " +
-                this.navParams.data.parentItems[0].name);
+            if (!(this.navParams &&
+                this.navParams.data &&
+                this.navParams.data.parentItems &&
+                this.navParams.data.parentItems.length)) {
+                // nav params have not been sent yet or they are empty
+                return null;
+            }
+
             if (control.value !== "" &&
                 this.navParams.data.parentItems.filter(
                     (node: TreeNode) => {
-                        return control.value === node.name;
+                        if (!node) {
+                            console.log("!node !!!!");
+                        }
+                        else {
+                            return control.value === node.name;
+                        }
                     }).length > 0) {
                 return { "alreadyExists": true };
             }
