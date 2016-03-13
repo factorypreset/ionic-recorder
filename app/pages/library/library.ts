@@ -11,13 +11,11 @@ export class LibraryPage {
     private folderNode: TreeNode = null;
     private folderItems: TreeNode[] = [];
 
-    private localDB: LocalDB;
-    private appState: AppState;
+    private localDB: LocalDB = LocalDB.Instance;
+    private appState: AppState = AppState.Instance;
 
     constructor(private platform: Platform) {
         console.log("constructor():LibraryPage");
-        this.localDB = LocalDB.Instance;
-        this.appState = AppState.Instance;
     }
 
     onPageDidEnter() {

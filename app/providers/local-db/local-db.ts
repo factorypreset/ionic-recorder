@@ -391,8 +391,8 @@ export class LocalDB {
     // set on it to the new key assigned to it by the databse
     createDataStoreItem(data: any) {
         let source: Observable<DataNode> = Observable.create((observer) => {
-            this.createStoreItem(DB_DATA_STORE_NAME,
-                this.makeDataNode(data)).subscribe(
+            this.createStoreItem(DB_DATA_STORE_NAME, this.makeDataNode(data))
+                .subscribe(
                 (dataNode: DataNode) => {
                     observer.next(dataNode);
                     observer.complete();

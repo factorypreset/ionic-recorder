@@ -40,14 +40,11 @@ export class RecordPage {
     private totalPauseTime: number;
     private recordingDuration: number;
 
-    private localDB: LocalDB;
-    private appState: AppState;
+    private localDB: LocalDB = LocalDB.Instance;
+    private appState: AppState = AppState.Instance;
 
     constructor(private platform: Platform, private webAudio: WebAudio,
         private app: IonicApp) {
-
-        this.localDB = LocalDB.Instance;
-        this.appState = AppState.Instance;
 
         console.log("constructor():RecordPage");
         this.gain = 100;
@@ -67,6 +64,16 @@ export class RecordPage {
                 itemCount: number = 0;
             console.dir(blob);
 
+            this.appState.waitForAppState().subscribe(
+                (success: boolean) => {
+                    this.localDB.createDataNodeInParent(
+                        name,
+                        this.appState.getProperty("unfiledFolderKey"),
+                        blob
+                    ).subscribe();
+                }
+            );
+            /*
             this.localDB.waitForDB().subscribe(
                 (db: IDBDatabase) => {
                     this.appState.waitForAppState().subscribe(
@@ -80,7 +87,7 @@ export class RecordPage {
                     );
                 }
             );
-
+            */
         }; // webAudio.onStop = (blob: Blob) => { ...
 
         // start volume monitoring infinite loop
