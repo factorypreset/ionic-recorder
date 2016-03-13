@@ -65,7 +65,7 @@ export class AddFolderPage {
     onClickAdd() {
         console.log("onClickAdd()");
         let result: string = this.form.value.nameControl;
-        // trim the result
+        // trim the result before returning it
         result = result.replace(/^\s+|\s+$/g, "");
         this.viewController.dismiss(result);
     }

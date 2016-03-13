@@ -8,7 +8,7 @@
     </ion-title>
 </ion-navbar>
 
-<ion-row>
+<ion-row class="add-folder-button-row">
     <ion-col>
         <button outline small>
             <ion-icon name="radio-button-off"></ion-icon>
@@ -20,7 +20,6 @@
         <button outline small (click)="goToParent()" [disabled]="folderPath === '/'">
             Parent
             <ion-icon name="folder"></ion-icon>
-            <ion-icon name="ios-arrow-up"></ion-icon>
         </button>
     </ion-col>
     <ion-col>
