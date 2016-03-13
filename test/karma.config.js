@@ -2,7 +2,7 @@
 // based on this article: 
 //     http://lathonez.github.io/2016/ionic-2-unit-testing/
 // and this github repository:
-// https://github.com/lathonez/clicker
+//     https://github.com/lathonez/clicker
 
 module.exports = function(config) {
   'use strict';
