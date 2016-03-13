@@ -8,7 +8,7 @@ interface ValidationResult {
 class FolderNameValidator {
     static hasSlash(control: Control): ValidationResult {
         console.log("validator control.value: " + control.value);
-        if (control.value != "" && control.value.indexOf("/") !== -1) {
+        if (control.value !== "" && control.value.indexOf("/") !== -1) {
             return { "hasSlash": true };
         }
         return null;
