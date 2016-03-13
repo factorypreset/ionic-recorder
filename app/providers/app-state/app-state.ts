@@ -34,13 +34,13 @@ export class AppState {
 
         this.localDB.waitForDB().subscribe(
             (db: IDBDatabase) => {
-                this.localDB.readOrCreateDataNodeInParentByName(
+                this.localDB.readOrCreateDataNode(
                     STATE_NODE_NAME, DB_NO_KEY, DEFAULT_STATE).subscribe(
                     (result: any) => {
                         this.treeNode = result.treeNode;
                         this.dataNode = result.dataNode;
                         // Create Unfiled folder for the auto-save in record.ts
-                        this.localDB.readOrCreateFolderNodeInParentByName(
+                        this.localDB.readOrCreateFolderNode(
                             DEFAULT_STATE.unfiledFolderName, DB_NO_KEY)
                             .subscribe(
                             (unfiledFolderNode: TreeNode) => {
@@ -58,12 +58,12 @@ export class AppState {
                             (rcFolderError: any) => {
                                 throw new Error(rcFolderError);
                             }
-                            ); // readOrCreateFolderNodeInParentByName().su ...
+                            ); // readOrCreateFolderNode().su ...
                     },
                     (rcDataError: any) => {
                         throw new Error(rcDataError);
                     }
-                    ); // readOrCreateDataNodeInParentByName().subscribe(
+                    ); // readOrCreateDataNode().subscribe(
             },
             (waitError: any) => {
                 throw new Error(waitError);

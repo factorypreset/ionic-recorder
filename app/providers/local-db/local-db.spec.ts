@@ -87,7 +87,7 @@ export function main(): void {
 
         it("can read or create RANDOM_WORD_1 item in root", (done) => {
             setTimeout(() => {
-                localDB.readOrCreateDataNodeInParentByName(
+                localDB.readOrCreateDataNode(
                     RANDOM_WORD_1,
                     DB_NO_KEY,
                     RANDOM_WORD_2).subscribe(
@@ -107,7 +107,7 @@ export function main(): void {
 
         it("can read or create RANDOM_WORD_1 item in root again", (done) => {
             setTimeout(() => {
-                localDB.readOrCreateDataNodeInParentByName(
+                localDB.readOrCreateDataNode(
                     RANDOM_WORD_1,
                     DB_NO_KEY,
                     RANDOM_WORD_2).subscribe(
@@ -143,7 +143,7 @@ export function main(): void {
             " folder (at root)",
             (done) => {
                 setTimeout(() => {
-                    localDB.readOrCreateFolderNodeInParentByName(
+                    localDB.readOrCreateFolderNode(
                         UNFILED_FOLDER_NAME, DB_NO_KEY).subscribe(
                         (treeNode: TreeNode) => {
                             unfiledFolder = treeNode;
@@ -166,7 +166,7 @@ export function main(): void {
             " folder (at root) again",
             (done) => {
                 setTimeout(() => {
-                    localDB.readOrCreateFolderNodeInParentByName(
+                    localDB.readOrCreateFolderNode(
                         UNFILED_FOLDER_NAME, DB_NO_KEY).subscribe(
                         (treeNode: TreeNode) => {
                             unfiledFolder = treeNode;

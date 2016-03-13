@@ -66,28 +66,13 @@ export class RecordPage {
 
             this.appState.waitForAppState().subscribe(
                 (success: boolean) => {
-                    this.localDB.createDataNodeInParent(
+                    this.localDB.createDataNode(
                         name,
                         this.appState.getProperty("unfiledFolderKey"),
                         blob
                     ).subscribe();
                 }
             );
-            /*
-            this.localDB.waitForDB().subscribe(
-                (db: IDBDatabase) => {
-                    this.appState.waitForAppState().subscribe(
-                        (success: boolean) => {
-                            this.localDB.createDataNodeInParent(
-                                name,
-                                this.appState.getProperty("unfiledFolderKey"),
-                                this.localDB.makeDataNode(blob)
-                            ).subscribe();
-                        }
-                    );
-                }
-            );
-            */
         }; // webAudio.onStop = (blob: Blob) => { ...
 
         // start volume monitoring infinite loop

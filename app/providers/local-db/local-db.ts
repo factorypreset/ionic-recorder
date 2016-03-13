@@ -453,16 +453,16 @@ export class LocalDB {
     // Returns an observble<TreeNode> of key of created tree node
     createNode(name: string, parentKey: number, data?: any) {
         if (data) {
-            return this.createDataNodeInParent(name, parentKey, data);
+            return this.createDataNode(name, parentKey, data);
         }
         else {
-            return this.createFolderNodeInParent(name, parentKey);
+            return this.createFolderNode(name, parentKey);
         }
     }
 
     // Returns an Observable<TreeNode> of the key of this folder item
     // verifies name is unique among siblings in parent
-    createFolderNodeInParent(name: string, parentKey: number) {
+    createFolderNode(name: string, parentKey: number) {
         let source: Observable<TreeNode> = Observable.create((observer) => {
             this.readNodeByNameInParent(name, parentKey).subscribe(
                 (nodeInParent: TreeNode) => {
@@ -492,7 +492,7 @@ export class LocalDB {
 
     // Returns an Observable<TreeNode> of the key of this data item
     // verifies name is unique among siblings in parent
-    createDataNodeInParent(name: string, parentKey: number, data: any) {
+    createDataNode(name: string, parentKey: number, data: any) {
         let source: Observable<TreeNode> = Observable.create((observer) => {
             // non falsy data supplied, store it in the data table first
             this.readNodeByNameInParent(name, parentKey).subscribe(
@@ -683,7 +683,7 @@ export class LocalDB {
         return source;
     }
 
-    readOrCreateFolderNodeInParentByName(name: string, parentKey: number) {
+    readOrCreateFolderNode(name: string, parentKey: number) {
         let source: Observable<TreeNode> =
             Observable.create((observer) => {
                 this.readNodeByNameInParent(name, parentKey).subscribe(
@@ -697,7 +697,7 @@ export class LocalDB {
                         else {
                             console.log(
                                 "folder node not in DB, creating it ...");
-                            this.createFolderNodeInParent(
+                            this.createFolderNode(
                                 name, parentKey).subscribe(
                                 (createdTreeNode: TreeNode) => {
                                     observer.next(createdTreeNode);
@@ -706,7 +706,7 @@ export class LocalDB {
                                 (createError: any) => {
                                     observer.error(createError);
                                 }
-                                ); // .createDataNodeInParent().subscribe(
+                                ); // .createDataNode().subscribe(
                         } // if (readTreeNode) { .. else {
                     },
                     (readNodeError: any) => {
@@ -717,7 +717,7 @@ export class LocalDB {
         return source;
     }
 
-    readOrCreateDataNodeInParentByName(
+    readOrCreateDataNode(
         name: string, parentKey: number, data: any) {
         let source: Observable<Object> =
             Observable.create((observer) => {
@@ -743,7 +743,7 @@ export class LocalDB {
                         else {
                             console.log("data node not in DB, creating it ...");
                             // no node in parent by name 'name', create it
-                            this.createDataNodeInParent(
+                            this.createDataNode(
                                 name, parentKey, data).subscribe(
                                 (createdTreeNode: TreeNode) => {
                                     let dataNode: DataNode =
@@ -759,7 +759,7 @@ export class LocalDB {
                                 (createError: any) => {
                                     observer.error(createError);
                                 }
-                                ); // .createDataNodeInParent().subscribe(
+                                ); // .createDataNode().subscribe(
                         } // else {
                     },
                     (readNodeError: any) => {
