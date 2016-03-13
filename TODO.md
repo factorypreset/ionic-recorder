@@ -1,5 +1,15 @@
 # TODO.md
 
+* step 1: replace waitForAppState with waitForDB - just
+          change the waitForAppState function at first to
+          test
+* step 2: in AppState, wrap the get function with waitForDB
+          (assuming test in step 1 succeeded), wrap any
+          function that it exposes with waitForDB, internally
+* step 3: put private on whatever you can in local-db
+* step 4: on the local-db public API, put a wait-for-db wrapper
+*         everywhere
+* step 5: remove wait-for-db / wait-for-api everywhere else
 * add folder node to db when adding in library page now that it's
   verified
 * compute path automatically at node creation (folder nodes only) in 
