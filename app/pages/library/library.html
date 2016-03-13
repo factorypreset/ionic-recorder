@@ -17,7 +17,7 @@
         </button>
     </ion-col>
     <ion-col>
-        <button outline small (click)="goToParent()">
+        <button outline small (click)="goToParent()" [disabled]="folderPath === '/'">
             Parent
             <ion-icon name="folder"></ion-icon>
             <ion-icon name="ios-arrow-up"></ion-icon>
@@ -41,7 +41,7 @@
 
 <ion-content [class]="platform.platforms()">
     <ion-list>
-        <button ion-item clear *ngFor="#node of folderItems">
+        <ion-item clear *ngFor="#node of folderItems">
             <ion-label>
                 <button clear (click)="itemClicked(node)">
                     <ion-icon *ngIf="node['dataKey']" name="document" medium-gray item-left>
@@ -53,6 +53,6 @@
             </ion-label>
             <ion-checkbox (click)="itemCheckboxClicked(item)" checked="false" medium-gray item-left>
             </ion-checkbox>
-        </button>
+        </ion-item>
     </ion-list>
 </ion-content>

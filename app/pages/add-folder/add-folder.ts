@@ -7,18 +7,14 @@ interface ValidationResult {
     [key: string]: boolean;
 }
 
-
 @Page({
     templateUrl: "build/pages/add-folder/add-folder.html"
 })
 export class AddFolderPage {
-    private parentItems: TreeNode[] = null;
-    // private folderName: string = "";
-
-    private nameControl: Control = null;
-    // private folderName: string = "";
+    private nameControl: Control;
     private parentPath: string;
     private form: ControlGroup;
+
     constructor(
         private navParams: NavParams,
         private viewController: ViewController,
