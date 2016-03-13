@@ -94,7 +94,7 @@ export class LocalDB {
             name: name,
             parentKey: parentKey,
             dataKey: dataKey,
-            timestamp: Date.now(),
+            timestamp: Date.now()
         };
     };
 
