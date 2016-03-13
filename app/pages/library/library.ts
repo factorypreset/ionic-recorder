@@ -100,7 +100,8 @@ export class LibraryPage {
     }
 
     onClickAddButton() {
-        let parentKey: number = this.folderNode[DB_KEY_PATH];
+        let parentKey: number =
+            this.folderNode ? this.folderNode[DB_KEY_PATH] : DB_NO_KEY;
         let modal = Modal.create(AddFolderPage, {
             parentPath: this.folderPath,
             parentItems: this.folderItems
@@ -108,9 +109,10 @@ export class LibraryPage {
         this.nav.present(modal);
         modal.onDismiss(data => {
             if (data) {
+                // data is new folder's name
                 console.log('got data back: ' + data);
-                this.localDB.createFolderNode(data, this.folderNode[DB_KEY_PATH])
-                    .subscribe((node: TreeNode) => {
+                this.localDB.createFolderNode(data, parentKey).subscribe(
+                    (node: TreeNode) => {
                         this.folderItems = prependArray(
                             node,
                             this.folderItems
