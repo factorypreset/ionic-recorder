@@ -1,5 +1,9 @@
 # TODO.md
 
+* once you start deploying, try this
+  [page speed insights](http://developers.google.com/speed/pagespeed/insights/) 
+* you will also need new gulp tasks, e.g.
+  [optimizing assets with gulp](http://sahatyalkabov.com/jsrecipes/#!/backend/optimizing-assets-with-gulp)
 * step 1: replace waitForAppState with waitForDB - just
           change the waitForAppState function at first to
           test
