@@ -18,7 +18,7 @@
                 <ion-input [(ngModel)]="folderName" ngControl="thisForm" type="text" #thisForm="ngForm" required>
                 </ion-input>
             </ion-item>
-            <div class="error-message-line">
+            <div class="error-message-container">
                 <p [hidden]="thisForm.valid" logo-red padding-left>
                     Name must not be empty
                 </p>
