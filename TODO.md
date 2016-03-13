@@ -1,5 +1,45 @@
 # TODO.md
 
+* refactoring: local-db calls wait db on all higher api functions,
+  lower level api functions are made private, app-state calls 
+  wait db, no need for app state to have a wait-app-state function
+  anymore, every app-state call (getProperty or updateProperty)
+  returns an observable that first waits for localDB.  this will 
+  speed up initialization.  we can also set the interval to be 1/10
+  of the max timeout, which will speed up things a lot during init.
+  we can also disable preloadTabs to speed up init only in those
+  cases where we go straight to the recording tab.  yeah, do that
+  one now, since it's a tiny change... ---> just tried it and it
+  didn't work!  it caused some weird event bug where i had to 
+  click on every button twice (in the library page when the app
+  did not preload it but went directly to it after a refresh
+  using select()... go figure... i'm returning preload to ion-tabs
+  it doesn't hurt much anyway and makes for a more even experience
+  as the refresh time will be the same now regardless of which 
+  page you land on (left off with last time)
+* fix app state jumps - maybe we don't want that... maybe we want
+  to jump more seamlessly into the library if we were there last?
+* every folder in the tree will contain its children - the idea here
+  is that while N can get very large for children for any individual
+  user, it cannot get very large for folders - how many folders can 
+  somebody create? thousands? that's not very large... so we can have
+  a bit more overhead (space and time, mostly space) on each tree 
+  node - we're going to store all its children -- this will simplify
+  getting a node's child nodes -- need to rewrite some functions ...
+  but it will also allow us to keep one more important piece of app
+  state that we're not tracking yet: the ordering, inside each folder,
+  of its children.
+* add a folder in library.ts - design the add folder process
+* only very few local-db.ts get called - they are all higher level
+  api functions.  rewrite local-db.ts based on those higher level
+  functions (use a top-down approach this time and get rid of 
+  unneeded bottom-up code).  start hiding things from top-level.
+  figure out how to make some functions private.
+* add path tracking for tree nodes in local-db.ts
+* never call waitForDB or waitForAppState again from main code that
+  uses any of those classes.  Instead, turn every function that we 
+  call, internally, in the local-db API, into a waitForDB promise
+  wrapped function.
 * library-page.ts:
   * implement add-folder button, so that we can traverse
     real trees - requires renaming it, do that first ...
@@ -10,7 +50,7 @@
   * type things with the above interfaces
   * create an initial folder item that has name '/' and is the root
   * addTreeItem - must add to a parent by parentkey, parent must 
-    exist and be a folder (check this first).  if you are adding a
+    exist and be a folder   (check this first).  if you are adding a
     folder, make sure no other folder by that name exists in the
     same parent. if you're adding 
   * ... all of the above plus more so that we can call something in

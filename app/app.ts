@@ -16,7 +16,8 @@ import {AppState} from "./providers/app-state/app-state";
 })
 export class TracktunesApp {
     private rootPage: Type = TabsPage;
-    // cause AppState and LocalDB singletons to be loaded as early as possible
+    // cause AppState and LocalDB singletons
+    // so that they are loaded as early as possible
     private localDB: LocalDB = LocalDB.Instance;
     private appState: AppState = AppState.Instance;
 
@@ -24,22 +25,17 @@ export class TracktunesApp {
         console.log("constructor():TracktunesApp");
         // NB: you can delete the DB here to get rid of it easily in Firefox
 
-        platform.ready().then(() => {
-            this.appState.waitForAppState().subscribe(
-                (success: boolean) => {
-                    this.app.getComponent("nav-tabs").select(
-                        this.appState.getProperty("lastSelectedTab"));
-                }
-            );
-        });
+        this.appState.waitForAppState().subscribe(
+            (success: boolean) => {
+                this.app.getComponent("nav-tabs").select(
+                    this.appState.getProperty("lastSelectedTab"));
+            }
+        );
     }
 
     selectTab(index: number) {
         console.log("selectTab: " + index);
         this.appState.updateProperty("lastSelectedTab", index).subscribe(
-            () => {
-                this.app.getComponent("nav-tabs").select(index);
-            }
-        );
+            () => { this.app.getComponent("nav-tabs").select(index); });
     }
 }
