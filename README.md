@@ -32,14 +32,13 @@ In a shell, do
     npm install -g cordova ionic@beta
     ionic serve
 
-### To get rid of Typescript compiler warning, do this
-* Add the line 
+To get rid of Typescript compiler warning, add the line 
 
     declare var Promise: PromiseConstructor;
 
-  to the top of
+to the top of
   
     node_modules/angular2/src/facade/promise.d.ts
 
-  and then ionic serve will run with no warnings (see
-  [this issue](https://github.com/angular/angular/issues/6468)
+and then ionic serve will run with no warnings (see
+[this issue](https://github.com/angular/angular/issues/6468)
