@@ -26,10 +26,20 @@ To build
 ## Installation
 In a shell, do
 
-    npm install -g cordova ionic@beta
     git clone https://github.com/tracktunes/ionic-recorder
     cd ionic-recorder
     npm install
+    npm install -g cordova ionic@beta
     ionic serve
 
-After the last command, a browser window will pop up serving the app.
+### To get rid of Typescript compiler warning, do this
+* Add the line 
+
+    declare var Promise: PromiseConstructor;
+
+  to the top of
+  
+    node_modules/angular2/src/facade/promise.d.ts
+
+  and then ionic serve will run with no warnings (see
+  [this issue](https://github.com/angular/angular/issues/6468)
