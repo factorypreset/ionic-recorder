@@ -1,15 +1,20 @@
 import {Page, NavParams, ViewController} from "ionic-angular";
-import {Control} from "angular2/common";
+import {Control, FormBuilder, ControlGroup, Validators} from "angular2/common";
 
 interface ValidationResult {
     [key: string]: boolean;
 }
 
 class FolderNameValidator {
-    static hasSlash(control: Control) {
-        if (control.value !== "" && control.value.indexOf("/") !== -1) {
+    static hasSlash(control: Control): ValidationResult {
+        console.log("validator control.value: " + control.value);
+        if (control.value != "" && control.value.indexOf("/") !== -1) {
             return { "hasSlash": true };
         }
+        return null;
+    }
+
+    static folderNameTaken(): ValidationResult {
         return null;
     }
 }
@@ -18,16 +23,27 @@ class FolderNameValidator {
     templateUrl: "build/pages/add-folder/add-folder.html"
 })
 export class AddFolderPage {
-    private folderName: string = "";
+    // private folderName: string = "";
+    private nameControl = new Control(
+        "",
+        Validators.compose([
+            Validators.required,
+            FolderNameValidator.hasSlash
+        ]));
+    // private folderName: string = "";
     private parentPath: string;
-
-    private slashValidator: Function;
-
-    constructor(private navParams: NavParams,
-        private viewController: ViewController) {
-
+    private form: ControlGroup;
+    constructor(
+        private navParams: NavParams,
+        private viewController: ViewController,
+        private formBuilder: FormBuilder
+    ) {
         // passed in a string with the parent path in it
         this.parentPath = navParams.data;
+
+        this.form = formBuilder.group({
+            nameControl: this.nameControl
+        });
     }
 
     onClickCancel() {
@@ -37,14 +53,8 @@ export class AddFolderPage {
 
     onClickAdd(addFolderForm) {
         console.log("onClickDone()");
-        if (addFolderForm.valid) {
-            console.log("form was valid: " + this.folderName);
-            this.viewController.dismiss(this.folderName);
-        }
-        else {
-            console.log("form not valid");
-            this.viewController.dismiss("");
-        }
+        console.log("form valid: " + JSON.stringify(this.form.value));
+        this.viewController.dismiss(this.form.value);
     }
 
 }

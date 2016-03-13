@@ -10,21 +10,23 @@
 <ion-content padding>
     <p>Adding in {{parentPath}}</p>
     <ion-list>
-        <form #addFolderForm="ngForm" novalidate>
+        <form [ngFormModel]="form">
             <ion-item>
                 <ion-label floating primary>Name of folder to add</ion-label>
-                <ion-input [(ngModel)]="folderName" ngControl="name" type="text" #name="ngForm" required>
+                <ion-input ngControl="nameControl" type="text">
                 </ion-input>
             </ion-item>
             <div class="error-message-container">
-                <p [hidden]="name.valid || name.pristine" logo-red padding-left>
-                    Name cannot not be empty
-                </p>
-                <p [hidden]="folderName.indexOf('/') === -1" logo-red padding-left>
-                    Name cannot contain slash (/) characters
-                </p>
+                <div *ngIf="nameControl.dirty && !nameControl.valid">
+                    <p *ngIf="nameControl.errors.required" logo-red padding-left>
+                        Name cannot be empty
+                    </p>
+                    <p *ngIf="nameControl.errors.hasSlash" logo-red padding-left>
+                        Name cannot contain slash (/) characters
+                    </p>
+                </div>
             </div>
-            <button (click)="onClickAdd(addFolderForm)" type="submit" block>
+            <button (click)="onClickAdd()" [disabled]="!form.valid" type="submit" block>
                 Add
             </button>
         </form>
