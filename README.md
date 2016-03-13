@@ -11,7 +11,7 @@ This app combines
   [MediaRecorder](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder_API)
 * [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
 
-To build
+to build
 * A simple recording app (hybrid app that can run either in your browser or 
   as an ios/android native app)
 * Useful real-time visualizations, stats and data-analysis of the recorded 
