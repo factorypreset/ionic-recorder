@@ -12,28 +12,32 @@
     <ion-col>
         <button outline small>
             <ion-icon name="radio-button-off"></ion-icon>
-            Select
+            &nbsp; &nbsp;
+            <ion-icon name="md-arrow-dropdown"></ion-icon>
         </button>
     </ion-col>
     <ion-col>
         <button outline small (click)="goToParent()">
             Parent
-            <ion-icon name="arrow-round-up"></ion-icon>
+            <ion-icon name="folder"></ion-icon>
+            <ion-icon name="ios-arrow-up"></ion-icon>
         </button>
     </ion-col>
     <ion-col>
-        <button outline small (click)="goToParent()">
+        <button outline small (click)="onClickAddButton()">
             Add
-            <ion-icon name="folder-outline"></ion-icon>
+            <ion-icon name="folder"></ion-icon>
         </button>
     </ion-col>
     <ion-col>
         <button outline small>
-            Info
-            <ion-icon name="information-circle-outline"></ion-icon>
+            <ion-icon name="folder"></ion-icon>
+            &nbsp; &nbsp;
+            <ion-icon name="information-circle"></ion-icon>
         </button>
     </ion-col>
 </ion-row>
+
 
 <ion-content [class]="platform.platforms()">
     <ion-list>

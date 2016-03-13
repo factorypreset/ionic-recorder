@@ -35,4 +35,10 @@ export function copyFromObject(src: Object, dest: Object): Object {
         }
     }
     return dest;
-};
+}
+
+export function prependArray(value: any, array: any[]): any[] {
+    var newArray = array.slice(0);
+    newArray.unshift(value);
+    return newArray;
+}

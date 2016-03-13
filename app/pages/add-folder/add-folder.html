@@ -1,0 +1,32 @@
+<ion-toolbar>
+    <ion-title>
+        Add Folder in {{parentPath}}
+    </ion-title>
+</ion-toolbar>
+
+<ion-toolbar position="bottom">
+    <ion-buttons>
+        <button (click)="onClickCancel()">Cancel</button>
+    </ion-buttons>
+</ion-toolbar>
+
+<ion-content padding>
+    <ion-list>
+        <form #addFolderForm="ngForm" novalidate>
+            <ion-item>
+                <ion-label floating primary>Name of folder to add</ion-label>
+                <ion-input [(ngModel)]="folderName" ngControl="thisForm" type="text" #thisForm="ngForm" required>
+                </ion-input>
+            </ion-item>
+            <div class="error-message-line">
+                <p [hidden]="thisForm.valid" logo-red padding-left>
+                    Name must not be empty
+                </p>
+            </div>
+            <button (click)="onClickDone(addFolderForm)" type="submit" block>
+                Add
+            </button>
+        </form>
+    </ion-list>
+
+</ion-content>

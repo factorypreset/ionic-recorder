@@ -1,7 +1,10 @@
-import {Page, Platform} from "ionic-angular";
+import {Page, NavController, Platform, Modal} from "ionic-angular";
 import {LocalDB, TreeNode, DB_NO_KEY, DB_KEY_PATH}
 from "../../providers/local-db/local-db";
 import {AppState, STATE_NODE_NAME} from "../../providers/app-state/app-state";
+import {AddFolderPage} from "../add-folder/add-folder";
+import {prependArray} from "../../providers/utils/utils";
+
 
 @Page({
     templateUrl: "build/pages/library/library.html"
@@ -9,12 +12,13 @@ import {AppState, STATE_NODE_NAME} from "../../providers/app-state/app-state";
 export class LibraryPage {
     private folderPath: string = "";
     private folderNode: TreeNode = null;
+    private folderNodeToAdd: TreeNode = null;
     private folderItems: TreeNode[] = [];
 
     private localDB: LocalDB = LocalDB.Instance;
     private appState: AppState = AppState.Instance;
 
-    constructor(private platform: Platform) {
+    constructor(private nav: NavController, private platform: Platform) {
         console.log("constructor():LibraryPage");
     }
 
@@ -97,8 +101,24 @@ export class LibraryPage {
     }
 
     onClickAddButton() {
-        let parentKey: number = this.folderNode[DB_KEY_PATH],
-            newNode: TreeNode =
-                this.localDB.makeTreeNode("", parentKey, DB_NO_KEY);
+        let parentKey: number = this.folderNode[DB_KEY_PATH];
+        this.folderNodeToAdd =
+            this.localDB.makeTreeNode("", parentKey, DB_NO_KEY);
+        let modal = Modal.create(AddFolderPage, this.folderPath);
+        this.nav.present(modal);
+        modal.onDismiss(data => {
+            if (data) {
+                console.log("got data back: " + data);
+                this.folderNodeToAdd.name = data;
+                this.folderItems = prependArray(
+                    this.folderNodeToAdd,
+                    this.folderItems
+                );
+            }
+            else {
+                // assume cancel
+                return;
+            }
+        });
     }
 }
