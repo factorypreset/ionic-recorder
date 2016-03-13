@@ -18,7 +18,6 @@ To build
   audio signal
 
 ## Requirements
-* Ionic2
 * This apps runs only in browsers that implement
   [MediaRecorder](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder_API).
   and a late version of IndexedDB that supports the `onupgradeended` event.
