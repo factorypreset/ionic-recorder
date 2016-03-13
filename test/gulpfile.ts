@@ -1,3 +1,8 @@
+// Code from this article: 
+//     http://lathonez.github.io/2016/ionic-2-unit-testing/
+// and this github repository:
+//     https://github.com/lathonez/clicker
+
 import { APP_DIR, DIST_DIR, JS_DEST, TEST_DIR, TYPINGS_DIR, TEST_DEST } from './config';
 import { join, extname } from 'path';
 import * as chalk        from 'chalk';

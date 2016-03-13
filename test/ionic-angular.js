@@ -1,3 +1,8 @@
+// Code from this article: 
+//     http://lathonez.github.io/2016/ionic-2-unit-testing/
+// and this github repository:
+//     https://github.com/lathonez/clicker
+
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 }

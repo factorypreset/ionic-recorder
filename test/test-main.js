@@ -1,3 +1,8 @@
+// Code from this article: 
+//     http://lathonez.github.io/2016/ionic-2-unit-testing/
+// and this github repository:
+//     https://github.com/lathonez/clicker
+
 // Turn on full stack traces in errors to help debugging
 Error.stackTraceLimit=Infinity;
 

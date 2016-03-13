@@ -4,6 +4,12 @@
 //
 // https://www.sitepen.com/blog/2015/10/20/typescript-decorators/
 //
+
+// Code from this article: 
+//     http://lathonez.github.io/2016/ionic-2-unit-testing/
+// and this github repository:
+//     https://github.com/lathonez/clicker
+
 export function App<TFunction extends Function>(target: TFunction): TFunction {
     let newConstructor = function () {
     	// no-op
