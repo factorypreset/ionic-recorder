@@ -10,37 +10,43 @@
     </ion-title>
 </ion-navbar>
 
+<div class="buttonbar4">
+    <button outline ion-row center>
+        <ion-col>
+            <ion-icon name="radio-button-off"></ion-icon>
+            <ion-icon name="md-arrow-dropdown"></ion-icon>
+            <br> Select
+            <br>
+        </ion-col>
+    </button>
+    <button outline (click)="goToParent()" [disabled]="folderPath === '/'" ion-row center>
+        <ion-col>
+            <ion-icon name="arrow-up"></ion-icon>
+            <ion-icon name="folder"></ion-icon>
+            <br> Parent
+            <br>
+        </ion-col>
+    </button>
+    <button outline (click)="onClickAddButton()" ion-row center>
+        <ion-col>
+            <ion-icon name="md-add"></ion-icon>
+            <ion-icon name="folder"></ion-icon>
+            <br> Add
+            <br>
+        </ion-col>
+    </button>
+    <button outline ion-row center>
+        <ion-col>
+            <ion-icon name="folder"></ion-icon>
+            <ion-icon name="information-circle"></ion-icon>
+            <br> Info
+        </ion-col>
+    </button>
+</div>
+
 <p class="library-page-path-message">
     At: {{folderPath}}
 </p>
-<ion-row class="add-folder-button-row">
-    <ion-col>
-        <button outline small>
-            <ion-icon name="radio-button-off"></ion-icon>
-            &nbsp; &nbsp;
-            <ion-icon name="md-arrow-dropdown"></ion-icon>
-        </button>
-    </ion-col>
-    <ion-col>
-        <button outline small (click)="goToParent()" [disabled]="folderPath === '/'">
-            Parent
-            <ion-icon name="folder"></ion-icon>
-        </button>
-    </ion-col>
-    <ion-col>
-        <button outline small (click)="onClickAddButton()">
-            Add
-            <ion-icon name="folder"></ion-icon>
-        </button>
-    </ion-col>
-    <ion-col>
-        <button outline small>
-            <ion-icon name="folder"></ion-icon>
-            &nbsp; &nbsp;
-            <ion-icon name="information-circle"></ion-icon>
-        </button>
-    </ion-col>
-</ion-row>
 
 <ion-content [class]="platform.platforms()" padding>
     <ion-list>
@@ -62,3 +68,41 @@
         </ion-item>
     </ion-list>
 </ion-content>
+
+<div class="buttonbar5">
+    <button outline  (click)="onClickUp()" ion-row center>
+        <ion-col>
+            <ion-icon name="arrow-up"></ion-icon>
+            <br> Up
+            <br>
+        </ion-col>
+    </button>
+    <button outline (click)="onClickDown()" ion-row center>
+        <ion-col>
+            <ion-icon name="arrow-down"></ion-icon>
+            <br> Down
+            <br>
+        </ion-col>
+    </button>
+    <button outline (click)="onClickMove()" ion-row center>
+        <ion-col>
+            <ion-icon name="move"></ion-icon>
+            <br> Move
+            <br>
+        </ion-col>
+    </button>
+    <button outline (click)="onClickTrash()" ion-row center>
+        <ion-col>
+            <ion-icon name="trash"></ion-icon>
+            <br> Trash
+            <br>
+        </ion-col>
+    </button>
+    <button outline (click)="onClickShare()" ion-row center>
+        <ion-col>
+            <ion-icon name="share"></ion-icon>
+            <br> Share
+            <br>
+        </ion-col>
+    </button>
+</div>

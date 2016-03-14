@@ -1,8 +1,27 @@
 // Copyright (C) 2015, 2016 Tracktunes Inc
 
-ion-row.add-folder-button-row ion-col button {
-    height: 3.6em;
-    min-width: 3em;
+div.buttonbar4, div.buttonbar5 {
+    text-align: center;
+    width: 100%;
+    white-space: nowrap;
+    button {
+    font-size: 11px;
+        height: 40px;
+        ion-col {
+            text-align: center;
+            ion-icon {
+                margin-bottom: 3px;   
+            }
+        }
+    }
+}
+
+div.buttonbar4 button {
+   width: 23%;
+}
+
+div.buttonbar5 button {
+   width: 18.2%;
 }
 
 p.library-page-path-message {
