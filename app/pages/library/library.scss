@@ -5,11 +5,12 @@ div.buttonbar4, div.buttonbar5 {
     width: 100%;
     white-space: nowrap;
     button {
-    font-size: 11px;
+        font-size: 11px;
         height: 40px;
         ion-col {
             text-align: center;
             ion-icon {
+                /* margin-bottom controls the space between the icons and text */
                 margin-bottom: 3px;   
             }
         }
