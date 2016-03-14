@@ -45,3 +45,7 @@ and then ionic serve will run with no warnings (see
 ## License
 
 This software is licensed under the [GNU General Public License, version 2 (GPL-2.0)](https://opensource.org/licenses/GPL-2.0)
+
+## Copyright
+
+Copyright 2015, 2016 Tracktunes Inc.
