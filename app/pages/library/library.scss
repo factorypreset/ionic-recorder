@@ -1,3 +1,14 @@
 ion-row.add-folder-button-row ion-col button {
-    height: 3em;
+    height: 3.6em;
+    min-width: 3em;
+}
+
+p.library-page-path-message {
+    font-size: 13px;
+    text-align: center;
+} 
+
+ion-content ion-list ion-item.library-empty-folder-message {
+    text-align: center;
+    color: map-get($colors, logo-red);
 }

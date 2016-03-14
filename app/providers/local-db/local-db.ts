@@ -872,6 +872,7 @@ export class LocalDB {
         }
     }
 
+    // computes the path of a folder node, returns it as a string observable
     getNodePath(key: number, path: string = '') {
         console.log('getNodePath(' + key + ', ' + path + ')');
         let source: Observable<string> = Observable.create((observer) => {

@@ -1,5 +1,43 @@
 # TODO.md
 
+* Instead of using tabs only for navigation now.  And we're not displaying them,
+  ever.  We're only using them for navigtion.  So why not just use NavController?
+  This way we'd "free" up a "real" tab bar to use in the library page.
+  We'll also need another tab bar at the same page sometimes: sometimes we'll
+  have two(?) - whether we display two or not, it's clear that we need two:
+  * one tabs bar for normal library operations (select options, add folder,
+  go to parent & folder info) - this tabs bar is hidden in the record page and
+  is only visible in the library page
+  * another tabs bar for when anything is selected
+    * move-up/move-down - only enabled if a single thing is selected
+    * move-up/move-down - only enabled if a single thing is selected
+    * delete
+    * move-to-folder
+    * share
+* one way to try the above is to create a blank tabs app that has a single 
+button - clicking the button switches tabs.
+  * create tabs blank app
+  * get rid of tabs navigation in it
+  * make all tabs when selected point to the same page
+  * now add the button
+  * now create a second tabs page
+  * NO: don't do this. we can't have two separate pages and switch between
+  them.  also - it would be useful to  have two tab bars on the same page at
+  once: that's a better interface. while you are selecting, there is nothing
+  that should prevent you from moving around the folder structure (using the
+  other tab bar) to select more, for example.
+  
+  The way we're going to solve this problem of using tabs is:
+  * stop using them now (use nav controller instead)
+  * start using them now (for library page, figuring out when to turn them on 
+  or off - turning them off at the record page, and if it's possible to have 
+  them all point to the same page as their root)
+  * perhaps you can use existing tabs: make record/library/settings/about existing
+  tabs all hidden, add non-hidden tabs all with root pointing to library page and
+  all belonging to the library page.  the library page itself is 
+  * EXPERIMENT: sample tabs app, make one of its pages a tabs page - now play 
+  TEST 1: multiple same root test
+  TEST 2: make a tabs sub page a tabs page itself...
 * [Excellent article](https://github.com/yeoman/yeoman/blob/master/contributing.md)
   on CONTRIBUTING.md
 * once you start deploying, try this

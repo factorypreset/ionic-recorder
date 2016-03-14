@@ -4,10 +4,13 @@
     </button>
 
     <ion-title>
-        {{folderPath}}
+        Library
     </ion-title>
 </ion-navbar>
 
+<p class="library-page-path-message">
+    At: {{folderPath}}
+</p>
 <ion-row class="add-folder-button-row">
     <ion-col>
         <button outline small>
@@ -37,8 +40,7 @@
     </ion-col>
 </ion-row>
 
-
-<ion-content [class]="platform.platforms()">
+<ion-content [class]="platform.platforms()" padding>
     <ion-list>
         <ion-item clear *ngFor="#node of folderItems">
             <ion-label>
@@ -52,6 +54,9 @@
             </ion-label>
             <ion-checkbox (click)="itemCheckboxClicked(item)" checked="false" medium-gray item-left>
             </ion-checkbox>
+        </ion-item>
+        <ion-item class="library-empty-folder-message" *ngIf="folderPath.length > 1 && !folderItems.length">
+            <h2>This folder is empty</h2>
         </ion-item>
     </ion-list>
 </ion-content>

@@ -8,11 +8,12 @@
 </ion-toolbar>
 
 <ion-content padding>
-    <p>Adding in {{parentPath}}</p>
     <ion-list>
         <form [ngFormModel]="form">
             <ion-item>
-                <ion-label floating primary>Name of folder to add</ion-label>
+                <ion-label floating primary>
+                    Name of folder to add
+                </ion-label>
                 <ion-input ngControl="nameControl" type="text">
                 </ion-input>
             </ion-item>
@@ -34,5 +35,7 @@
             </button>
         </form>
     </ion-list>
-
+    <p class="add-folder-path-message">
+        At: {{parentPath}}
+    </p>
 </ion-content>

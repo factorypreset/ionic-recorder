@@ -1,6 +1,8 @@
 # based on
 # https://github.com/yeoman/yeoman/blob/master/contributing.md
 
+# NB: not yet fully edited, names still need to be changed and words edited.
+
 # Contributing
 
 We are more than happy to accept external contributions to the project in the form of feedback, bug reports and even better - pull requests :)
@@ -10,36 +12,29 @@ We are more than happy to accept external contributions to the project in the fo
 
 In order for us to help you please check that you've completed the following steps:
 
-* Made sure you're on the latest version `npm update -g yo`
+* Made sure you're on the latest version
+* Made sure your version of the app
 * Used the search feature to ensure that the bug hasn't been reported before
-* Included as much information about the bug as possible, including any output you've received, what OS and version you're on, etc.
+* Included as much information about the bug as possible, including any output you've received, what OS and version you're on, other relevant software versions (e.g. npm, node, ionic2, angular2).
 * Shared the output from running the following command in your project root as this can also help track down the issue.
 
-Unix: `yo --version && echo $PATH $NODE_PATH && node -e 'console.log(process.platform, process.versions)' && cat Gruntfile.js`
+    # cd ionic-recorder
+    # npm test
 
-Windows: `yo --version && echo %PATH% %NODE_PATH% && node -e "console.log(process.platform, process.versions)" && type Gruntfile.js`  
-  
-[Submit your issue](https://github.com/yeoman/yeoman/issues/new)
+[Submit your issue](https://github.com/tracktunes/ionic-recorder/issues/new)
 
 
 ## Quick Start
 
-- Clone the repo of [yo](https://github.com/yeoman/yo), [generator](https://github.com/yeoman/generator), and any generator you might want to develop against, and then run `npm install` in them.
-- Go to the yo folder and link it globally using `npm link` then link in the generators using `npm link path/to/generator` for each.
-- Run `yo` and you should now see the linked generators in the list.
-- Start hacking :)
+- Clone the repo of [ionic-recorder](https://github.com/tracktunes/ionic-recorder)
+
 
 You can keep the various repos up to date by running `git pull --rebase upstream master` in each.
 
 
 ## Style Guide
 
-This project uses single-quotes, two space indentation, multiple var statements and whitespace around arguments. Use a single space after keywords like `function`. Ex:
-
-```
-function () { ... }
-function foo() { ... }
-```
+Please refer to the style guild [TODO: add page and link to STYLE.md]
 
 Please ensure any pull requests follow this closely. If you notice existing code which doesn't follow these practices, feel free to shout and we will address this.
 
