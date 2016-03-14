@@ -1,3 +1,5 @@
+// Copyright (C) 2015, 2016 Tracktunes Inc
+
 import {LocalDB, TreeNode, DataNode, DB_NAME, DB_NO_KEY, DB_KEY_PATH,
 MAX_DB_INIT_TIME} from './local-db';
 

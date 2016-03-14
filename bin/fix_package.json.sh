@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Copyright (C) 2015, 2016 Tracktunes Inc
+
+
 NLINES="`wc -l package.json | awk '{print $1}'`"
 NLINES_MINUS2="`echo $NLINES - 2 | bc`"
 TMPFILE=.tmp$RANDOM

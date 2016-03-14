@@ -1,3 +1,5 @@
+// Copyright (C) 2015, 2016 Tracktunes Inc
+
 import {DB_NAME, MAX_DB_INIT_TIME} from '../local-db/local-db';
 import {AppState} from './app-state';
 

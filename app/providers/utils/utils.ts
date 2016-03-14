@@ -1,3 +1,5 @@
+// Copyright (C) 2015, 2016 Tracktunes Inc
+
 // not efficient but sufficient and clear
 export function num2str(num: number, nDecimals: number) {
     'use strict';

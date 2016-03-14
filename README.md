@@ -48,4 +48,4 @@ This software is licensed under the [GNU General Public License, version 2 (GPL-
 
 ## Copyright
 
-Copyright 2015, 2016 Tracktunes Inc.
+Copyright (C) 2015, 2016 Tracktunes Inc.

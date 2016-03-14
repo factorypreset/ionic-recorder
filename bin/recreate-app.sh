@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Copyright (C) 2015, 2016 Tracktunes Inc
+
 # NOTE: make sure you have latest ionic cli installed
 
 APP_NAME="ionic-recorder"

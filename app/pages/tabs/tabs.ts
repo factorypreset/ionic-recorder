@@ -1,3 +1,5 @@
+// Copyright (C) 2015, 2016 Tracktunes Inc
+
 import {Page, IonicApp} from 'ionic-angular';
 import {Type} from 'angular2/core';
 import {RecordPage} from '../record/record';
