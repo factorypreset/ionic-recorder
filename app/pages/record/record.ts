@@ -1,7 +1,6 @@
 // Copyright (C) 2015, 2016 Tracktunes Inc
 
 import {Page, Platform, IonicApp} from 'ionic-angular';
-import {LibraryPage} from '../library/library';
 import {VuGauge} from '../../components/vu-gauge/vu-gauge';
 import {AppState} from '../../providers/app-state/app-state';
 import {WebAudio} from '../../providers/web-audio/web-audio';
@@ -76,7 +75,16 @@ export class RecordPage {
                         name,
                         unfiledFolderKey,
                         blob
-                    ).subscribe();
+                    ).subscribe(
+                        () => {
+                            // we're done, refresh window
+                            window.getComputedStyle(
+                                document.getElementById('body'));
+                        },
+                        (error: any) => {
+                            alert('create data node error: ' + error);
+                        }
+                        );
                 },
                 (getError: any) => {
                     console.log('getProperty error: ' + getError);

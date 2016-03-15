@@ -48,7 +48,7 @@ export function prependArray(value: any, arr: any[]): any[] {
 
 export function removeByAttr(arr: any[], attr: string, value: any): any[] {
     'use strict';
-    let i:number = arr.length;
+    let i: number = arr.length;
     while (i--) {
         if (arr[i] &&
             arr[i].hasOwnProperty(attr) &&

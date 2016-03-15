@@ -13,20 +13,20 @@ export class TabsPage {
     private appState: AppState = AppState.Instance;
     private tab1Root: Type = RecordPage;
     private tab2Root: Type = LibraryPage;
-    private selectedIndex: number = -1;
+    private selectedIndex: number;
 
     constructor(private app: IonicApp) {
         console.log('constructor():TabsPage');
         this.tab1Root = RecordPage;
         this.tab2Root = LibraryPage;
-
         this.appState.getProperty('lastSelectedTab').subscribe(
             (tabIndex: number) => {
                 this.app.getComponent('nav-tabs').select(tabIndex);
+                this.selectedIndex = tabIndex;
             },
             (getError: any) => {
                 console.log('getProperty error: ' + getError);
             }
-        ); // getProperty().subscribe(    
+        ); // getProperty().subscribe(
     }
 }

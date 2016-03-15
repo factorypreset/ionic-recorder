@@ -26,16 +26,20 @@ export class LibraryPage {
         console.log('constructor():LibraryPage');
     }
 
-    onPageDidEnter() {
+    getAppStateDataAndSwitchFolder() {
         this.appState.getProperty('lastViewedFolderKey').subscribe(
             (key: number) => {
+                console.log('lib page entered, to: ' + key);
                 this.switchFolder(key, false);
                 this.appState.getProperty('checkedNodes').subscribe(
                     (checkedNodes: number[]) => {
                         this.checkedNodes = checkedNodes;
+                        if (!checkedNodes) {
+                            alert('no checked nodes! ' + checkedNodes);
+                        }
                     },
                     (error2: any) => {
-                        alert('error3 in get: ' + error2)
+                        alert('error3 in get: ' + error2);
                     }
                 );
             },
@@ -45,6 +49,15 @@ export class LibraryPage {
         );
     }
 
+    onPageWillEnter() {
+        console.log('lib on page will / ng on init');
+
+        this.getAppStateDataAndSwitchFolder();
+    }
+
+    // switch to folder whose key is 'key'
+    // if updateState is true, update the app state
+    // property 'lastViewedFolderKey'
     switchFolder(key: number, updateState: boolean) {
         console.log('switchFolder(' + key + ', ' + updateState + ') -- ' +
             this.checkedNodes.length);
@@ -52,28 +65,32 @@ export class LibraryPage {
             (childNodes: TreeNode[]) => {
                 // this.folderItems = childNodes;
                 this.folderItems = [];
+                // we found all children of the node we're traversing to (key)
                 for (let i in childNodes) {
                     let node: TreeNode = childNodes[i];
                     if ((key === DB_NO_KEY) && !this.localDB.isFolder(node)) {
                         // we're looking at the root folder and there
                         // we only show folders, we don't allow non-folder
-                        // items to reside in the root folder
+                        // items tjat reside in the root folder
                         continue;
                     }
                     this.folderItems.push(childNodes[i]);
                 }
-
-                this.localDB.readNode(key).subscribe(
-                    (node: TreeNode) => {
-                        if (node[DB_KEY_PATH] !== key) {
-                            console.log('ERROR: key mismatch');
+                console.log('found ' + this.folderItems.length + ' items');
+                // console.dir(this.folderItems);
+                if (key !== DB_NO_KEY) {
+                    this.localDB.readNode(key).subscribe(
+                        (node: TreeNode) => {
+                            if (node[DB_KEY_PATH] !== key) {
+                                console.log('ERROR: key mismatch');
+                            }
+                            this.folderNode = node;
+                        },
+                        (error: any) => {
+                            console.log(error);
                         }
-                        this.folderNode = node;
-                    },
-                    (error: any) => {
-                        console.log(error);
-                    }
-                );
+                    );
+                }
 
                 this.localDB.getNodePath(key).subscribe(
                     (path: string) => {
@@ -101,7 +118,7 @@ export class LibraryPage {
             node.checked = false;
             // remove from list of checked nodes
             let nodeKey = node[DB_KEY_PATH],
-                i = this.checkedNodes.indexOf(nodeKey)
+                i = this.checkedNodes.indexOf(nodeKey);
             if (i === -1) {
                 alert('this cannot be!');
             }
@@ -151,9 +168,15 @@ export class LibraryPage {
                             node,
                             this.folderItems
                         );
-                    });
+                    },
+                    (error: any) => {
+                        alert('error creating folder node in add-folder: ' +
+                            error);
+                    }
+                );
             }
             else {
+                console.log('you canceled the add-folder');
                 // assume cancel
                 return;
             }
