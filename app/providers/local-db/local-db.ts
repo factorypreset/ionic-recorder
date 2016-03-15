@@ -34,7 +34,6 @@ export interface TreeNode {
     parentKey: number;
     dataKey: number;
     timestamp: number;
-    checked: boolean;
     key?: number;
 }
 
@@ -97,8 +96,7 @@ export class LocalDB {
             name: name,
             parentKey: parentKey,
             dataKey: dataKey,
-            timestamp: Date.now(),
-            checked: false
+            timestamp: Date.now()
         };
     };
 

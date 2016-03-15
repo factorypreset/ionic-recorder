@@ -110,29 +110,26 @@ export class LibraryPage {
         ); // readChildNodes().subscribe(
     }
 
+    isChecked(node: TreeNode) {
+        return this.checkedNodes.indexOf(node[DB_KEY_PATH]) !== -1;
+    }
+
     onClickCheckbox(node: TreeNode) {
         console.log('onClickCheckbox()');
-        let nodeKey: number = node[DB_KEY_PATH];
-        if (node.checked) {
-            // flip state
-            node.checked = false;
-            // remove from list of checked nodes
-            let nodeKey = node[DB_KEY_PATH],
-                i = this.checkedNodes.indexOf(nodeKey);
-            if (i === -1) {
-                alert('this cannot be!');
-            }
-            this.checkedNodes.splice(i, 1);
-        }
-        else {
-            // flip state
-            node.checked = true;
+        let nodeKey: number = node[DB_KEY_PATH],
+            i: number = this.checkedNodes.indexOf(nodeKey);
+        if (i === -1) {
+            // node is not checked    
             // add to list of checked nodes
             this.checkedNodes.push(node[DB_KEY_PATH]);
         }
+        else {
+            // node is checked
+            // remove from list of checked nodes
+            this.checkedNodes.splice(i, 1);
+        }
 
-        // update state in DB
-        this.localDB.updateNode(node).subscribe();
+        // update state with new list of checked nodes
         this.appState.updateProperty('checkedNodes',
             this.checkedNodes).subscribe();
     }
