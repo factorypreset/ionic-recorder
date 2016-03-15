@@ -1,3 +1,5 @@
+// Copyright (C) 2015, 2016 Tracktunes Inc
+
 import {App, IonicApp, Platform} from 'ionic-angular';
 import {Type, enableProdMode} from 'angular2/core';
 import {TabsPage} from './pages/tabs/tabs';
@@ -30,9 +32,6 @@ export class TracktunesApp {
             // this.app.getComponent('nav-tabs') successfuly
             this.appState.getProperty('lastSelectedTab').subscribe(
                 (tabIndex: number) => {
-                    if (!tabIndex) {
-                        alert('no tabIndex: ' + tabIndex);
-                    }
                     if (!app.getComponent('nav-tabs')) {
                         alert('no navTabs!');
                     }

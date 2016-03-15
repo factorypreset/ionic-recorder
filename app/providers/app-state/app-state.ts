@@ -10,7 +10,7 @@ interface State {
     lastViewedFolderKey: number;
     unfiledFolderName: string;
     unfiledFolderKey: number;
-    nTotalCheckedNodes: number;
+    checkedNodes: number[];
 }
 
 // make sure APP_STATE_ITEM_NAME will never be entered by a user
@@ -21,14 +21,13 @@ const DEFAULT_STATE: State = {
     lastViewedFolderKey: DB_NO_KEY,
     unfiledFolderName: 'Unfiled',
     unfiledFolderKey: DB_NO_KEY,
-    nTotalCheckedNodes: 0
+    checkedNodes: []
 };
 
 @Injectable()
 export class AppState {
-    // 'instance' is used as part of Singleton pattern implementation
+    // 'instance' is used to implement this class as a Singleton
     private static instance: AppState = null;
-
     private localDB: LocalDB = LocalDB.Instance;
     private treeNode: TreeNode = null;
     private dataNode: DataNode = null;
