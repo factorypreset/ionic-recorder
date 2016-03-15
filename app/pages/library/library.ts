@@ -21,7 +21,7 @@ export class LibraryPage {
     private folderPath: string = '';
     private folderNode: TreeNode = null;
     private folderItems: TreeNode[] = [];
-    private checkedItems: number[] = [];
+    private nTotalCheckedNodes = 0;
 
     private localDB: LocalDB = LocalDB.Instance;
     private appState: AppState = AppState.Instance;
@@ -34,13 +34,18 @@ export class LibraryPage {
         this.appState.getProperty('lastViewedFolderKey').subscribe(
             (key: number) => {
                 this.switchFolder(key, false);
+                this.appState.getProperty('nTotalCheckedNodes').subscribe(
+                    (n: number) => {
+                        this.nTotalCheckedNodes = n;
+                    }
+                );
             }
         );
     }
 
     switchFolder(key: number, updateState: boolean) {
-        console.log('switchFolder(' + key + ', ' + updateState + ') ' +
-            this.checkedItems.length);
+        console.log('switchFolder(' + key + ', ' + updateState + ') -- ' +
+            this.nTotalCheckedNodes);
         this.localDB.readChildNodes(key).subscribe(
             (childNodes: TreeNode[]) => {
                 // this.folderItems = childNodes;
@@ -90,19 +95,22 @@ export class LibraryPage {
         console.log('onClickedItemCheckbox()');
         let nodeKey: number = node[DB_KEY_PATH];
         if (node.checked) {
-            let i: number = this.checkedItems.indexOf(nodeKey);
-            // remove ith element (the id of this node in checkedItems)
-            this.checkedItems.splice(i, 1);
             // flip state
             node.checked = false;
+            // keep track of total
+            this.nTotalCheckedNodes--;
         }
         else {
-            this.checkedItems.push(nodeKey);
             // flip state
             node.checked = true;
+            // keep track of total
+            this.nTotalCheckedNodes++;
         }
+
         // update state in DB
         this.localDB.updateNode(node).subscribe();
+        this.appState.updateProperty('nTotalCheckedNodes',
+            this.nTotalCheckedNodes).subscribe();
     }
 
     allCheckboxClicked() {

@@ -7,7 +7,13 @@
 
     <ion-title>
         Library
+        &nbsp; &nbsp;
+        <ion-badge *ngIf="nTotalCheckedNodes == 1" item-right>{{nTotalCheckedNodes}} item selected
+        </ion-badge>
+        <ion-badge *ngIf="nTotalCheckedNodes > 1" item-right>{{nTotalCheckedNodes}} items selected
+        </ion-badge>
     </ion-title>
+
 </ion-navbar>
 
 <span class="library-page-path-message">
@@ -69,15 +75,15 @@
     </ion-list>
 </ion-content>
 
-<div class="buttonbar5" *ngIf="checkedItems.length > 0">
-    <button outline  (click)="onClickUp()" ion-row center>
+<div class="buttonbar5" *ngIf="nTotalCheckedNodes">
+    <button outline (click)="onClickUp()" [disabled]="folderItems.length < 2 || nTotalCheckedNodes !== 1" ion-row center>
         <ion-col>
             <ion-icon name="arrow-up"></ion-icon>
             <br> Up
             <br>
         </ion-col>
     </button>
-    <button outline (click)="onClickDown()" ion-row center>
+    <button outline (click)="onClickDown()" [disabled]="folderItems.length < 2 || nTotalCheckedNodes !== 1" ion-row center>
         <ion-col>
             <ion-icon name="arrow-down"></ion-icon>
             <br> Down
