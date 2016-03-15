@@ -15,22 +15,33 @@ ion-content {
     }
 }
 */
+
 // app left (navigation) menu
 ion-menu {
-    ion-content    { 
+    ion-content { 
         scroll-content, ion-list .item {
             background: map-get($colors, darkest-gray);
             cursor: pointer;
         }
-        ion-list {
+        ion-list.app-menu-buttons {
+            
             .item:first-child {
                 border: 0;
             }
+            
+            
+            // remove border at bottom of each menu item button
             .item-inner, ion-list .item:last-child {
                 border-bottom: 0;
             }
-            button.button-selected {
-                background: map-get($colors, almost-dark);
+
+            // add an indication for which page is currently on
+            button.item.button-selected.activated, button.item.activated {
+                background: map-get($colors, dark-gray);
+            }
+            
+            button.item.button-selected {
+                background: map-get($colors, almost-dark);    
             }
         }
     }
