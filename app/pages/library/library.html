@@ -6,11 +6,9 @@
     </button>
 
     <ion-title>
-        Library
-        &nbsp; &nbsp;
-        <ion-badge *ngIf="checkedNodes.length == 1" item-right>{{checkedNodes.length}} item selected
-        </ion-badge>
-        <ion-badge *ngIf="checkedNodes.length > 1" item-right>{{checkedNodes.length}} items selected
+        Library &nbsp; &nbsp;
+        <ion-badge item-right>
+            {{checkedNodes.length}} selected
         </ion-badge>
     </ion-title>
 
@@ -66,7 +64,7 @@
                     {{node.name}}
                 </button>
             </ion-label>
-            <ion-checkbox [ngModel]="isChecked(node)" (click)="onClickCheckbox(node)"  medium-gray item-left>
+            <ion-checkbox [ngModel]="isChecked(node)" (click)="onClickCheckbox(node)" medium-gray item-left>
             </ion-checkbox>
         </ion-item>
         <ion-item class="library-empty-folder-message" *ngIf="folderPath.length > 1 && !folderItems.length">

@@ -1,5 +1,18 @@
 // Copyright (C) 2015, 2016 Tracktunes Inc
 
+span.library-page-path-message {
+    background-color: map-get($colors, almost-dark);
+    color: $text-color;
+    font-size: 13px;
+    text-align: center;
+    word-wrap: break-word;
+    padding-left: 1em;
+    padding-right: 1em;
+    padding-top: 4px;
+    padding-bottom: 0;
+    margin: 0;
+} 
+
 div.buttonbar4, div.buttonbar5 {
     background-color: map-get($colors, almost-dark);
     text-align: center;
@@ -12,7 +25,7 @@ div.buttonbar4, div.buttonbar5 {
             text-align: center;
             ion-icon {
                 /* margin-bottom controls the space between the icons and text */
-                margin-bottom: 3px;   
+                margin-bottom: 3px;
             }
         }
     }
@@ -25,17 +38,6 @@ div.buttonbar4 button {
 div.buttonbar5 button {
    width: 18.2%;
 }
-
-span.library-page-path-message {
-    background-color: map-get($colors, almost-dark);
-    color: $text-color;
-    font-size: 13px;
-    text-align: center;
-    word-wrap: break-word;
-    padding-left: 1em;
-    padding-right: 1em;
-    margin: 0;
-} 
 
 ion-content ion-list ion-item.library-empty-folder-message {
     text-align: center;

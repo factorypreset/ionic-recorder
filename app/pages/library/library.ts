@@ -26,7 +26,11 @@ export class LibraryPage {
         console.log('constructor():LibraryPage');
     }
 
-    getAppStateDataAndSwitchFolder() {
+    // onPageWillEnter
+    // Ionic Life Cycle Hooks: 
+    // https://webcake.co/page-lifecycle-hooks-in-ionic-2/
+    onPageWillEnter() {
+        // switch folders, via AppState
         this.appState.getProperty('lastViewedFolderKey').subscribe(
             (key: number) => {
                 console.log('lib page entered, to: ' + key);
@@ -38,21 +42,15 @@ export class LibraryPage {
                             alert('no checked nodes! ' + checkedNodes);
                         }
                     },
-                    (error2: any) => {
-                        alert('error3 in get: ' + error2);
+                    (error: any) => {
+                        alert('in getProperty: ' + error);
                     }
-                );
+                ); // getProperty().subscribe(
             },
-            (error1: any) => {
-                alert('error1 in get: ' + error1);
+            (error: any) => {
+                alert('in getProperty: ' + error);
             }
-        );
-    }
-
-    onPageWillEnter() {
-        console.log('lib on page will / ng on init');
-
-        this.getAppStateDataAndSwitchFolder();
+        ); // getProperty().subscbribe(
     }
 
     // switch to folder whose key is 'key'
@@ -68,7 +66,7 @@ export class LibraryPage {
                 // we found all children of the node we're traversing to (key)
                 for (let i in childNodes) {
                     let node: TreeNode = childNodes[i];
-                    if ((key === DB_NO_KEY) && !this.localDB.isFolder(node)) {
+                    if ((key === DB_NO_KEY) && !this.localDB.isFolderNode(node)) {
                         // we're looking at the root folder and there
                         // we only show folders, we don't allow non-folder
                         // items tjat reside in the root folder
@@ -82,30 +80,38 @@ export class LibraryPage {
                     this.localDB.readNode(key).subscribe(
                         (node: TreeNode) => {
                             if (node[DB_KEY_PATH] !== key) {
-                                console.log('ERROR: key mismatch');
+                                alert('in readNode: key mismatch');
                             }
                             this.folderNode = node;
                         },
                         (error: any) => {
-                            console.log(error);
+                            alert('in readNode: ' + error);
                         }
-                    );
+                    ); // readNode().subscribe(
                 }
 
                 this.localDB.getNodePath(key).subscribe(
                     (path: string) => {
                         console.log('path === ' + path);
                         this.folderPath = path;
+                    },
+                    (error: any) => {
+                        alert('in getNodePath: ' + error);
                     }
-                );
+                ); // getNodePath().subscribe(
 
                 if (updateState) {
                     this.appState.updateProperty('lastViewedFolderKey', key)
-                        .subscribe();
+                        .subscribe(
+                        () => { },
+                        (error: any) => {
+                            alert('in updateProperty: ' + error);
+                        }
+                        ); // updateProperty().subscribe
                 }
             },
             (error: any) => {
-                console.log('Error reading child nodes: ' + error);
+                alert('in readChildNodes: ' + error);
             }
         ); // readChildNodes().subscribe(
     }
@@ -131,12 +137,17 @@ export class LibraryPage {
 
         // update state with new list of checked nodes
         this.appState.updateProperty('checkedNodes',
-            this.checkedNodes).subscribe();
+            this.checkedNodes).subscribe(
+            () => { },
+            (error: any) => {
+                alert('in updateProperty: ' + error);
+            }
+            ); // updateProperty().subscribe
     }
 
     onClickItem(node: TreeNode) {
         console.log('onClickItem(' + node.name + ') ' + node[DB_KEY_PATH]);
-        if (this.localDB.isFolder(node)) {
+        if (this.localDB.isFolderNode(node)) {
             this.switchFolder(node[DB_KEY_PATH], true);
         }
     }
@@ -148,13 +159,16 @@ export class LibraryPage {
     }
 
     onClickAdd() {
+        // note we consider the current folder (this.folderNode) the parent
         let parentKey: number =
-            this.folderNode ? this.folderNode[DB_KEY_PATH] : DB_NO_KEY;
-        let modal = Modal.create(AddFolderPage, {
-            parentPath: this.folderPath,
-            parentItems: this.folderItems
-        });
+            this.folderNode ? this.folderNode[DB_KEY_PATH] : DB_NO_KEY,
+            modal = Modal.create(AddFolderPage, {
+                parentPath: this.folderPath,
+                parentItems: this.folderItems
+            });
+
         this.navController.present(modal);
+
         modal.onDismiss(data => {
             if (data) {
                 // data is new folder's name
@@ -167,10 +181,9 @@ export class LibraryPage {
                         );
                     },
                     (error: any) => {
-                        alert('error creating folder node in add-folder: ' +
-                            error);
+                        alert('in createFolderNode: ' + error);
                     }
-                );
+                ); // createFolderNode().subscribe(
             }
             else {
                 console.log('you canceled the add-folder');
