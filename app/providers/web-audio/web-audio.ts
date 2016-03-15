@@ -34,7 +34,7 @@ export class WebAudio {
                 this.connectNodes(stream);
             })
             .catch((error: any) => {
-                alert('getUserMedia() - ' + error.name + ' - ' + error.message);
+                // alert('getUserMedia() - ' + error.name + ' - ' + error.message);
                 throw Error('getUserMedia() - ' + error.name);
             });
     }

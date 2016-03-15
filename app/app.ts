@@ -30,9 +30,16 @@ export class TracktunesApp {
             // this.app.getComponent('nav-tabs') successfuly
             this.appState.getProperty('lastSelectedTab').subscribe(
                 (tabIndex: number) => {
+                    if (!tabIndex) {
+                        alert('no tabIndex: ' + tabIndex);
+                    }
+                    if (!app.getComponent('nav-tabs')) {
+                        alert('no navTabs!');
+                    }
                     this.app.getComponent('nav-tabs').select(tabIndex);
                 },
                 (getError: any) => {
+                    alert('getProperty error: ' + getError);
                     console.log('getProperty error: ' + getError);
                 }
             ); // getProperty().subscribe(

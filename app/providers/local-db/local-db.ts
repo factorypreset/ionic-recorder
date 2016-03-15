@@ -111,9 +111,8 @@ export class LocalDB {
                     observer.complete();
                 }
                 else {
-                    alert('still waitin');
                     console.log('... no DB yet ...');
-                    setTimeout(repeat, MAX_DB_INIT_TIME);
+                    setTimeout(repeat, MAX_DB_INIT_TIME / 10);
                 }
             };
             repeat();
@@ -357,7 +356,7 @@ export class LocalDB {
                         }; // getRequest.onsuccess =
 
                         getRequest.onerror = (event: IDBErrorEvent) => {
-                            alert('get request 2')
+                            alert('get request 2');
                             observer.error('get request 2');
                         };
                     },

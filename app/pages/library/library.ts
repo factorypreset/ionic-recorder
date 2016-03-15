@@ -28,7 +28,6 @@ export class LibraryPage {
 
     constructor(private nav: NavController, private platform: Platform) {
         console.log('constructor():LibraryPage');
-        alert('constructor():LibraryPage');
     }
 
     onPageDidEnter() {
@@ -38,8 +37,15 @@ export class LibraryPage {
                 this.appState.getProperty('nTotalCheckedNodes').subscribe(
                     (n: number) => {
                         this.nTotalCheckedNodes = n;
+                    },
+                    (error2: any) => {
+                        alert('error in get: ' + error2);
                     }
+
                 );
+            },
+            (error: any) => {
+                alert('error in get: ' + error);
             }
         );
     }

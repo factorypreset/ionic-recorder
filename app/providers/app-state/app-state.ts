@@ -68,10 +68,28 @@ export class AppState {
         return this.instance;
     }
 
+    waitForAppState() {
+        let source: Observable<boolean> = Observable.create((observer) => {
+            let repeat = () => {
+                if (this.treeNode && this.dataNode) {
+                    observer.next(true);
+                    observer.complete();
+                }
+                else {
+                    console.log('... no STATE yet ...');
+                    setTimeout(repeat, MAX_DB_INIT_TIME / 10);
+                }
+            };
+            repeat();
+        });
+        return source;
+    }
+
+
     // returns an Observable<any> of the value
     getProperty(propertyName) {
         let source: Observable<any> = Observable.create((observer) => {
-            this.localDB.waitForDB().subscribe(
+            this.waitForAppState().subscribe(
                 (db: IDBDatabase) => {
                     if (!this.dataNode || !this.dataNode.data) {
                         observer.error('app state not properly read');
@@ -94,42 +112,49 @@ export class AppState {
     // it happens inside updateNodeData()
     updateProperty(propertyName: string, propertyValue: any) {
         let source: Observable<boolean> = Observable.create((observer) => {
-            if (!this.dataNode) {
-                // we expected to have read the state at least once
-                // before calling update, which sets this.dataNode
-                observer.error('state has no data node in update');
-            }
-            else if (!this.dataNode[DB_KEY_PATH]) {
-                // we expected to have read the state at least once
-                // before calling update, which tags on the property
-                // DB_KEY_PATH onto the this.state's State object
-                observer.error('state has no key path in update');
-            }
-            else if (!this.treeNode) {
-                // we expected to have read the state at least once
-                // before calling update, which sets this.treeNode
-                observer.error('state has no tree node in update');
-            }
-            else if (this.getProperty(propertyName) !== propertyValue) {
-                // only not update if propertyValue is different
-                // update in memory:
-                this.dataNode.data[propertyName] = propertyValue;
-                // update in DB:
-                this.localDB.updateNodeData(this.treeNode, this.dataNode.data)
-                    .subscribe(
-                    (success: boolean) => {
-                        observer.next(true);
-                        observer.complete();
-                    },
-                    (error: any) => {
-                        observer.error(error);
+            this.waitForAppState().subscribe(
+                () => {
+                    if (!this.dataNode) {
+                        // we expected to have read the state at least once
+                        // before calling update, which sets this.dataNode
+                        observer.error('state has no data node in update');
                     }
-                    ); // updateNodeData().subscribe(
-            }
-            else {
-                observer.next(false);
-                observer.complete();
-            }
+                    else if (!this.dataNode[DB_KEY_PATH]) {
+                        // we expected to have read the state at least once
+                        // before calling update, which tags on the property
+                        // DB_KEY_PATH onto the this.state's State object
+                        observer.error('state has no key path in update');
+                    }
+                    else if (!this.treeNode) {
+                        // we expected to have read the state at least once
+                        // before calling update, which sets this.treeNode
+                        observer.error('state has no tree node in update');
+                    }
+                    else if (this.getProperty(propertyName) !== propertyValue) {
+                        // only not update if propertyValue is different
+                        // update in memory:
+                        this.dataNode.data[propertyName] = propertyValue;
+                        // update in DB:
+                        this.localDB.updateNodeData(this.treeNode, this.dataNode.data)
+                            .subscribe(
+                            (success: boolean) => {
+                                observer.next(true);
+                                observer.complete();
+                            },
+                            (error: any) => {
+                                observer.error(error);
+                            }
+                            ); // updateNodeData().subscribe(
+                    }
+                    else {
+                        observer.next(false);
+                        observer.complete();
+                    }
+                },
+                (error) => {
+                    alert('error waiting for app state: ' + error);
+                }
+            );
         });
         return source;
     }
