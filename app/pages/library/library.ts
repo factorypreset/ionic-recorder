@@ -121,7 +121,7 @@ export class LibraryPage {
         if (i === -1) {
             // node is not checked    
             // add to list of checked nodes
-            this.checkedNodes.push(node[DB_KEY_PATH]);
+            this.checkedNodes.push(nodeKey);
         }
         else {
             // node is checked
