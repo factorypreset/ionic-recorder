@@ -3,9 +3,9 @@
 import {Page, NavController, Platform, Modal} from 'ionic-angular';
 import {LocalDB, TreeNode, DB_NO_KEY, DB_KEY_PATH}
 from '../../providers/local-db/local-db';
-import {AppState, STATE_NODE_NAME} from '../../providers/app-state/app-state';
+import {AppState} from '../../providers/app-state/app-state';
 import {AddFolderPage} from '../add-folder/add-folder';
-import {prependArray, removeByAttr} from '../../providers/utils/utils';
+import {prependArray} from '../../providers/utils/utils';
 
 
 @Page({
@@ -20,7 +20,9 @@ export class LibraryPage {
     private localDB: LocalDB = LocalDB.Instance;
     private appState: AppState = AppState.Instance;
 
-    constructor(private nav: NavController, private platform: Platform) {
+    constructor(
+        private navController: NavController,
+        private platform: Platform) {
         console.log('constructor():LibraryPage');
     }
 
@@ -138,7 +140,7 @@ export class LibraryPage {
             parentPath: this.folderPath,
             parentItems: this.folderItems
         });
-        this.nav.present(modal);
+        this.navController.present(modal);
         modal.onDismiss(data => {
             if (data) {
                 // data is new folder's name
