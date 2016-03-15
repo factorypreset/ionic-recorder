@@ -22,11 +22,16 @@ ion-menu {
             background: map-get($colors, darkest-gray);
             cursor: pointer;
         }
-        ion-list .item:first-child {
-            border: 0;
-        }
-        ion-list .item-inner, ion-list .item:last-child {
-            border-bottom: 0;
+        ion-list {
+            .item:first-child {
+                border: 0;
+            }
+            .item-inner, ion-list .item:last-child {
+                border-bottom: 0;
+            }
+            button.button-selected {
+                background: map-get($colors, almost-dark);
+            }
         }
     }
 }
