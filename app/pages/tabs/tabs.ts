@@ -20,12 +20,13 @@ export class TabsPage {
         this.tab1Root = RecordPage;
         this.tab2Root = LibraryPage;
 
-        this.appState.waitForAppState().subscribe(
-            (success: boolean) => {
-                this.selectedIndex =
-                    this.appState.getProperty('lastSelectedTab');
+        this.appState.getProperty('lastSelectedTab').subscribe(
+            (tabIndex: number) => {
+                this.app.getComponent('nav-tabs').select(tabIndex);
+            },
+            (getError: any) => {
+                console.log('getProperty error: ' + getError);
             }
-        );
-
+        ); // getProperty().subscribe(    
     }
 }

@@ -10,6 +10,7 @@ interface State {
     lastViewedFolderKey: number;
     unfiledFolderName: string;
     unfiledFolderKey: number;
+    nTotalCheckedNodes: number;
 }
 
 // make sure APP_STATE_ITEM_NAME will never be entered by a user
@@ -19,7 +20,8 @@ const DEFAULT_STATE: State = {
     lastSelectedTab: 0,
     lastViewedFolderKey: DB_NO_KEY,
     unfiledFolderName: 'Unfiled',
-    unfiledFolderKey: DB_NO_KEY
+    unfiledFolderKey: DB_NO_KEY,
+    nTotalCheckedNodes: 0
 };
 
 @Injectable()
@@ -73,22 +75,6 @@ export class AppState {
         ); // waitForDB().subscribe(
     }
 
-    waitForAppState() {
-        let source: Observable<boolean> = Observable.create((observer) => {
-            let repeat = () => {
-                if (this.treeNode && this.dataNode) {
-                    observer.next(true);
-                    observer.complete();
-                }
-                else {
-                    setTimeout(repeat, MAX_DB_INIT_TIME);
-                }
-            };
-            repeat();
-        });
-        return source;
-    }
-
     // Singleton pattern implementation
     static get Instance() {
         if (!this.instance) {
@@ -97,17 +83,30 @@ export class AppState {
         return this.instance;
     }
 
+    // returns an Observable<any> of the value
     getProperty(propertyName) {
-        if (!this.dataNode || !this.dataNode.data) {
-            throw new Error('app state not properly read');
-        }
-        if (!this.dataNode.data.hasOwnProperty(propertyName)) {
-            throw new Error('no property by this name in dataNode');
-        }
-
-        return this.dataNode.data[propertyName];
+        let source: Observable<any> = Observable.create((observer) => {
+            this.localDB.waitForDB().subscribe(
+                (db: IDBDatabase) => {
+                    if (!this.dataNode || !this.dataNode.data) {
+                        observer.error('app state not properly read');
+                    }
+                    if (!this.dataNode.data.hasOwnProperty(propertyName)) {
+                        observer.error('no property by this name in dataNode');
+                    }
+                    observer.next(this.dataNode.data[propertyName]);
+                    observer.complete();
+                },
+                (waitError: any) => {
+                    observer.error(waitError);
+                }
+            ); // waitForDB().subscribe(
+        });
+        return source;
     }
 
+    // NOTE: we don't need the waitForDB() observable here because
+    // it happens inside updateNodeData()
     updateProperty(propertyName: string, propertyValue: any) {
         let source: Observable<boolean> = Observable.create((observer) => {
             if (!this.dataNode) {

@@ -70,15 +70,18 @@ export class RecordPage {
                     now.toLocaleTimeString();
             console.dir(blob);
 
-            this.appState.waitForAppState().subscribe(
-                (success: boolean) => {
+            this.appState.getProperty('unfiledFolderKey').subscribe(
+                (unfiledFolderKey: number) => {
                     this.localDB.createDataNode(
                         name,
-                        this.appState.getProperty('unfiledFolderKey'),
+                        unfiledFolderKey,
                         blob
                     ).subscribe();
+                },
+                (getError: any) => {
+                    console.log('getProperty error: ' + getError);
                 }
-            );
+            ); // getProperty().subscribe(    
         }; // webAudio.onStop = (blob: Blob) => { ...
 
         // start volume monitoring infinite loop

@@ -6,6 +6,14 @@ import {AddFolderPage} from '../add-folder/add-folder';
 import {prependArray} from '../../providers/utils/utils';
 
 
+// TODO: 
+// 1) appState is all promises, including get
+// 2) we don't call wait from anywhere except inside localdb
+// 3) localdb is all promises that wait first
+// 4) get & save the nTotalChecked with those new promises
+// 5) display nTotalChecked somewhere ('3 checked items' right justified
+//    in the library navbar)
+
 @Page({
     templateUrl: 'build/pages/library/library.html'
 })
@@ -13,6 +21,7 @@ export class LibraryPage {
     private folderPath: string = '';
     private folderNode: TreeNode = null;
     private folderItems: TreeNode[] = [];
+    private checkedItems: number[] = [];
 
     private localDB: LocalDB = LocalDB.Instance;
     private appState: AppState = AppState.Instance;
@@ -22,17 +31,16 @@ export class LibraryPage {
     }
 
     onPageDidEnter() {
-        this.appState.waitForAppState().subscribe(
-            (success: boolean) => {
-                this.switchFolder(
-                    this.appState.getProperty('lastViewedFolderKey'),
-                    false);
+        this.appState.getProperty('lastViewedFolderKey').subscribe(
+            (key: number) => {
+                this.switchFolder(key, false);
             }
         );
     }
 
     switchFolder(key: number, updateState: boolean) {
-        console.log('switchFolder(' + key + ', ' + updateState + ')');
+        console.log('switchFolder(' + key + ', ' + updateState + ') ' +
+            this.checkedItems.length);
         this.localDB.readChildNodes(key).subscribe(
             (childNodes: TreeNode[]) => {
                 // this.folderItems = childNodes;
@@ -78,8 +86,23 @@ export class LibraryPage {
         ); // readChildNodes().subscribe(
     }
 
-    itemCheckboxClicked() {
-        console.log('itemCheckboxClicked()');
+    onClickedItemCheckbox(node: TreeNode) {
+        console.log('onClickedItemCheckbox()');
+        let nodeKey: number = node[DB_KEY_PATH];
+        if (node.checked) {
+            let i: number = this.checkedItems.indexOf(nodeKey);
+            // remove ith element (the id of this node in checkedItems)
+            this.checkedItems.splice(i, 1);
+            // flip state
+            node.checked = false;
+        }
+        else {
+            this.checkedItems.push(nodeKey);
+            // flip state
+            node.checked = true;
+        }
+        // update state in DB
+        this.localDB.updateNode(node).subscribe();
     }
 
     allCheckboxClicked() {
@@ -125,4 +148,5 @@ export class LibraryPage {
             }
         });
     }
+
 }

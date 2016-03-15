@@ -34,6 +34,7 @@ export interface TreeNode {
     parentKey: number;
     dataKey: number;
     timestamp: number;
+    checked: boolean;
     key?: number;
 }
 
@@ -96,11 +97,13 @@ export class LocalDB {
             name: name,
             parentKey: parentKey,
             dataKey: dataKey,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            checked: false
         };
     };
 
     waitForDB() {
+        // TODO: play with MAX_DB_INIT_TIME/10
         let source: Observable<IDBDatabase> = Observable.create((observer) => {
             let repeat = () => {
                 if (this.db) {
@@ -108,7 +111,7 @@ export class LocalDB {
                     observer.complete();
                 }
                 else {
-                    // console.log('... no DB yet ...');
+                    console.log('... no DB yet ...');
                     setTimeout(repeat, MAX_DB_INIT_TIME);
                 }
             };
@@ -439,19 +442,6 @@ export class LocalDB {
      * END: TreeStore- / DataStore- specific methods
      */
 
-    ///////////////////////////////////////////////////////////////////////////
-    // HIGH LEVEL API - these are the only functions you should be using
-    //     TreeNode functions
-    // We only have nodes, you can think of them as art of a tree (if you
-    // pay attention to the parentKey field) or a flat data table that is
-    // kept lightweight by not storing data in it, instead storing pointers
-    // to the hefty data that resides in a separate table.  If you want to
-    // use this as a flat structure, use parentKey of DB_NO_KEY. Names of all
-    // items in this flat structure must be unique.  If you want to use this
-    // as a tree, use parentKey to designate parent node, names must be
-    // unique only among siblings of the same parent.
-    ///////////////////////////////////////////////////////////////////////////
-
     // Returns an observble<TreeNode> of key of created tree node
     createNode(name: string, parentKey: number, data?: any) {
         if (data) {
@@ -460,98 +450,6 @@ export class LocalDB {
         else {
             return this.createFolderNode(name, parentKey);
         }
-    }
-
-    // Returns an Observable<TreeNode> of the key of this folder item
-    // verifies name is unique among siblings in parent
-    createFolderNode(name: string, parentKey: number) {
-        let source: Observable<TreeNode> = Observable.create((observer) => {
-            this.readNodeByNameInParent(name, parentKey).subscribe(
-                (nodeInParent: TreeNode) => {
-                    if (nodeInParent) {
-                        observer.error('unique name violation 3');
-                    }
-                    else {
-                        this.createTreeStoreItem(name, parentKey, DB_NO_KEY)
-                            .subscribe(
-                            (treeNode: TreeNode) => {
-                                observer.next(treeNode);
-                                observer.complete();
-                            },
-                            (createError) => {
-                                observer.error(createError);
-                            }
-                            ); // createTreeStoreItem().subscribe(
-                    }
-                },
-                (readError) => {
-                    observer.error(readError);
-                }
-            ); // readNodeByNameInParent().subscribe(
-        });
-        return source;
-    }
-
-    // Returns an Observable<TreeNode> of the key of this data item
-    // verifies name is unique among siblings in parent
-    createDataNode(name: string, parentKey: number, data: any) {
-        let source: Observable<TreeNode> = Observable.create((observer) => {
-            // non falsy data supplied, store it in the data table first
-            this.readNodeByNameInParent(name, parentKey).subscribe(
-                (nodeInParent: TreeNode) => {
-                    if (nodeInParent) {
-                        observer.error('unique name violation 2');
-                    }
-                    else {
-                        this.createDataStoreItem(data).subscribe(
-                            (dataNode: DataNode) => {
-                                this.createTreeStoreItem(
-                                    name,
-                                    parentKey,
-                                    dataNode[DB_KEY_PATH]).subscribe(
-                                    (treeNode: TreeNode) => {
-                                        observer.next(treeNode);
-                                        observer.complete();
-                                    },
-                                    (createTreeItemError) => {
-                                        observer.error(createTreeItemError);
-                                    }
-                                    ); // createTreeStoreItem().subscribe(
-                            },
-                            (createDataItemError) => {
-                                observer.error(createDataItemError);
-                            }
-                        ); // createDataStoreItem().subscribe(
-                    } // if (nodeInParent) { ... else { 
-                },
-                (readError) => {
-                    observer.error(readError);
-                }
-            ); // readNodeByNameInParent().subscribe(
-        });
-        return source;
-    }
-
-    // Returns an Observable<TreeNode> of the read tree node, no data
-    // returned If a node with key 'key' is not in the tree, null
-    // TreeNode object is returned
-    readNode(key: number) {
-        let source: Observable<TreeNode> = Observable.create((observer) => {
-            this.readStoreItem(DB_TREE_STORE_NAME, key).subscribe(
-                (treeNode: TreeNode) => {
-                    if (!treeNode) {
-                        observer.error('node does not exist');
-                    }
-                    treeNode[DB_KEY_PATH] = key;
-                    observer.next(treeNode);
-                    observer.complete();
-                },
-                (error) => {
-                    observer.error(error);
-                }
-            ); // this.readStoreItem().subscribe(
-        });
-        return source;
     }
 
     // Returns an Observable<TreeNode[]> of all nodes obtained by name
@@ -685,37 +583,136 @@ export class LocalDB {
         return source;
     }
 
-    readOrCreateFolderNode(name: string, parentKey: number) {
-        let source: Observable<TreeNode> =
-            Observable.create((observer) => {
-                this.readNodeByNameInParent(name, parentKey).subscribe(
-                    (readTreeNode: TreeNode) => {
-                        if (readTreeNode) {
-                            console.log(
-                                'folder node in DB, returning it ...');
-                            observer.next(readTreeNode);
-                            observer.complete();
-                        }
-                        else {
-                            console.log(
-                                'folder node not in DB, creating it ...');
-                            this.createFolderNode(
-                                name, parentKey).subscribe(
-                                (createdTreeNode: TreeNode) => {
-                                    observer.next(createdTreeNode);
-                                    observer.complete();
-                                },
-                                (createError: any) => {
-                                    observer.error(createError);
-                                }
-                                ); // .createDataNode().subscribe(
-                        } // if (readTreeNode) { .. else {
-                    },
-                    (readNodeError: any) => {
-                        observer.error(readNodeError);
+    // Returns an Observable<boolean> of success in deleting treeNode
+    deleteNode(treeNode: TreeNode) {
+        if (this.isFolder(treeNode)) {
+            return this.deleteFolderNode(treeNode);
+        }
+        else {
+            return this.deleteDataNode(treeNode);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // HIGH LEVEL API - these are the only functions you should be using
+    //     TreeNode functions
+    // We only have nodes, you can think of them as art of a tree (if you
+    // pay attention to the parentKey field) or a flat data table that is
+    // kept lightweight by not storing data in it, instead storing pointers
+    // to the hefty data that resides in a separate table.  If you want to
+    // use this as a flat structure, use parentKey of DB_NO_KEY. Names of all
+    // items in this flat structure must be unique.  If you want to use this
+    // as a tree, use parentKey to designate parent node, names must be
+    // unique only among siblings of the same parent.
+    //
+    // Here are the public high level API functions obtained via the
+    // following command:
+    // (1392) ~/workspace/tracktunes/git/ionic-recorder/app
+    // >  grep localDB\. `findword 'localDB.' | grep -v local-db` | \
+    //    sed 's/.*ocalDB\.//' | sed 's/(.*//'|sort -u|grep -v Instance|nl
+    //   1	createDataNode
+    //   2	createFolderNode
+    //   3	getNodePath
+    //   4	isFolder
+    //   5	readChildNodes
+    //   6	readNode
+    //   7	readOrCreateDataNode
+    //   8	readOrCreateFolderNode
+    //   9	updateNode
+    //   10	updateNodeData
+    // NOTE: Public API functions are already wrapped with waitForDB() 
+    // because getStore() is!
+    ///////////////////////////////////////////////////////////////////////////
+
+    // Returns an Observable<TreeNode> of the key of this data item
+    // verifies name is unique among siblings in parent
+    createDataNode(name: string, parentKey: number, data: any) {
+        let source: Observable<TreeNode> = Observable.create((observer) => {
+            // non falsy data supplied, store it in the data table first
+            this.readNodeByNameInParent(name, parentKey).subscribe(
+                (nodeInParent: TreeNode) => {
+                    if (nodeInParent) {
+                        observer.error('unique name violation 2');
                     }
-                ); // readNodeByNameInParent().subscribe(
-            });
+                    else {
+                        this.createDataStoreItem(data).subscribe(
+                            (dataNode: DataNode) => {
+                                this.createTreeStoreItem(
+                                    name,
+                                    parentKey,
+                                    dataNode[DB_KEY_PATH]).subscribe(
+                                    (treeNode: TreeNode) => {
+                                        observer.next(treeNode);
+                                        observer.complete();
+                                    },
+                                    (createTreeItemError) => {
+                                        observer.error(createTreeItemError);
+                                    }
+                                    ); // createTreeStoreItem().subscribe(
+                            },
+                            (createDataItemError) => {
+                                observer.error(createDataItemError);
+                            }
+                        ); // createDataStoreItem().subscribe(
+                    } // if (nodeInParent) { ... else { 
+                },
+                (readError) => {
+                    observer.error(readError);
+                }
+            ); // readNodeByNameInParent().subscribe(
+        });
+        return source;
+    }
+
+    // Returns an Observable<TreeNode> of the key of this folder item
+    // verifies name is unique among siblings in parent
+    createFolderNode(name: string, parentKey: number) {
+        let source: Observable<TreeNode> = Observable.create((observer) => {
+            this.readNodeByNameInParent(name, parentKey).subscribe(
+                (nodeInParent: TreeNode) => {
+                    if (nodeInParent) {
+                        observer.error('unique name violation 3');
+                    }
+                    else {
+                        this.createTreeStoreItem(name, parentKey, DB_NO_KEY)
+                            .subscribe(
+                            (treeNode: TreeNode) => {
+                                observer.next(treeNode);
+                                observer.complete();
+                            },
+                            (createError) => {
+                                observer.error(createError);
+                            }
+                            ); // createTreeStoreItem().subscribe(
+                    }
+                },
+                (readError) => {
+                    observer.error(readError);
+                }
+            ); // readNodeByNameInParent().subscribe(
+        });
+        return source;
+    }
+
+    // Returns an Observable<TreeNode> of the read tree node, no data
+    // returned If a node with key 'key' is not in the tree, null
+    // TreeNode object is returned
+    readNode(key: number) {
+        let source: Observable<TreeNode> = Observable.create((observer) => {
+            this.readStoreItem(DB_TREE_STORE_NAME, key).subscribe(
+                (treeNode: TreeNode) => {
+                    if (!treeNode) {
+                        observer.error('node does not exist');
+                    }
+                    treeNode[DB_KEY_PATH] = key;
+                    observer.next(treeNode);
+                    observer.complete();
+                },
+                (error) => {
+                    observer.error(error);
+                }
+            ); // this.readStoreItem().subscribe(
+        });
         return source;
     }
 
@@ -763,6 +760,40 @@ export class LocalDB {
                                 }
                                 ); // .createDataNode().subscribe(
                         } // else {
+                    },
+                    (readNodeError: any) => {
+                        observer.error(readNodeError);
+                    }
+                ); // readNodeByNameInParent().subscribe(
+            });
+        return source;
+    }
+
+    readOrCreateFolderNode(name: string, parentKey: number) {
+        let source: Observable<TreeNode> =
+            Observable.create((observer) => {
+                this.readNodeByNameInParent(name, parentKey).subscribe(
+                    (readTreeNode: TreeNode) => {
+                        if (readTreeNode) {
+                            console.log(
+                                'folder node in DB, returning it ...');
+                            observer.next(readTreeNode);
+                            observer.complete();
+                        }
+                        else {
+                            console.log(
+                                'folder node not in DB, creating it ...');
+                            this.createFolderNode(
+                                name, parentKey).subscribe(
+                                (createdTreeNode: TreeNode) => {
+                                    observer.next(createdTreeNode);
+                                    observer.complete();
+                                },
+                                (createError: any) => {
+                                    observer.error(createError);
+                                }
+                                ); // .createDataNode().subscribe(
+                        } // if (readTreeNode) { .. else {
                     },
                     (readNodeError: any) => {
                         observer.error(readNodeError);
@@ -862,16 +893,6 @@ export class LocalDB {
             ); // deleteTreeStoreItem().subscribe(
         });
         return source;
-    }
-
-    // Returns an Observable<boolean> of success in deleting treeNode
-    deleteNode(treeNode: TreeNode) {
-        if (this.isFolder(treeNode)) {
-            return this.deleteFolderNode(treeNode);
-        }
-        else {
-            return this.deleteDataNode(treeNode);
-        }
     }
 
     // computes the path of a folder node, returns it as a string observable

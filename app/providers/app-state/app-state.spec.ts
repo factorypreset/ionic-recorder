@@ -39,8 +39,15 @@ export function main(): void {
 
         it('can read lastSelectedTab to be 0', (done) => {
             setTimeout(() => {
-                expect(appState.getProperty('lastSelectedTab')).toBe(0);
-                done();
+                appState.getProperty('lastSelectedTab').subscribe(
+                    (tabIndex: number) => {
+                        expect(tabIndex).toBe(0);
+                        done();
+                    },
+                    (error: any) => {
+                        fail(error);
+                    }
+                );
             }, MAX_DB_INIT_TIME);
         });
 
@@ -62,7 +69,7 @@ export function main(): void {
             setTimeout(() => {
                 appState.updateProperty('lastSelectedTab', 1).subscribe(
                     (updated: boolean) => {
-                        expect(updated).toBe(false);
+                        expect(updated).toBe(true);
                         done();
                     },
                     (error) => {
@@ -74,8 +81,15 @@ export function main(): void {
 
         it('can read lastSelectedTab to be 1', (done) => {
             setTimeout(() => {
-                expect(appState.getProperty('lastSelectedTab')).toBe(1);
-                done();
+                appState.getProperty('lastSelectedTab').subscribe(
+                    (tabIndex: number) => {
+                        expect(tabIndex).toBe(1);
+                        done();
+                    },
+                    (error: any) => {
+                        fail(error);
+                    }
+                );
             }, MAX_DB_INIT_TIME);
         });
 

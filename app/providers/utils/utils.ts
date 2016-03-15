@@ -39,8 +39,9 @@ export function copyFromObject(src: Object, dest: Object): Object {
     return dest;
 }
 
-export function prependArray(value: any, array: any[]): any[] {
-    let newArray: any[] = array.slice(0);
+export function prependArray(value: any, arr: any[]): any[] {
+    'use strict';
+    let newArray: any[] = arr.slice(0);
     newArray.unshift(value);
     return newArray;
 }

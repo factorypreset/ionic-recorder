@@ -28,12 +28,14 @@ export class TracktunesApp {
         this.platform.ready().then(() => {
             // we need to wait for platform.ready() in order to retrieve
             // this.app.getComponent('nav-tabs') successfuly
-            this.appState.waitForAppState().subscribe(
-                (success: boolean) => {
-                    this.app.getComponent('nav-tabs').select(
-                        this.appState.getProperty('lastSelectedTab'));
+            this.appState.getProperty('lastSelectedTab').subscribe(
+                (tabIndex: number) => {
+                    this.app.getComponent('nav-tabs').select(tabIndex);
+                },
+                (getError: any) => {
+                    console.log('getProperty error: ' + getError);
                 }
-            );
+            ); // getProperty().subscribe(
         });
     }
 
