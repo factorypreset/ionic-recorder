@@ -111,6 +111,7 @@ export class LocalDB {
                     observer.complete();
                 }
                 else {
+                    alert('still waitin');
                     console.log('... no DB yet ...');
                     setTimeout(repeat, MAX_DB_INIT_TIME);
                 }
@@ -132,10 +133,12 @@ export class LocalDB {
             };
 
             openRequest.onerror = (event: IDBErrorEvent) => {
+                alert('open DB');
                 observer.error('open DB');
             };
 
             openRequest.onblocked = (event: IDBErrorEvent) => {
+                alert('DB blocked');
                 observer.error('DB blocked');
             };
 
@@ -166,8 +169,10 @@ export class LocalDB {
                     let ex: DOMException = error;
                     if (ex.code !== STORE_EXISTS_ERROR_CODE) {
                         // ignore 'store already exists' error
+                        alert('upgrade error');
                         observer.error('create store');
                     }
+
                 }
                 console.log('openDB:onupgradeended DONE');
             }; // openRequest.onupgradeneeded =
@@ -190,6 +195,7 @@ export class LocalDB {
                         observer.complete();
                     },
                     (error) => {
+                        alert(error);
                         observer.error(error);
                     }
                 ); // waitForDB().subscribe(
@@ -246,6 +252,7 @@ export class LocalDB {
                             observer.complete();
                         };
                         addRequest.onerror = (event: IDBEvent) => {
+                            alert('add request');
                             observer.error('add request');
                         };
                     },
@@ -293,7 +300,8 @@ export class LocalDB {
                         };
 
                         getRequest.onerror = (event: IDBErrorEvent) => {
-                            observer.error('get request');
+                            alert('get request 1');
+                            observer.error('get request 1');
                         };
                     },
                     (error) => {
@@ -342,13 +350,15 @@ export class LocalDB {
 
                                 putRequest.onerror =
                                     (event: IDBErrorEvent) => {
+                                        alert('put request');
                                         observer.error('put request');
                                     };
                             }
                         }; // getRequest.onsuccess =
 
                         getRequest.onerror = (event: IDBErrorEvent) => {
-                            observer.error('get request');
+                            alert('get request 2')
+                            observer.error('get request 2');
                         };
                     },
                     (getStoreError) => {
@@ -373,6 +383,7 @@ export class LocalDB {
                     };
 
                     deleteRequest.onerror = (event: IDBErrorEvent) => {
+                        alert('delete request');
                         observer.error('delete request');
                     };
                 },
@@ -478,7 +489,8 @@ export class LocalDB {
                         }
                     };
                     cursorRequest.onerror = (event: IDBErrorEvent) => {
-                        observer.error('cursor');
+                        alert('cursor 1');
+                        observer.error('cursor 1');
                     };
                 },
                 (error) => {
@@ -572,7 +584,8 @@ export class LocalDB {
                         }
                     };
                     cursorRequest.onerror = (event: IDBErrorEvent) => {
-                        observer.error('cursor');
+                        alert('cursor 2');
+                        observer.error('cursor 2');
                     };
                 },
                 (error) => {

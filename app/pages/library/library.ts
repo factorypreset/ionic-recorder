@@ -28,6 +28,7 @@ export class LibraryPage {
 
     constructor(private nav: NavController, private platform: Platform) {
         console.log('constructor():LibraryPage');
+        alert('constructor():LibraryPage');
     }
 
     onPageDidEnter() {

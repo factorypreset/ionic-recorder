@@ -36,43 +36,28 @@ export class AppState {
     constructor() {
         console.log('constructor():AppState');
 
-        this.localDB.waitForDB().subscribe(
-            (db: IDBDatabase) => {
-                this.localDB.readOrCreateDataNode(
-                    STATE_NODE_NAME, DB_NO_KEY, DEFAULT_STATE).subscribe(
-                    (result: any) => {
-                        this.treeNode = result.treeNode;
-                        this.dataNode = result.dataNode;
-                        // Create Unfiled folder for the auto-save in record.ts
-                        this.localDB.readOrCreateFolderNode(
-                            DEFAULT_STATE.unfiledFolderName, DB_NO_KEY)
-                            .subscribe(
-                            (unfiledFolderNode: TreeNode) => {
-                                this.updateProperty(
-                                    'unfiledFolderKey',
-                                    unfiledFolderNode[DB_KEY_PATH]
-                                ).subscribe(
-                                    (result: boolean) => {
-                                    },
-                                    (updateError: any) => {
-                                        throw new Error(updateError);
-                                    }
-                                    ); // updateProperty().subscribe(
-                            },
-                            (rcFolderError: any) => {
-                                throw new Error(rcFolderError);
-                            }
-                            ); // readOrCreateFolderNode().su ...
+        this.localDB.readOrCreateDataNode(
+            STATE_NODE_NAME, DB_NO_KEY, DEFAULT_STATE).subscribe(
+            (result: any) => {
+                this.treeNode = result.treeNode;
+                this.dataNode = result.dataNode;
+                // Create Unfiled folder for the auto-save in record.ts
+                this.localDB.readOrCreateFolderNode(
+                    DEFAULT_STATE.unfiledFolderName, DB_NO_KEY)
+                    .subscribe(
+                    (unfiledFolderNode: TreeNode) => {
+                        this.dataNode.data['unfiledFolderKey'] =
+                            unfiledFolderNode[DB_KEY_PATH];
                     },
-                    (rcDataError: any) => {
-                        throw new Error(rcDataError);
+                    (rcFolderError: any) => {
+                        throw new Error(rcFolderError);
                     }
-                    ); // readOrCreateDataNode().subscribe(
+                    ); // readOrCreateFolderNode().su ...
             },
-            (waitError: any) => {
-                throw new Error(waitError);
+            (rcDataError: any) => {
+                throw new Error(rcDataError);
             }
-        ); // waitForDB().subscribe(
+            ); // readOrCreateDataNode().subscribe(
     }
 
     // Singleton pattern implementation

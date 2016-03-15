@@ -4,8 +4,8 @@ import {TabsPage} from './pages/tabs/tabs';
 import {WebAudio} from './providers/web-audio/web-audio';
 import {LocalDB, DB_NAME, MAX_DB_INIT_TIME} from './providers/local-db/local-db';
 import {AppState} from './providers/app-state/app-state';
+import {ExceptionHandler} from 'angular2/src/facade/exception_handler';
 
-// enableProdMode();
 
 @App({
     templateUrl: 'build/app.html',

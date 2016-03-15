@@ -34,13 +34,16 @@ export class WebAudio {
                 this.connectNodes(stream);
             })
             .catch((error: any) => {
+                alert('getUserMedia() - ' + error.name + ' - ' + error.message);
                 throw Error('getUserMedia() - ' + error.name);
             });
     }
 
     initMediaRecorder(stream: MediaStream) {
         if (!MediaRecorder) {
+            alert('MediaRecorder not available!');
             throw Error('MediaRecorder not available!');
+
         }
         this.mediaRecorder = new MediaRecorder(stream);
 
