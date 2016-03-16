@@ -301,7 +301,7 @@ export class LibraryPage {
 
     onClickSelectButton() {
         let alert = Alert.create();
-        alert.setTitle('Select in <br>\'' + this.getFolderName() + '\'');
+        alert.setTitle('Select in folder<br>' + this.getFolderName());
         alert.addInput({
             type: 'radio',
             label: 'All',

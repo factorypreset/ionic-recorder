@@ -19,7 +19,6 @@ export class VuGauge implements OnChanges {
     @Input() private min: number;
     @Input() private max: number;
     @Input() private value: number;
-    @Input() private rate: number;
     private ledWidth: string;
     private leds: { x: string, fill: string, strokeWidth: string }[];
     private hStep: number;

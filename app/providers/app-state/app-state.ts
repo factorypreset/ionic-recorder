@@ -84,7 +84,6 @@ export class AppState {
         return source;
     }
 
-
     // returns an Observable<any> of the value
     getProperty(propertyName) {
         let source: Observable<any> = Observable.create((observer) => {

@@ -12,7 +12,7 @@
         <!--span *ngIf="maxVolume > 1">{{peaksAtMax}} peaks at max</span-->
         <span>{{peaksAtMax}} peaks at max</span>
     </p>
-    <vu-gauge bgcolor="#fff" height="2.5em" nbars="55" min="0" max="128" rate="20" 
+    <vu-gauge height="2.5em" nbars="55" min="0" max="128" rate="20" 
               [value]="currentVolume"></vu-gauge>
     <p class="item-label">Gain: {{gain}}% ({{dB}})</p>
     <input type="range" min="0" max="200" 

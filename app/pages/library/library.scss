@@ -14,6 +14,9 @@ span.library-page-path-message {
     padding-top: 4px;
     padding-bottom: 0;
     margin: 0;
+    span {
+        color: map-get($colors, logo-orange);
+    }
 } 
 
 // appearance of buttonbars
@@ -46,15 +49,17 @@ div.buttonbar4, div.buttonbar5 {
 // general for all alerts shown by library page
 ion-alert {
     color: map-get($colors , light);
-    // background color is of the backdrop
-    background-color: map-get($colors, dark);
-    // opacity here is of the backdrop
-    opacity: 0.9;
+    // background color is of the backdrop, if you don't
+    // set it, there is no backdrop shown
+    // background-color: map-get($colors, dark);
+    // opacity here is of the backdrop but also the alert
+    // itself
+    // opacity: 1.0;
     .alert-wrapper {
         // alert wrapper is the actual alert area, in it
         // buttons were made transparent, so we set the
         // alert's background color here
-        background: map-get($colors , dark-gray);
+        background: map-get($colors , medium-gray);
     }
 }
 
@@ -75,5 +80,5 @@ div.buttonbar5 button {
 // control appearance of the text that says a folder is empty
 ion-content ion-list ion-item.library-empty-folder-message {
     text-align: center;
-    color: map-get($colors, logo-red);
+    color: map-get($colors, logo-orange);
 }
