@@ -24,22 +24,21 @@ ion-menu {
             cursor: pointer;
         }
         ion-list.app-menu-buttons {
-            
             .item:first-child {
                 border: 0;
             }
-            
-            
+
             // remove border at bottom of each menu item button
             .item-inner, ion-list .item:last-child {
                 border-bottom: 0;
             }
 
-            // add an indication for which page is currently on
+            // activated (when being clicked)
             button.item.button-selected.activated, button.item.activated {
                 background: map-get($colors, dark-gray);
             }
             
+            // indicating page (cutton) currently selected
             button.item.button-selected {
                 background: map-get($colors, almost-dark);    
             }

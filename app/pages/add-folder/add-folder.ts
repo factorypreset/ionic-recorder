@@ -34,25 +34,32 @@ export class AddFolderPage {
         };
 
         let alreadyExists = (control: Control): ValidationResult => {
-            if (!(this.navParams &&
-                this.navParams.data &&
-                this.navParams.data.parentItems &&
-                this.navParams.data.parentItems.length)) {
-                // nav params have not been sent yet or they are empty
+            if (control.value === '') {
+                // alert('did not expect control.value to be empty');
                 return null;
             }
 
-            if (control.value !== '' &&
-                this.navParams.data.parentItems.filter(
-                    (node: TreeNode) => {
-                        if (!node) {
-                            console.log('!node !!!!');
-                        }
-                        else {
-                            return control.value === node.name;
-                        }
-                    }).length > 0) {
-                return { 'alreadyExists': true };
+            if (!(this.navParams &&
+                this.navParams.data &&
+                this.navParams.data.parentItems &&
+                Object.keys(this.navParams.data.parentItems).length)) {
+                // nav params have not been sent yet or they are empty
+                return null;
+            }
+            // for non empty control.value (which carries the string
+            // that was added on the input line), check that it isn't
+            // already in this.navParams.data.parentItems, but we have
+            // to search it by name
+            let newName: string = control.value,
+                parentItems: { [id: string]: TreeNode } =
+                    this.navParams.data.parentItems,
+                parentKeys: string[] = Object.keys(parentItems),
+                key: number;
+            for (key = 0; key < parentKeys.length; key++) {
+                let parentKey: string = parentKeys[key];
+                if (newName === parentItems[parentKey].name) {
+                    return { alreadyExists: true };
+                }
             }
             return null;
         };

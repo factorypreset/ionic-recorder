@@ -54,34 +54,38 @@
 
 <ion-content [class]="platform.platforms()" padding>
     <ion-list>
-        <ion-item clear *ngFor="#node of folderItems">
+        <!-- see http://stackoverflow.com/questions/31490713/iterate-over-typescript-dictionary-in-angular-2
+             for how to do below better -->
+        <ion-item clear *ngFor="#i of folderItemsKeys()">
             <ion-label>
-                <button clear (click)="onClickItem(node)">
-                    <ion-icon *ngIf="node.dataKey" name="document" medium-gray item-left>
+                <button clear (click)="onClickItem(folderItems[i])">
+                    <ion-icon *ngIf="folderItems[i].dataKey" name="document" medium-gray item-left>
                     </ion-icon>
-                    <ion-icon *ngIf="!node.dataKey" name="folder" medium-gray item-left>
+                    <ion-icon *ngIf="!folderItems[i].dataKey" name="folder" medium-gray item-left>
                     </ion-icon>
-                    {{node.name}}
+                    {{folderItems[i].name}}
                 </button>
             </ion-label>
-            <ion-checkbox [ngModel]="isChecked(node)" (click)="onClickCheckbox(node)" medium-gray item-left>
+            <ion-checkbox [ngModel]="isChecked(folderItems[i])" (click)="onClickCheckbox(folderItems[i])" medium-gray item-left>
             </ion-checkbox>
         </ion-item>
-        <ion-item class="library-empty-folder-message" *ngIf="folderPath.length > 1 && !folderItems.length">
+        <ion-item class="library-empty-folder-message" *ngIf="folderIsEmpty()">
             <h2>This folder is empty</h2>
         </ion-item>
     </ion-list>
 </ion-content>
 
 <div class="buttonbar5" *ngIf="checkedNodes.length">
-    <button outline (click)="onClickUp()" [disabled]="folderItems.length < 2 || checkedNodes.length !== 1" ion-row center>
+    <button outline (click)="onClickUp()" [disabled]="cannotClickUp()" ion-row
+    center>
         <ion-col>
             <ion-icon name="arrow-up"></ion-icon>
             <br> Up
             <br>
         </ion-col>
     </button>
-    <button outline (click)="onClickDown()" [disabled]="folderItems.length < 2 || checkedNodes.length !== 1" ion-row center>
+    <button outline (click)="onClickDown()" [disabled]="cannotClickDown()" ion-row
+    center>
         <ion-col>
             <ion-icon name="arrow-down"></ion-icon>
             <br> Down

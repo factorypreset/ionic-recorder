@@ -89,7 +89,7 @@ export class RecordPage {
                 (getError: any) => {
                     console.log('getProperty error: ' + getError);
                 }
-            ); // getProperty().subscribe(    
+            ); // getProperty().subscribe(
         }; // webAudio.onStop = (blob: Blob) => { ...
 
         // start volume monitoring infinite loop

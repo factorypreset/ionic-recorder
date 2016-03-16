@@ -8,13 +8,15 @@ import {AddFolderPage} from '../add-folder/add-folder';
 import {prependArray} from '../../providers/utils/utils';
 
 
+
 @Page({
     templateUrl: 'build/pages/library/library.html'
 })
 export class LibraryPage {
     private folderPath: string = '';
     private folderNode: TreeNode = null;
-    private folderItems: TreeNode[] = [];
+    // folderItems is a (typed) dictionary
+    private folderItems: { [id: string]: TreeNode; } = {};
     private checkedNodes = [];
 
     private localDB: LocalDB = LocalDB.Instance;
@@ -26,8 +28,26 @@ export class LibraryPage {
         console.log('constructor():LibraryPage');
     }
 
+    folderItemsKeys() {
+        return Object.keys(this.folderItems);
+    }
+
+    folderIsEmpty() {
+        return this.folderPath.length > 1 && !this.folderItemsKeys().length;
+    }
+
+    cannotClickUp() {
+        return this.folderItemsKeys().length < 2 ||
+            this.checkedNodes.length !== 1;
+    }
+
+    cannotClickDown() {
+        return this.folderItemsKeys().length < 2 ||
+            this.checkedNodes.length !== 1;
+    }
+
     // onPageWillEnter
-    // Ionic Life Cycle Hooks: 
+    // Ionic Life Cycle Hooks:
     // https://webcake.co/page-lifecycle-hooks-in-ionic-2/
     onPageWillEnter() {
         // switch folders, via AppState
@@ -59,23 +79,28 @@ export class LibraryPage {
     switchFolder(key: number, updateState: boolean) {
         console.log('switchFolder(' + key + ', ' + updateState + ') -- ' +
             this.checkedNodes.length);
+        // we read all child nodes of the folder we're switching to in order
+        // to fill up this.folderItems
         this.localDB.readChildNodes(key).subscribe(
             (childNodes: TreeNode[]) => {
-                // this.folderItems = childNodes;
-                this.folderItems = [];
+                this.folderItems = {};
                 // we found all children of the node we're traversing to (key)
                 for (let i in childNodes) {
-                    let node: TreeNode = childNodes[i];
-                    if ((key === DB_NO_KEY) && !this.localDB.isFolderNode(node)) {
-                        // we're looking at the root folder and there
-                        // we only show folders, we don't allow non-folder
-                        // items tjat reside in the root folder
+                    let childNode: TreeNode = childNodes[i],
+                        childKey: number = childNode[DB_KEY_PATH];
+                    if ((key === DB_NO_KEY) &&
+                        // root folder special case filter - only show folders
+                        // because we may store non-folder items there (such as
+                        // app state) that aren't for display
+                        this.localDB.isDataNode(childNode)) {
                         continue;
                     }
-                    this.folderItems.push(childNodes[i]);
+                    this.folderItems[childKey.toString()] = childNode;
                 }
-                console.log('found ' + this.folderItems.length + ' items');
-                // console.dir(this.folderItems);
+                console.log('found ' + Object.keys(this.folderItems).length +
+                    ' items');
+
+                // for non-root folders, we set this.folderNode here
                 if (key !== DB_NO_KEY) {
                     this.localDB.readNode(key).subscribe(
                         (node: TreeNode) => {
@@ -90,6 +115,7 @@ export class LibraryPage {
                     ); // readNode().subscribe(
                 }
 
+                // get the path
                 this.localDB.getNodePath(key).subscribe(
                     (path: string) => {
                         console.log('path === ' + path);
@@ -100,6 +126,7 @@ export class LibraryPage {
                     }
                 ); // getNodePath().subscribe(
 
+                // update last viewed folder state in DB
                 if (updateState) {
                     this.appState.updateProperty('lastViewedFolderKey', key)
                         .subscribe(
@@ -125,7 +152,7 @@ export class LibraryPage {
         let nodeKey: number = node[DB_KEY_PATH],
             i: number = this.checkedNodes.indexOf(nodeKey);
         if (i === -1) {
-            // node is not checked    
+            // node is not checked
             // add to list of checked nodes
             this.checkedNodes.push(nodeKey);
         }
@@ -175,10 +202,27 @@ export class LibraryPage {
                 console.log('got data back: ' + data);
                 this.localDB.createFolderNode(data, parentKey).subscribe(
                     (node: TreeNode) => {
-                        this.folderItems = prependArray(
-                            node,
-                            this.folderItems
-                        );
+                        let nodeKey: number = node[DB_KEY_PATH];
+
+                        // update folder items dictionary
+                        this.folderItems[nodeKey.toString()] = node;
+                        /*
+                        // we push newly created nodes to the front of
+                        // the parent childOrder list
+                        this.folderNode.childOrder = prependArray(
+                            nodeKey, this.folderNode.childOrder);
+
+                        // update the parent node w/new childOrder in db
+                        // but there's no parent node for root in db
+                        if (this.folderNode[DB_KEY_PATH] != DB_NO_KEY) {
+                            this.localDB.updateNode(this.folderNode).subscribe(
+                                () => { },
+                                (error: any) => {
+                                    alert('in updateNode: ' + error);
+                                }
+                            ); // updateNode().subscribe(
+                        }
+                        */
                     },
                     (error: any) => {
                         alert('in createFolderNode: ' + error);

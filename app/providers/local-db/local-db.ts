@@ -15,7 +15,7 @@ const STORE_EXISTS_ERROR_CODE: number = 0;
 
 // use MAX_DB_INIT_TIME in setTimeout() calls after
 // initializing DB.  This value is the longest we allow
-// the DB to initialize.  If DB does not initialize 
+// the DB to initialize.  If DB does not initialize
 // under this time (in msec) then some error will occur
 export const MAX_DB_INIT_TIME = 600;
 export const DB_NAME: string = 'ionic-recorder-db';
@@ -84,8 +84,12 @@ export class LocalDB {
         );
     }
 
+    isDataNode(node: TreeNode) {
+        return this.validateKey(node.dataKey);
+    }
+
     isFolderNode(node: TreeNode) {
-        return !this.validateKey(node.dataKey);
+        return !this.isDataNode(node);
     }
 
     // always returns an object with a 'data' field (a DataNode)
@@ -113,7 +117,7 @@ export class LocalDB {
 
     waitForDB() {
         // NOTE: MAX_DB_INIT_TIME / 10
-        // Check in the console how many times we loop here - 
+        // Check in the console how many times we loop here -
         // it shouldn't be much more than a handful
         let source: Observable<IDBDatabase> = Observable.create((observer) => {
             let repeat = () => {
@@ -653,7 +657,7 @@ export class LocalDB {
     //   8	readOrCreateFolderNode
     //   9	updateNode
     //   10	updateNodeData
-    // NOTE: Public API functions are already wrapped with waitForDB() 
+    // NOTE: Public API functions are already wrapped with waitForDB()
     // because getStore() is!
     ///////////////////////////////////////////////////////////////////////////
 
@@ -689,7 +693,7 @@ export class LocalDB {
                                     'In createDataStoreItem:' + error);
                             }
                         ); // createDataStoreItem().subscribe(
-                    } // if (nodeInParent) { ... else { 
+                    } // if (nodeInParent) { ... else {
                 },
                 (error) => {
                     observer.error('in readNodeByNameInParent: ' + error);
