@@ -201,34 +201,16 @@ export class LibraryPage {
 
         this.navController.present(addFolderModal);
 
-        addFolderModal.onDismiss(data => {
-            if (data) {
+        addFolderModal.onDismiss(folderName => {
+            if (folderName) {
                 // data is new folder's name returned from addFolderModal
-                console.log('got data back: ' + data);
-                this.localDB.createFolderNode(data, parentKey).subscribe(
-                    (node: TreeNode) => {
-                        let nodeKey: number = node[DB_KEY_PATH];
-
-                        // update folder items dictionary
-                        this.folderItems[nodeKey.toString()] = node;
-                        console.log('folderNode.childOrder');
-                        console.dir(this.folderNode.childOrder);
-                        // push newly created nodes to the front of
-                        // the parent childOrder list
-                        this.folderNode.childOrder = prependArray(
-                            nodeKey, this.folderNode.childOrder);
-
-                        // update the parent node w/new childOrder in db
-                        // but there's no parent node for root in db
-                        if (this.folderNode[DB_KEY_PATH] != DB_NO_KEY) {
-                            this.localDB.updateNode(this.folderNode).subscribe(
-                                () => { },
-                                (error: any) => {
-                                    alert('in updateNode: ' + error);
-                                }
-                            ); // updateNode().subscribe(
-                        }
-                        
+                console.log('got folderName back: ' + folderName);
+                // create a node for added folder childNode
+                this.localDB.createFolderNode(folderName, parentKey).subscribe(
+                    (childNode: TreeNode) => {
+                        let childNodeKey: number = childNode[DB_KEY_PATH];
+                        // update folder items dictionary of this page
+                        this.folderItems[childNodeKey.toString()] = childNode;
                     },
                     (error: any) => {
                         alert('in createFolderNode: ' + error);
@@ -347,17 +329,19 @@ export class LibraryPage {
     }
 
     onClickTrashButton() {
-
         let alert = Alert.create(),
             len: number = this.checkedNodesKeys().length;
         alert.setTitle([
+            // TODO: improve this message to include a list of
+            // all folders you're about to delete, you cancel
+            // probably put an <ion-scroll> here.
             'Permanently delete ',
-            len.toString(),
+            len > 1 && len.toString() || '',
             ' item',
             len > 1 && 's' || '',
             ' and all ',
             len > 1 && 'their' || 'its',
-            ' content / data?'
+            ' data?'
         ].join(''));
         alert.addButton('Cancel');
         alert.addButton({

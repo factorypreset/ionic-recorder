@@ -1,5 +1,7 @@
 # TODO.md
 
+* We're doing childOrder - making it transparent and internal - it all happens 
+  in local-db.ts automatically on node creation in parent
 * stop using toString() on keys by making sure all keys are strings from
   the start (make them a string field in TreeNode)
 * Make the scss classes more uniform - try to wrap each component html
