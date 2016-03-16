@@ -19,7 +19,7 @@
 </span>
 
 <div class="buttonbar4">
-    <button outline (click)="checkedNodes = []" ion-row center>
+    <button almost-dark (click)="checkedNodes = []" ion-row center>
         <ion-col>
             <ion-icon name="radio-button-off"></ion-icon>
             <ion-icon name="md-arrow-dropdown"></ion-icon>
@@ -27,7 +27,7 @@
             <br>
         </ion-col>
     </button>
-    <button outline (click)="goToParent()" [disabled]="folderPath === '/'" ion-row center>
+    <button almost-dark (click)="goToParent()" [disabled]="folderPath === '/'" ion-row center>
         <ion-col>
             <ion-icon name="arrow-up"></ion-icon>
             <ion-icon name="folder"></ion-icon>
@@ -35,7 +35,7 @@
             <br>
         </ion-col>
     </button>
-    <button outline (click)="onClickAdd()" ion-row center>
+    <button almost-dark (click)="onClickAdd()" ion-row center>
         <ion-col>
             <ion-icon name="md-add"></ion-icon>
             <ion-icon name="folder"></ion-icon>
@@ -43,7 +43,7 @@
             <br>
         </ion-col>
     </button>
-    <button outline (click)="checkedNodes.push(1)" ion-row center>
+    <button almost-dark (click)="checkedNodes.push(1)" ion-row center>
         <ion-col>
             <ion-icon name="folder"></ion-icon>
             <ion-icon name="information-circle"></ion-icon>
@@ -76,7 +76,7 @@
 </ion-content>
 
 <div class="buttonbar5" *ngIf="checkedNodes.length">
-    <button outline (click)="onClickUp()" [disabled]="cannotClickUp()" ion-row
+    <button almost-dark (click)="onClickUp()" [disabled]="cannotClickUp()" ion-row
     center>
         <ion-col>
             <ion-icon name="arrow-up"></ion-icon>
@@ -84,7 +84,7 @@
             <br>
         </ion-col>
     </button>
-    <button outline (click)="onClickDown()" [disabled]="cannotClickDown()" ion-row
+    <button almost-dark (click)="onClickDown()" [disabled]="cannotClickDown()" ion-row
     center>
         <ion-col>
             <ion-icon name="arrow-down"></ion-icon>
@@ -92,21 +92,21 @@
             <br>
         </ion-col>
     </button>
-    <button outline (click)="onClickMove()" ion-row center>
+    <button almost-dark (click)="onClickMove()" ion-row center>
         <ion-col>
             <ion-icon name="move"></ion-icon>
             <br> Move
             <br>
         </ion-col>
     </button>
-    <button outline (click)="onClickTrash()" ion-row center>
+    <button almost-dark (click)="onClickTrash()" ion-row center>
         <ion-col>
             <ion-icon name="trash"></ion-icon>
             <br> Trash
             <br>
         </ion-col>
     </button>
-    <button outline (click)="onClickShare()" ion-row center>
+    <button almost-dark (click)="onClickShare()" ion-row center>
         <ion-col>
             <ion-icon name="share"></ion-icon>
             <br> Share
