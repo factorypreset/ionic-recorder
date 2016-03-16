@@ -1,5 +1,10 @@
 # TODO.md
 
+* stop using toString() on keys by making sure all keys are strings from
+  the start (make them a string field in TreeNode)
+* Make the scss classes more uniform - try to wrap each component html
+  template with one class that has the component's name, then take it from
+  there, always using things within that "namespace"
 * start implementing the buttons, one by one, from top left to bottom right
 * Create a class named LocalDBCache that has only the functions exported by
   LocalDB and used elsewhere in the app but wraps them with a cache layer

@@ -194,16 +194,16 @@ export class LibraryPage {
         // note we consider the current folder (this.folderNode) the parent
         let parentKey: number =
             this.folderNode ? this.folderNode[DB_KEY_PATH] : DB_NO_KEY,
-            modal = Modal.create(AddFolderPage, {
+            addFolderModal = Modal.create(AddFolderPage, {
                 parentPath: this.folderPath,
                 parentItems: this.folderItems
             });
 
-        this.navController.present(modal);
+        this.navController.present(addFolderModal);
 
-        modal.onDismiss(data => {
+        addFolderModal.onDismiss(data => {
             if (data) {
-                // data is new folder's name
+                // data is new folder's name returned from addFolderModal
                 console.log('got data back: ' + data);
                 this.localDB.createFolderNode(data, parentKey).subscribe(
                     (node: TreeNode) => {
@@ -211,8 +211,9 @@ export class LibraryPage {
 
                         // update folder items dictionary
                         this.folderItems[nodeKey.toString()] = node;
-                        /*
-                        // we push newly created nodes to the front of
+                        console.log('folderNode.childOrder');
+                        console.dir(this.folderNode.childOrder);
+                        // push newly created nodes to the front of
                         // the parent childOrder list
                         this.folderNode.childOrder = prependArray(
                             nodeKey, this.folderNode.childOrder);
@@ -227,7 +228,7 @@ export class LibraryPage {
                                 }
                             ); // updateNode().subscribe(
                         }
-                        */
+                        
                     },
                     (error: any) => {
                         alert('in createFolderNode: ' + error);

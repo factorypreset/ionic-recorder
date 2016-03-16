@@ -53,8 +53,8 @@ export class AppState {
                     }
                     ); // readOrCreateFolderNode().su ...
             },
-            (rcDataError: any) => {
-                throw new Error(rcDataError);
+            (error: any) => {
+                throw new Error(error);
             }
             ); // readOrCreateDataNode().subscribe(
     }
@@ -75,7 +75,7 @@ export class AppState {
                     observer.complete();
                 }
                 else {
-                    console.log('... no STATE yet ...');
+                    console.warn('... no STATE yet ...');
                     setTimeout(repeat, MAX_DB_INIT_TIME / 10);
                 }
             };
@@ -99,8 +99,8 @@ export class AppState {
                     observer.next(this.dataNode.data[propertyName]);
                     observer.complete();
                 },
-                (waitError: any) => {
-                    observer.error(waitError);
+                (error: any) => {
+                    observer.error(error);
                 }
             ); // waitForDB().subscribe(
         });
@@ -153,7 +153,7 @@ export class AppState {
                 (error) => {
                     alert('error waiting for app state: ' + error);
                 }
-            );
+            ); // waitForAppState().subscribe(
         });
         return source;
     }

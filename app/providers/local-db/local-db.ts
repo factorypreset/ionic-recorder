@@ -34,7 +34,7 @@ export interface TreeNode {
     parentKey: number;
     dataKey: number;
     timestamp: number;
-    childOrder: number[];
+    childOrder?: number[];
 }
 
 @Injectable()
@@ -54,14 +54,9 @@ export class LocalDB {
                 this.db = db;
             },
             (error: any) => {
-                alert('in openDB: ' + error);
+                console.error('in openDB: ' + error);
             }
         );
-
-        // useless self-validation
-        if (this.validateKey(DB_NO_KEY)) {
-            alert('a terrible mistake has happened');
-        }
     }
 
     // Singleton pattern implementation
@@ -106,13 +101,20 @@ export class LocalDB {
 
     // this function is the only way new nodes in the tree are to be created
     makeTreeNode(name: string, parentKey: number, dataKey: number): TreeNode {
-        return {
+        let treeNode: TreeNode = {
             name: name,
             parentKey: parentKey,
             dataKey: dataKey,
-            timestamp: Date.now(),
-            childOrder: []
-        };
+            timestamp: Date.now()
+        }
+        // making dataKey === DB_NO_KEY is how we signal to makeTreeNode
+        // that we're making a folder node - TODO: split this function into
+        // two: one to make a data node and one to make a folder node, 
+        // explicitly
+        if (dataKey === DB_NO_KEY) {
+            treeNode.childOrder = [];
+        }
+        return treeNode;
     };
 
     waitForDB() {
@@ -126,7 +128,7 @@ export class LocalDB {
                     observer.complete();
                 }
                 else {
-                    console.log('... no DB yet ...');
+                    console.warn('... no DB yet ...');
                     setTimeout(repeat, MAX_DB_INIT_TIME / 10);
                 }
             };
@@ -147,12 +149,10 @@ export class LocalDB {
             };
 
             openRequest.onerror = (event: IDBErrorEvent) => {
-                alert('in openRequest.onerror');
                 observer.error('in openRequest.onerror');
             };
 
             openRequest.onblocked = (event: IDBErrorEvent) => {
-                alert('in openRequest.onblocked');
                 observer.error('in openRequest.onblocked');
             };
 
@@ -183,7 +183,6 @@ export class LocalDB {
                     let ex: DOMException = error;
                     if (ex.code !== STORE_EXISTS_ERROR_CODE) {
                         // ignore 'store already exists' error
-                        alert('in openRequest.onupgradeended: ' + ex.message);
                         observer.error('in openRequest.onupgradeended: ' +
                             ex.message);
                     }
@@ -209,7 +208,6 @@ export class LocalDB {
                         observer.complete();
                     },
                     (error) => {
-                        alert('in waitForDB: ' + error);
                         observer.error('in waitForDB: ' + error);
                     }
                 ); // waitForDB().subscribe(
@@ -236,7 +234,6 @@ export class LocalDB {
                     observer.complete();
                 },
                 (error) => {
-                    alert('in getStore: ' + error);
                     observer.error('in getStore: ' + error);
                 }
             ); // getStore().subscribe(
@@ -252,12 +249,9 @@ export class LocalDB {
     createStoreItem(storeName: string, item: any) {
         let source: Observable<any> = Observable.create((observer) => {
             if (!item) {
-                alert('Cannot add falsy item');
                 observer.error('Cannot add falsy item');
             }
             else if (item[DB_KEY_PATH]) {
-                alert('Cannot create store item with property "' +
-                    DB_KEY_PATH + '"');
                 observer.error('Cannot create store item with property "' +
                     DB_KEY_PATH + '"');
             }
@@ -271,12 +265,10 @@ export class LocalDB {
                             observer.complete();
                         };
                         addRequest.onerror = (event: IDBEvent) => {
-                            alert('in addRequest.onerror');
                             observer.error('in addRequest.onerror');
                         };
                     },
                     (error) => {
-                        alert('in getStore: ' + error);
                         observer.error('in getStore: ' + error);
                     }
                 ); // getStore().subscribe(
@@ -289,7 +281,6 @@ export class LocalDB {
     readStoreItem(storeName: string, key: number) {
         let source: Observable<any> = Observable.create((observer) => {
             if (!this.validateKey(key)) {
-                alert('invalid key');
                 observer.error('invalid key');
             }
             else {
@@ -312,7 +303,6 @@ export class LocalDB {
                                 }
                             }
                             if (mismatchOccured) {
-                                alert('key mismatch');
                                 observer.error('key mismatch');
                             }
                             else {
@@ -322,12 +312,10 @@ export class LocalDB {
                         };
 
                         getRequest.onerror = (event: IDBErrorEvent) => {
-                            alert('in getRequest.onerror');
                             observer.error('in getRequest.onerror');
                         };
                     },
                     (error) => {
-                        alert('in getStore: ' + error);
                         observer.error('in getStore: ' + error);
                     }
                 ); // getStore().subscribe(
@@ -340,7 +328,6 @@ export class LocalDB {
     updateStoreItem(storeName: string, key: number, newItem: any) {
         let source: Observable<boolean> = Observable.create((observer) => {
             if (!this.validateKey(key)) {
-                alert('invalid key');
                 observer.error('invalid key');
             }
             else {
@@ -374,14 +361,12 @@ export class LocalDB {
 
                                 putRequest.onerror =
                                     (event: IDBErrorEvent) => {
-                                        alert('put request');
                                         observer.error('put request');
                                     };
                             }
                         }; // getRequest.onsuccess =
 
                         getRequest.onerror = (event: IDBErrorEvent) => {
-                            alert('get request 2');
                             observer.error('get request 2');
                         };
                     },
@@ -407,7 +392,6 @@ export class LocalDB {
                     };
 
                     deleteRequest.onerror = (event: IDBErrorEvent) => {
-                        alert('delete request');
                         observer.error('delete request');
                     };
                 },
@@ -513,7 +497,6 @@ export class LocalDB {
                         }
                     };
                     cursorRequest.onerror = (event: IDBErrorEvent) => {
-                        alert('cursor 1');
                         observer.error('cursor 1');
                     };
                 },
@@ -608,7 +591,6 @@ export class LocalDB {
                         }
                     };
                     cursorRequest.onerror = (event: IDBErrorEvent) => {
-                        alert('in cursorRequest.onerror');
                         observer.error('in cursorRequest.onerror');
                     };
                 },
@@ -668,10 +650,8 @@ export class LocalDB {
             // non falsy data supplied, store it in the data table first
             this.readNodeByNameInParent(name, parentKey).subscribe(
                 (nodeInParent: TreeNode) => {
-                    if (nodeInParent) {
-                        observer.error('unique name violation 2');
-                    }
-                    else {
+                    if (!nodeInParent) {
+                        // data node does not yet exist in parent, create it
                         this.createDataStoreItem(data).subscribe(
                             (dataNode: DataNode) => {
                                 this.createTreeStoreItem(
@@ -693,7 +673,10 @@ export class LocalDB {
                                     'In createDataStoreItem:' + error);
                             }
                         ); // createDataStoreItem().subscribe(
-                    } // if (nodeInParent) { ... else {
+                    } // if (!nodeInParent)
+                    else {
+                        observer.error('unique name violation 2');
+                    }
                 },
                 (error) => {
                     observer.error('in readNodeByNameInParent: ' + error);

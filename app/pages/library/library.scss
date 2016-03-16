@@ -47,7 +47,7 @@ div.buttonbar4, div.buttonbar5 {
 ion-alert {
     color: map-get($colors , light);
     // background color is of the backdrop
-    background-color: map-get($colors, black);
+    background-color: map-get($colors, dark);
     // opacity here is of the backdrop
     opacity: 0.9;
     .alert-wrapper {
