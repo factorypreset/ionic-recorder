@@ -8,7 +8,6 @@ import {AddFolderPage} from '../add-folder/add-folder';
 import {prependArray} from '../../providers/utils/utils';
 
 
-
 @Page({
     templateUrl: 'build/pages/library/library.html'
 })

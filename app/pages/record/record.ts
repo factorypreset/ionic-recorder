@@ -89,11 +89,11 @@ export class RecordPage {
         }; // webAudio.onStop = (blob: Blob) => { ...
 
         // start volume monitoring infinite loop
-        this.monitorVolume();
+        this.monitorVolumeAndTime();
     }
 
-    monitorVolume() {
-        console.log('monitorVolume()');
+    monitorVolumeAndTime() {
+        console.log('monitorVolumeAndTime()');
         this.totalPauseTime = this.monitorTotalTime = this.lastPauseTime = 0;
         this.monitorStartTime = Date.now();
 
