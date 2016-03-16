@@ -76,11 +76,7 @@ export class RecordPage {
                         unfiledFolderKey,
                         blob
                     ).subscribe(
-                        () => {
-                            // we're done, refresh window
-                            window.getComputedStyle(
-                                document.getElementById('body'));
-                        },
+                        () => { },
                         (error: any) => {
                             alert('create data node error: ' + error);
                         }
