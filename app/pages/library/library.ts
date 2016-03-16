@@ -275,7 +275,7 @@ export class LibraryPage {
             if (!all && isChecked) {
                 changed = true;
                 // checked, uncheck it
-                delete this.checkedNodes[itemKey.toString()]
+                delete this.checkedNodes[itemKey.toString()];
             }
         }
         if (changed) {
@@ -338,7 +338,7 @@ export class LibraryPage {
         alert.addButton({
             text: 'Ok',
             handler: data => {
-                this.unselectItemsNotInThisFolder()
+                this.unselectItemsNotInThisFolder();
                 // go through checked nodes and if they are not in
                 // folder items, uncheck them
             }
