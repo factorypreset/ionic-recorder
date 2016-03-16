@@ -10,7 +10,7 @@ interface State {
     lastViewedFolderKey: number;
     unfiledFolderName: string;
     unfiledFolderKey: number;
-    checkedNodes: number[];
+    checkedNodes: { [id: string]: boolean };
 }
 
 // make sure APP_STATE_ITEM_NAME will never be entered by a user
@@ -21,7 +21,7 @@ const DEFAULT_STATE: State = {
     lastViewedFolderKey: DB_NO_KEY,
     unfiledFolderName: 'Unfiled',
     unfiledFolderKey: DB_NO_KEY,
-    checkedNodes: []
+    checkedNodes: {}
 };
 
 @Injectable()

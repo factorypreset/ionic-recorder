@@ -1,6 +1,6 @@
 // Copyright (C) 2015, 2016 Tracktunes Inc
 
-import {Page, NavController, Platform, Modal} from 'ionic-angular';
+import {Page, NavController, Platform, Modal, Alert} from 'ionic-angular';
 import {LocalDB, TreeNode, DB_NO_KEY, DB_KEY_PATH}
 from '../../providers/local-db/local-db';
 import {AppState} from '../../providers/app-state/app-state';
@@ -16,7 +16,7 @@ export class LibraryPage {
     private folderNode: TreeNode = null;
     // folderItems is a (typed) dictionary
     private folderItems: { [id: string]: TreeNode; } = {};
-    private checkedNodes = [];
+    private checkedNodes: { [id: string]: boolean; } = {};
 
     private localDB: LocalDB = LocalDB.Instance;
     private appState: AppState = AppState.Instance;
@@ -35,14 +35,18 @@ export class LibraryPage {
         return this.folderPath.length > 1 && !this.folderItemsKeys().length;
     }
 
+    nCheckedNodes() {
+        return Object.keys(this.checkedNodes).length;
+    }
+
     cannotClickUp() {
         return this.folderItemsKeys().length < 2 ||
-            this.checkedNodes.length !== 1;
+            this.nCheckedNodes() !== 1;
     }
 
     cannotClickDown() {
         return this.folderItemsKeys().length < 2 ||
-            this.checkedNodes.length !== 1;
+            this.nCheckedNodes() !== 1;
     }
 
     // onPageWillEnter
@@ -55,7 +59,7 @@ export class LibraryPage {
                 console.log('lib page entered, to: ' + key);
                 this.switchFolder(key, false);
                 this.appState.getProperty('checkedNodes').subscribe(
-                    (checkedNodes: number[]) => {
+                    (checkedNodes: { [id: string]: boolean }) => {
                         this.checkedNodes = checkedNodes;
                         if (!checkedNodes) {
                             alert('no checked nodes! ' + checkedNodes);
@@ -77,7 +81,7 @@ export class LibraryPage {
     // property 'lastViewedFolderKey'
     switchFolder(key: number, updateState: boolean) {
         console.log('switchFolder(' + key + ', ' + updateState + ') -- ' +
-            this.checkedNodes.length);
+            this.nCheckedNodes());
         // we read all child nodes of the folder we're switching to in order
         // to fill up this.folderItems
         this.localDB.readChildNodes(key).subscribe(
@@ -143,22 +147,21 @@ export class LibraryPage {
     }
 
     isChecked(node: TreeNode) {
-        return this.checkedNodes.indexOf(node[DB_KEY_PATH]) !== -1;
+        return this.checkedNodes[node[DB_KEY_PATH].toString()];
     }
 
     onClickCheckbox(node: TreeNode) {
         console.log('onClickCheckbox()');
         let nodeKey: number = node[DB_KEY_PATH],
-            i: number = this.checkedNodes.indexOf(nodeKey);
-        if (i === -1) {
-            // node is not checked
-            // add to list of checked nodes
-            this.checkedNodes.push(nodeKey);
+            isChecked: boolean = this.checkedNodes[nodeKey.toString()];
+
+        if (isChecked) {
+            // uncheck it
+            delete this.checkedNodes[nodeKey.toString()];
         }
         else {
-            // node is checked
-            // remove from list of checked nodes
-            this.checkedNodes.splice(i, 1);
+            // uot checked, check it
+            this.checkedNodes[nodeKey.toString()] = true;
         }
 
         // update state with new list of checked nodes
@@ -171,20 +174,20 @@ export class LibraryPage {
             ); // updateProperty().subscribe
     }
 
-    onClickItem(node: TreeNode) {
+    onClickListItem(node: TreeNode) {
         console.log('onClickItem(' + node.name + ') ' + node[DB_KEY_PATH]);
         if (this.localDB.isFolderNode(node)) {
             this.switchFolder(node[DB_KEY_PATH], true);
         }
     }
 
-    goToParent() {
+    onClickParentButton() {
         if (this.folderNode) {
             this.switchFolder(this.folderNode.parentKey, true);
         }
     }
 
-    onClickAdd() {
+    onClickAddButton() {
         // note we consider the current folder (this.folderNode) the parent
         let parentKey: number =
             this.folderNode ? this.folderNode[DB_KEY_PATH] : DB_NO_KEY,
@@ -234,6 +237,61 @@ export class LibraryPage {
                 return;
             }
         });
+    }
+
+    onClickInfoButton() {
+    }
+
+    getFolderName() {
+        if (this.folderNode) {
+            return this.folderNode.name;
+        }
+        else {
+            return '/';
+        }
+    }
+
+    selectAllInFolder() {
+        // go through all folderItems
+        // for each one, ask if it's in checkedNodes
+        // for this to work, we need to make checkedNodes a dictionary
+    }
+
+    selectNoneInFolder() {
+        // go through all folderItems
+        // for each one, remove it from checkedNodes
+        // for this to work, we need to make checkedNodes a dictionary
+    }
+
+    onClickSelect() {
+        let alert = Alert.create();
+        alert.setTitle('In folder ' + this.getFolderName() +
+            ', select ...');
+        alert.addInput({
+            type: 'radio',
+            label: 'All',
+            value: 'all'
+        });
+        alert.addInput({
+            type: 'radio',
+            label: 'None',
+            value: 'none'
+        });
+        alert.addButton('Cancel');
+        alert.addButton({
+            text: 'OK',
+            handler: (selection: string) => {
+                console.log('handler called with data: ' + selection);
+                if (selection === 'all') {
+                    this.selectAllInFolder();
+                }
+                else if (selection === 'none') {
+                    this.selectNoneInFolder();
+                }
+            }
+        });
+
+        this.navController.present(alert).then();
     }
 
 }

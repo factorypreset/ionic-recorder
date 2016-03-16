@@ -165,7 +165,7 @@ export function main(): void {
             });
 
         it('can read or create ' + UNFILED_FOLDER_NAME +
-            ' folder (at root) again',
+                ' folder (at root) again',
             (done) => {
                 setTimeout(() => {
                     localDB.readOrCreateFolderNode(
