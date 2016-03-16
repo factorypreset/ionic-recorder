@@ -100,8 +100,7 @@ export class LibraryPage {
                     }
                     this.folderItems[childKey.toString()] = childNode;
                 }
-                console.log('found ' + Object.keys(this.folderItems).length +
-                    ' items');
+                console.log('found ' + this.folderItemsKeys() + ' items');
 
                 // for non-root folders, we set this.folderNode here
                 if (key !== DB_NO_KEY) {
@@ -251,19 +250,51 @@ export class LibraryPage {
         }
     }
 
-    selectAllInFolder() {
+    selectAllOrNoneInFolder(all: boolean) {
         // go through all folderItems
         // for each one, ask if it's in checkedNodes
         // for this to work, we need to make checkedNodes a dictionary
+        let folderItemsKeys = this.folderItemsKeys(), changed: boolean = false,
+            i: number, key: string, itemNode: TreeNode, itemKey: number;
+        for (i = 0; i < folderItemsKeys.length; i++) {
+            key = folderItemsKeys[i];
+            itemNode = this.folderItems[key];
+            itemKey = itemNode[DB_KEY_PATH];
+
+            let isChecked: boolean = this.checkedNodes[itemKey.toString()];
+
+            if (all && !isChecked) {
+                changed = true;
+                // not checked, check it
+                this.checkedNodes[itemKey.toString()] = true;
+            }
+            if (!all && isChecked) {
+                changed = true;
+                // checked, uncheck it
+                delete this.checkedNodes[itemKey.toString()]
+            }
+        }
+        if (changed) {
+            // update state with new list of checked nodes
+            this.appState.updateProperty('checkedNodes',
+                this.checkedNodes).subscribe(
+                () => { },
+                (error: any) => {
+                    alert('in updateProperty: ' + error);
+                }
+                ); // updateProperty().subscribe
+        }
+    }
+
+    selectAllInFolder() {
+        this.selectAllOrNoneInFolder(true);
     }
 
     selectNoneInFolder() {
-        // go through all folderItems
-        // for each one, remove it from checkedNodes
-        // for this to work, we need to make checkedNodes a dictionary
+        this.selectAllOrNoneInFolder(false);
     }
 
-    onClickSelect() {
+    onClickSelectButton() {
         let alert = Alert.create();
         alert.setTitle('In folder ' + this.getFolderName() +
             ', select ...');
