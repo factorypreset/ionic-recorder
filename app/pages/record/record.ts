@@ -31,7 +31,7 @@ export class RecordPage {
     private recordingTime: string;
     private recordButtonIcon: string;
     private gain: number;
-    private dB: string;
+    private decibels: string;
 
     // time related
     private monitorStartTime: number;
@@ -49,7 +49,7 @@ export class RecordPage {
 
         console.log('constructor():RecordPage');
         this.gain = 100;
-        this.dB = '0.00 dB';
+        this.decibels = '0.00 dB';
         this.sliderValue = 100;
         this.maxVolume = 0;
         this.peaksAtMax = 1;
@@ -88,12 +88,12 @@ export class RecordPage {
             ); // getProperty().subscribe(
         }; // webAudio.onStop = (blob: Blob) => { ...
 
-        // start volume monitoring infinite loop
-        this.monitorVolumeAndTime();
+        // start volume/time monitoring infinite loop
+        this.monitorVolumeAndTimeInfiniteLoop();
     }
 
-    monitorVolumeAndTime() {
-        console.log('monitorVolumeAndTime()');
+    monitorVolumeAndTimeInfiniteLoop() {
+        console.log('monitorVolumeAndTimeInfiniteLoop()');
         this.totalPauseTime = this.monitorTotalTime = this.lastPauseTime = 0;
         this.monitorStartTime = Date.now();
 
@@ -113,6 +113,7 @@ export class RecordPage {
                 timeNow = Date.now();
                 timeoutError = timeNow - this.monitorStartTime -
                     this.monitorTotalTime;
+
                 if (this.webAudio.isRecording()) {
                     this.recordingDuration = timeNow - this.recordStartTime -
                         this.totalPauseTime;
@@ -132,11 +133,11 @@ export class RecordPage {
         this.gain = (<RangeInputEventTarget>event.target).value;
         let factor: number = this.gain / 100.0;
         if (factor === 0) {
-            this.dB = 'Muted';
+            this.decibels = 'Muted';
         }
         else {
             // convert factor (a number in [0, 1]) to decibels
-            this.dB = num2str(10.0 * Math.log10(factor), 2) + ' dB';
+            this.decibels = num2str(10.0 * Math.log10(factor), 2) + ' dB';
         }
         this.webAudio.setGainFactor(factor);
     }
