@@ -1,12 +1,8 @@
 // Copyright (C) 2015, 2016 Tracktunes Inc
 
-import {DB_NAME, MAX_DB_INIT_TIME} from '../local-db/local-db';
+import {MAX_DB_INIT_TIME} from '../local-db/local-db';
 import {AppState} from './app-state';
 
-const RANDOM_WORD_1: string =
-    '1Wh9Xs5ytKuvEjdBhuLUVjED4dp5UPZd3QZFTLuejYNbuLvBVeP9Qq5xaBPAY7RE';
-const RANDOM_WORD_2: string =
-    '2Wh9Xs5ytKuvEjdBhuLUVjED4dp5UPZd3QZFTLuejYNbuLvBVeP9Qq5xaBPAY7RE';
 
 export function main(): void {
     'use strict';
@@ -37,6 +33,8 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
+        // reason we expect lastSelectedTab to be 0 is that in
+        // test mode we never select a tab so it remains on 0
         it('can read lastSelectedTab to be 0', (done) => {
             setTimeout(() => {
                 appState.getProperty('lastSelectedTab').subscribe(
