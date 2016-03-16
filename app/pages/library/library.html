@@ -5,13 +5,13 @@
         <ion-icon name="menu"></ion-icon>
     </button>
 
-    <ion-title>
-        Library &nbsp; &nbsp;
-        <ion-badge item-right>
-            {{checkedNodes.length}} selected
-        </ion-badge>
-    </ion-title>
+    <ion-title>Library</ion-title>
 
+    <ion-buttons end>
+        <ion-badge darkest-gray item-right>
+            Total selected: {{checkedNodes.length}}
+        </ion-badge>
+    </ion-buttons>
 </ion-navbar>
 
 <span class="library-page-path-message">
@@ -76,16 +76,14 @@
 </ion-content>
 
 <div class="buttonbar5" *ngIf="checkedNodes.length">
-    <button almost-dark (click)="onClickUp()" [disabled]="cannotClickUp()" ion-row
-    center>
+    <button almost-dark (click)="onClickUp()" [disabled]="cannotClickUp()" ion-row center>
         <ion-col>
             <ion-icon name="arrow-up"></ion-icon>
             <br> Up
             <br>
         </ion-col>
     </button>
-    <button almost-dark (click)="onClickDown()" [disabled]="cannotClickDown()" ion-row
-    center>
+    <button almost-dark (click)="onClickDown()" [disabled]="cannotClickDown()" ion-row center>
         <ion-col>
             <ion-icon name="arrow-down"></ion-icon>
             <br> Down
