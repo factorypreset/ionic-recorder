@@ -35,8 +35,12 @@ export class LibraryPage {
         return this.folderPath.length > 1 && !this.folderItemsKeys().length;
     }
 
+    checkedNodesKeys() {
+        return Object.keys(this.checkedNodes);
+    }
+
     nCheckedNodes() {
-        return Object.keys(this.checkedNodes).length;
+        return this.checkedNodesKeys().length;
     }
 
     cannotClickUp() {
@@ -296,7 +300,7 @@ export class LibraryPage {
 
     onClickSelectButton() {
         let alert = Alert.create();
-        alert.setTitle('Select in \'' + this.getFolderName() + '\'');
+        alert.setTitle('Select in <br>\'' + this.getFolderName() + '\'');
         alert.addInput({
             type: 'radio',
             label: 'All',
@@ -318,6 +322,47 @@ export class LibraryPage {
                 else if (selection === 'none') {
                     this.selectNoneInFolder();
                 }
+            }
+        });
+
+        this.navController.present(alert).then();
+    }
+
+    unselectItemsNotInThisFolder() {
+    }
+
+    askIfToUnselectItemsNotInThisFolder(message: string) {
+        let alert = Alert.create();
+        alert.setTitle(message);
+        alert.addButton('Cancel');
+        alert.addButton({
+            text: 'Ok',
+            handler: data => {
+                this.unselectItemsNotInThisFolder()
+                // go through checked nodes and if they are not in
+                // folder items, uncheck them
+            }
+        });
+    }
+
+    onClickTrashButton() {
+
+        let alert = Alert.create(),
+            len: number = this.checkedNodesKeys().length;
+        alert.setTitle([
+            'Permanently delete ',
+            len.toString(),
+            ' item',
+            len > 1 && 's' || '',
+            ' and all ',
+            len > 1 && 'their' || 'its',
+            ' content / data?'
+        ].join(''));
+        alert.addButton('Cancel');
+        alert.addButton({
+            text: 'Delete',
+            handler: data => {
+                console.log('deleting checked nodes ...');
             }
         });
 

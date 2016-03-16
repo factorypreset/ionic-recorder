@@ -1,5 +1,8 @@
 // Copyright (C) 2015, 2016 Tracktunes Inc
 
+// library.scss
+
+// the path text <span> above the buttons
 span.library-page-path-message {
     background-color: map-get($colors, almost-dark);
     color: $text-color;
@@ -13,32 +16,63 @@ span.library-page-path-message {
     margin: 0;
 } 
 
+// appearance of buttonbars
 div.buttonbar4, div.buttonbar5 {
+    // background-color is made same as navbars so that
+    // it all looks like one section around the content
     background-color: map-get($colors, almost-dark);
+    // align the group of all buttons in the middle of the page
     text-align: center;
+    // stretch the group of all buttons to fit the container element
     width: 100%;
+    // don't break into two lines
     white-space: nowrap;
     button {
+        // text and icon size
         font-size: 11px;
+        // button height
         height: 40px;
         ion-col {
+            // align stuff inside columns in the middle
             text-align: center;
             ion-icon {
-                /* margin-bottom controls the space between the icons and text */
+                // space between icons line and text line
                 margin-bottom: 3px;
             }
         }
     }
 }
 
+// general for all alerts shown by library page
+ion-alert {
+    color: map-get($colors , light);
+    // background color is of the backdrop
+    background-color: map-get($colors, black);
+    // opacity here is of the backdrop
+    opacity: 0.9;
+    .alert-wrapper {
+        // alert wrapper is the actual alert area, in it
+        // buttons were made transparent, so we set the
+        // alert's background color here
+        background: map-get($colors , dark-gray);
+    }
+}
+
+// four button bar
+// set width to be a little less than 25% or you get 
+// weird side effects 
 div.buttonbar4 button {
    width: 23%;
 }
 
+// five button bar
+// set width to be a little less than 20% or you get 
+// weird side effects 
 div.buttonbar5 button {
    width: 18.2%;
 }
 
+// control appearance of the text that says a folder is empty
 ion-content ion-list ion-item.library-empty-folder-message {
     text-align: center;
     color: map-get($colors, logo-red);

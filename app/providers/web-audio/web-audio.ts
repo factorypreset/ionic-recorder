@@ -30,8 +30,8 @@ export class WebAudio {
         }
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then((stream: MediaStream) => {
-                this.initMediaRecorder(stream);
                 this.connectNodes(stream);
+                this.initMediaRecorder(stream);
             })
             .catch((error: any) => {
                 // alert('getUserMedia() - ' + error.name + ' - ' + error.message);
@@ -67,14 +67,19 @@ export class WebAudio {
 
     connectNodes(stream: MediaStream) {
         this.sourceNode = this.audioContext.createMediaStreamSource(stream);
-        // this next line repeats microphone input to speaker output
-        // this.audioGainNode.connect(this.audioContext.destination);
         this.analyserNode = this.audioContext.createAnalyser();
         this.analyserNode.fftSize = 2048;
         this.analyserBufferLength = this.analyserNode.frequencyBinCount;
         this.analyserBuffer = new Uint8Array(this.analyserBufferLength);
-        // this.sourceNode.connect(analyser);
+
+        // source --> gain-node
         this.sourceNode.connect(this.audioGainNode);
+        // gain-node --> destination
+
+        // NOTE: uncommenting the line below and placing the mic next
+        // to an ongoing speaker can create some awesome feedback effects
+        // This next line repeats microphone input to speaker output
+        // this.audioGainNode.connect(this.audioContext.destination);
         this.audioGainNode.connect(this.analyserNode);
     }
 

@@ -74,36 +74,36 @@
     </ion-list>
 </ion-content>
 
-<div class="buttonbar5" *ngIf="checkedNodes.length">
-    <button almost-dark (click)="onClickUp()" [disabled]="cannotClickUp()" ion-row center>
+<div class="buttonbar5" *ngIf="nCheckedNodes()">
+    <button almost-dark (click)="onClickUpButton()" [disabled]="cannotClickUp()" ion-row center>
         <ion-col>
             <ion-icon name="arrow-up"></ion-icon>
             <br> Up
             <br>
         </ion-col>
     </button>
-    <button almost-dark (click)="onClickDown()" [disabled]="cannotClickDown()" ion-row center>
+    <button almost-dark (click)="onClickDownButton()" [disabled]="cannotClickDown()" ion-row center>
         <ion-col>
             <ion-icon name="arrow-down"></ion-icon>
             <br> Down
             <br>
         </ion-col>
     </button>
-    <button almost-dark (click)="onClickMove()" ion-row center>
+    <button almost-dark (click)="onClickMoveButton()" ion-row center>
         <ion-col>
             <ion-icon name="move"></ion-icon>
             <br> Move
             <br>
         </ion-col>
     </button>
-    <button almost-dark (click)="onClickTrash()" ion-row center>
+    <button almost-dark (click)="onClickTrashButton()" ion-row center>
         <ion-col>
             <ion-icon name="trash"></ion-icon>
             <br> Trash
             <br>
         </ion-col>
     </button>
-    <button almost-dark (click)="onClickShare()" ion-row center>
+    <button almost-dark (click)="onClickShareButton()" ion-row center>
         <ion-col>
             <ion-icon name="share"></ion-icon>
             <br> Share
