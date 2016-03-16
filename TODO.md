@@ -1,5 +1,18 @@
 # TODO.md
 
+* start implementing the buttons, one by one, from top left to bottom right
+* Create a class named LocalDBCache that has only the functions exported by
+  LocalDB and used elsewhere in the app but wraps them with a cache layer
+  that stores things in a local cache in memory.  We'll only need to replace
+  calls to LocalDB with identical calls in LocalDBCache in order to use the
+  cache.  This cache never expires and has no memory limit - assuming the
+  entire tree can typically fit in memory with no problem.  Since we can
+  add this class transparently at any time, we won't worry about cache (or
+  creating this function) yet - but this is a super duper performance
+  enhancer later on.  Right now we'll re-read from DB every time.  After
+  using this enhancement, we'll only ever read an item from the DB once.
+  It's best to write this later, after you've used the LocalDB API for a
+  while and have defined the interface solidly - we're almost there.
 * Instead of using tabs only for navigation now.  And we're not displaying them,
   ever.  We're only using them for navigtion.  So why not just use NavController?
   This way we'd "free" up a "real" tab bar to use in the library page.
