@@ -501,7 +501,6 @@ export class LocalDB {
             let nodes: TreeNode[] = [];
             this.getTreeStore('readonly').subscribe(
                 (store: IDBObjectStore) => {
-                    console.log('only ********* ' + name);
                     let index: IDBIndex = store.index('name'),
                         keyRange: IDBKeyRange = IDBKeyRange.only(name),
                         cursorRequest: IDBRequest = index.openCursor(keyRange);

@@ -51,7 +51,6 @@ export class AppState {
         this.localDB.readOrCreateFolderNode(ROOT_FOLDER_NAME, DB_NO_KEY)
             .subscribe(
             (rootFolderNode: TreeNode) => {
-                console.log('yeah 1');
                 let rootNodeKey: number = rootFolderNode[DB_KEY_PATH];
                 DEFAULT_STATE['rootFolderKey'] = rootNodeKey;
                 // Create Unfiled folder as child of root using root's key
@@ -59,7 +58,6 @@ export class AppState {
                     UNFILED_FOLDER_NAME, rootNodeKey)
                     .subscribe(
                     (unfiledFolderNode: TreeNode) => {
-                        console.log('yeah 2');
                         DEFAULT_STATE['unfiledFolderKey'] =
                             unfiledFolderNode[DB_KEY_PATH];
                         // create default state data node after it's
@@ -69,7 +67,6 @@ export class AppState {
                             STATE_NODE_NAME, DB_NO_KEY, DEFAULT_STATE)
                             .subscribe(
                             (result: any) => {
-                                console.log('yeah 3');
                                 this.treeNode = result.treeNode;
                                 this.dataNode = result.dataNode;
 
