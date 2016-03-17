@@ -7,14 +7,14 @@
 // class of ion-content whenever we (a) inject Ionic's Platform
 // class into a component, (b) add a [class]="platform.platforms()"
 // to the HTML template's ion-content tag.
-/*
+
 ion-content {
     scroll-content {
         // hide scrollbar when in browser
-        overflow-y: hidden;
+        overflow-y: auto;
     }
 }
-*/
+
 
 // app left (navigation) menu
 ion-menu {

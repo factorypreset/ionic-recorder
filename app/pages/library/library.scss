@@ -56,6 +56,9 @@ ion-alert {
     // itself
     // opacity: 1.0;
     .alert-wrapper {
+        .alert-radio-group {
+            overflow: hidden;
+        }
         // alert wrapper is the actual alert area, in it
         // buttons were made transparent, so we set the
         // alert's background color here

@@ -422,36 +422,16 @@ export class LibraryPage {
     }
 
     onClickSelectButton() {
-        let folderName: string = this.folderPath.replace(/.*\//, ''),
-            alert = Alert.create();
-        if (folderName === '') {
-            folderName = '/';
-        }
-        alert.setTitle('Select in<br>' + folderName);
-        alert.addInput({
-            type: 'radio',
-            label: 'All',
-            value: 'all'
-        });
-        alert.addInput({
-            type: 'radio',
-            label: 'None',
-            value: 'none'
-        });
-        alert.addButton('Cancel');
-        alert.addButton({
-            text: 'OK',
-            handler: (selection: string) => {
-                console.log('handler called with data: ' + selection);
-                if (selection === 'all') {
-                    this.selectAllInFolder();
-                }
-                else if (selection === 'none') {
-                    this.selectNoneInFolder();
-                }
-            }
-        });
-
-        this.navController.present(alert).then();
+        let folderName: string = this.folderPath.replace(/.*\//, '') || '/';
+        this.askAndDo(
+            'Select which in<br> ' + folderName,
+            'All',
+            () => {
+                this.selectAllInFolder();
+            },
+            'None',
+            () => {
+                this.selectNoneInFolder();
+            });
     }
 }
