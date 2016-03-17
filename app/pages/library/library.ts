@@ -72,12 +72,7 @@ export class LibraryPage {
         noAction?: () => void) {
         let alert = Alert.create();
         alert.setTitle(question);
-        alert.addButton({
-            text: yesButtonText,
-            handler: data => {
-                yesAction();
-            }
-        });
+        alert.addButton('Cancel');
         if (noButtonText && noAction) {
             alert.addButton({
                 text: noButtonText,
@@ -86,7 +81,12 @@ export class LibraryPage {
                 }
             });
         }
-        alert.addButton('Cancel');
+        alert.addButton({
+            text: yesButtonText,
+            handler: data => {
+                yesAction();
+            }
+        });
         this.navController.present(alert).then();
     }
 
@@ -102,16 +102,16 @@ export class LibraryPage {
         return Object.keys(this.checkedNodes).length;
     }
 
-    nCheckedNodesInThisFolder() {
-        let key: string, i: number, count: number = 0,
+    checkedNodesInThisFolder() {
+        let key: string, i: number, nodeKeys: string[] = [],
             keys = Object.keys(this.checkedNodes);
         for (i = 0; i < keys.length; i++) {
             key = keys[i];
             if (this.folderItems[key]) {
-                count++;
+                nodeKeys.push(key);
             }
         }
-        return count;
+        return nodeKeys;
     }
 
     deleteNodes(nodeKeys: string[]) {
@@ -126,28 +126,16 @@ export class LibraryPage {
             });
     }
 
-    deleteCheckedNodesInFolder() {
-        let key: string, i: number, nodeKeys: string[] = [],
-            keys = Object.keys(this.checkedNodes);
-        for (i = 0; i < keys.length; i++) {
-            key = keys[i];
-            if (this.folderItems[key]) {
-                nodeKeys.push(key);
-            }
-        }
-        this.deleteNodes(nodeKeys);
-    }
-
-    deleteAllCheckedNodes() {
-        this.deleteNodes(Object.keys(this.checkedNodes));
-    }
-
     onClickTrashButton() {
         let folderName: string = this.folderPath.replace(/.*\//, ''),
             nCheckedNodes = this.nCheckedNodes(),
-            nCheckedNodesInThisFolder = this.nCheckedNodesInThisFolder(),
+            checkedNodesInThisFolder: string[] =
+                this.checkedNodesInThisFolder(),
+            nCheckedNodesInThisFolder = checkedNodesInThisFolder.length,
             nCheckedNodesNotInThisFolder = nCheckedNodes -
                 nCheckedNodesInThisFolder;
+        console.log('nchec ' + nCheckedNodes + ', in ' +
+            nCheckedNodesInThisFolder);
         if (nCheckedNodesNotInThisFolder) {
             if (nCheckedNodesInThisFolder) {
                 this.askAndDo([
@@ -158,19 +146,23 @@ export class LibraryPage {
                     'Delete in ' + folderName,
                     () => {
                         console.log('yes action');
-                        this.deleteCheckedNodesInFolder();
+                        this.deleteNodes(checkedNodesInThisFolder);
                     },
                     'Delete all',
                     () => {
                         console.log('no action');
-                        this.deleteAllCheckedNodes();
+                        this.deleteNodes(Object.keys(this.checkedNodes));
                     }
                 );
             }
             else {
                 // nothing checked in this folder, but stuff checked outside
-                this.deleteAllCheckedNodes();
+                this.deleteNodes(Object.keys(this.checkedNodes));
             }
+        }
+        else {
+            // all checked nodes are in this folder
+            this.deleteNodes(checkedNodesInThisFolder);
         }
     }
 

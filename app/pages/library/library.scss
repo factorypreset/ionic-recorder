@@ -59,7 +59,7 @@ ion-alert {
         // alert wrapper is the actual alert area, in it
         // buttons were made transparent, so we set the
         // alert's background color here
-        background: map-get($colors , medium-gray);
+        background: map-get($colors , dark-gray);
     }
 }
 

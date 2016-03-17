@@ -4,12 +4,11 @@
     <button menuToggle>
         <ion-icon name="menu"></ion-icon>
     </button>
-    <ion-title *ngIf="folderPath === '/'">Library Home</ion-title>
-    <ion-title *ngIf="folderPath !== '/'">Library</ion-title>
+    <ion-title>Library</ion-title>
     <ion-buttons end *ngIf="nCheckedNodes()">
         <button small (click)="onClickTotalSelected()">
             <ion-badge darkest-gray item-right>
-                Total selected: {{nCheckedNodes()}}
+                Total Selected: {{nCheckedNodes()}}
             </ion-badge>
         </button>
     </ion-buttons>
