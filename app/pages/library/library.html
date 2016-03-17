@@ -63,7 +63,7 @@
             <ion-checkbox [ngModel]="isChecked(folderItems[i])" (click)="onClickCheckbox(folderItems[i])" medium-gray item-left>
             </ion-checkbox>
         </ion-item>
-        <ion-item class="library-empty-folder-message" *ngIf="folderIsEmpty()">
+        <ion-item class="library-empty-folder-message" *ngIf="!folderNode.childOrder.length">
             <h2>This folder is empty</h2>
         </ion-item>
     </ion-list>

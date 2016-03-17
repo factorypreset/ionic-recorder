@@ -59,38 +59,37 @@ export class LibraryPage {
         return Object.keys(this.folderItems);
     }
 
-    folderIsEmpty() {
-        return this.folderPath.length > 1 && !this.folderItemsKeys().length;
-    }
-
-    checkedNodesKeys() {
-        return Object.keys(this.checkedNodes);
-    }
-
     nCheckedNodes() {
-        return this.checkedNodesKeys().length;
+        return Object.keys(this.checkedNodes).length;
     }
 
     upButtonDisabled() {
-        return this.folderItemsKeys().length < 2 ||
+        return this.folderNode.childOrder.length < 2 ||
             this.nCheckedNodes() !== 1;
     }
 
     downButtonDisabled() {
-        return this.folderItemsKeys().length < 2 ||
+        return this.folderNode.childOrder.length < 2 ||
             this.nCheckedNodes() !== 1;
+    }
+
+    itemsAreCheckedOutsideThisFolder() {
+        let key: string;
+        for (key in Object.keys(this.checkedNodes)) {
+            if (!this.folderItems[key]) {
+                return true;
+            }
+        }
+        return false;
     }
 
     moveButtonDisabled() {
-        return this.folderItemsKeys().length < 2 ||
-            this.nCheckedNodes() !== 1;
+        return false;
     }
 
     trashButtonDisabled() {
-        return this.folderItemsKeys().length < 2 ||
-            this.nCheckedNodes() !== 1;
+        return false;
     }
-
 
     // switch to folder whose key is 'key'
     // if updateState is true, update the app state
@@ -125,7 +124,8 @@ export class LibraryPage {
                         this.folderNode = folderNode;
                         this.folderItems = newFolderItems;
 
-                        console.log('found ' + this.folderItemsKeys() + ' items');
+                        console.log('found ' + this.folderNode.childOrder.length +
+                            ' items');
                     },
                     (error: any) => {
                         alert('in readChildNodes: ' + error);
@@ -268,8 +268,12 @@ export class LibraryPage {
         // go through all folderItems
         // for each one, ask if it's in checkedNodes
         // for this to work, we need to make checkedNodes a dictionary
-        let folderItemsKeys = this.folderItemsKeys(), changed: boolean = false,
-            i: number, key: string, itemNode: TreeNode, itemKey: number;
+        let changed: boolean = false,
+            i: number,
+            key: string,
+            folderItemsKeys: string[] = Object.keys(this.folderItems),
+            itemNode: TreeNode,
+            itemKey: number;
         for (i = 0; i < folderItemsKeys.length; i++) {
             key = folderItemsKeys[i];
             itemNode = this.folderItems[key];
@@ -361,7 +365,7 @@ export class LibraryPage {
 
     onClickTrashButton() {
         let alert = Alert.create(),
-            len: number = this.checkedNodesKeys().length;
+            len: number = this.nCheckedNodes();
         alert.setTitle([
             // TODO: improve this message to include a list of
             // all folders you're about to delete, you cancel
