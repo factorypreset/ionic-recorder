@@ -18,7 +18,7 @@ cat << EOF >> $TMPFILE
   },
   "scripts": {
     "start": "ionic serve --browser chromium-browser",
-    "test": "gulp --gulpfile test/gulpfile.ts --cwd ./ test"
+    "test": "find ./app -type f | xargs sed -i 's/[ \t]*$//' ; gulp --gulpfile test/gulpfile.ts --cwd ./ test"
   }
 }
 EOF
