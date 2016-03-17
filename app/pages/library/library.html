@@ -5,10 +5,10 @@
         <ion-icon name="menu"></ion-icon>
     </button>
     <ion-title>Library</ion-title>
-    <ion-buttons end *ngIf="nCheckedNodes()">
+    <ion-buttons end *ngIf="nSelectedNodes()">
         <button small (click)="onClickTotalSelected()">
             <ion-badge darkest-gray item-right>
-                Total selected: {{nCheckedNodes()}}
+                Total selected: {{nSelectedNodes()}}
             </ion-badge>
         </button>
     </ion-buttons>
@@ -63,7 +63,7 @@
                     {{folderItems[i].name}}
                 </button>
             </ion-label>
-            <ion-checkbox [ngModel]="isChecked(folderItems[i])" (click)="onClickCheckbox(folderItems[i])" medium-gray item-left>
+            <ion-checkbox [ngModel]="isSelected(folderItems[i])" (click)="onClickCheckbox(folderItems[i])" medium-gray item-left>
             </ion-checkbox>
         </ion-item>
         <ion-item class="library-empty-folder-message" *ngIf="!folderNode.childOrder.length">
@@ -72,7 +72,7 @@
     </ion-list>
 </ion-content>
 
-<div class="buttonbar5" *ngIf="nCheckedNodes()">
+<div class="buttonbar5" *ngIf="nSelectedNodes()">
     <button almost-dark (click)="onClickUpButton()" [disabled]="upButtonDisabled()" ion-row center>
         <ion-col>
             <ion-icon name="arrow-up"></ion-icon>

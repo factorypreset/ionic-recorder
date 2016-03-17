@@ -15,7 +15,7 @@ export class LibraryPage {
     private folderPath: string = '';
     private folderNode: TreeNode = null;
     private folderItems: { [id: string]: TreeNode; } = {};
-    private checkedNodes: { [id: string]: boolean; } = {};
+    private selectedNodes: { [id: string]: TreeNode; } = {};
 
     private localDB: LocalDB = LocalDB.Instance;
     private appState: AppState = AppState.Instance;
@@ -39,11 +39,11 @@ export class LibraryPage {
                 console.log('lib page entered, to: ' + lastViewedFolderKey);
                 // this is it!  here's where we enter the last viewed folder
                 this.switchFolder(lastViewedFolderKey, false);
-                this.appState.getProperty('checkedNodes').subscribe(
-                    (checkedNodes: { [id: string]: boolean }) => {
-                        this.checkedNodes = checkedNodes;
-                        if (!checkedNodes) {
-                            alert('no checked nodes! ' + checkedNodes);
+                this.appState.getProperty('selectedNodes').subscribe(
+                    (selectedNodes: { [id: string]: TreeNode }) => {
+                        this.selectedNodes = selectedNodes;
+                        if (!selectedNodes) {
+                            alert('no selected nodes! ' + selectedNodes);
                         }
                     },
                     (error: any) => {
@@ -65,47 +65,57 @@ export class LibraryPage {
 
     }
 
-    askAndDo(
+    alertAndDo(
         question: string,
-        yesButtonText: string,
-        yesAction: () => void,
-        noButtonText?: string,
-        noAction?: () => void) {
+        button1Text: string,
+        action1: () => void,
+        button2Text?: string,
+        action2?: () => void) {
+
         let alert = Alert.create();
+
         alert.setTitle(question);
-        alert.addButton('Cancel');
-        if (noButtonText && noAction) {
-            alert.addButton({
-                text: noButtonText,
-                handler: data => {
-                    noAction();
-                }
-            });
+
+        if (!action2) {
+            alert.addButton('Cancel');
         }
+
         alert.addButton({
-            text: yesButtonText,
+            text: button1Text,
             handler: data => {
-                yesAction();
+                action1();
             }
         });
+
+        if (action2) {
+            alert.addButton({
+                text: button2Text,
+                handler: data => {
+                    action2();
+                }
+            });
+            alert.addButton('Cancel');
+        }
+
         this.navController.present(alert).then();
     }
 
-    unselectItemsNotInThisFolder() {
-        console.log('unselectItemsNotInThisFolder()');
+    unselectItemsNotHere() {
+        console.log('unselectItemsNotHere()');
     }
 
     onClickMoveButton() {
 
     }
 
-    nCheckedNodes() {
-        return Object.keys(this.checkedNodes).length;
+    // we use this function in library.html
+    nSelectedNodes() {
+        return Object.keys(this.selectedNodes).length;
     }
 
-    checkedNodesInThisFolder() {
+    selectedNodesHere() {
         let key: string, i: number, nodeKeys: string[] = [],
-            keys = Object.keys(this.checkedNodes);
+            keys = Object.keys(this.selectedNodes);
         for (i = 0; i < keys.length; i++) {
             key = keys[i];
             if (this.folderItems[key]) {
@@ -120,8 +130,8 @@ export class LibraryPage {
         if (!len) {
             alert('wow no way!');
         }
-        this.askAndDo(
-            'Permanently delete ' + len + ' items?',
+        this.alertAndDo(
+            'Permanently delete ' + len + ' items' + (len > 1 ? 's?' : '?'),
             'Ok', () => {
                 console.log('deleting ' + len + ' selected items ...');
             });
@@ -129,47 +139,48 @@ export class LibraryPage {
 
     onClickTrashButton() {
         let folderName: string = this.folderPath.replace(/.*\//, '') || '/',
-            nCheckedNodes = this.nCheckedNodes(),
-            checkedNodesInThisFolder: string[] =
-                this.checkedNodesInThisFolder(),
-            nCheckedNodesInThisFolder = checkedNodesInThisFolder.length,
-            nCheckedNodesNotInThisFolder = nCheckedNodes -
-                nCheckedNodesInThisFolder;
-        console.log('nchec ' + nCheckedNodes + ', in ' +
-            nCheckedNodesInThisFolder);
-        if (nCheckedNodesNotInThisFolder) {
-            if (nCheckedNodesInThisFolder) {
-                this.askAndDo([
-                    'You have ', nCheckedNodesNotInThisFolder,
-                    ' checked item',
-                    nCheckedNodesNotInThisFolder > 1 ? 's' : '',
+            selectedNodes = Object.keys(this.selectedNodes),
+            nSelectedNodes = selectedNodes.length,
+            selectedNodesHere: string[] =
+                this.selectedNodesHere(),
+            nSelectedNodesHere = selectedNodesHere.length,
+            nSelectedNodesNotHere = nSelectedNodes -
+                nSelectedNodesHere;
+        console.log('nchec ' + nSelectedNodes + ', in ' +
+            nSelectedNodesHere);
+        if (nSelectedNodesNotHere) {
+            if (nSelectedNodesHere) {
+                this.alertAndDo([
+                    'You have ', nSelectedNodesNotHere,
+                    ' selected item',
+                    nSelectedNodesNotHere > 1 ? 's' : '',
                     ' outside this folder. ',
                     'Do you want to delete all ',
-                    nCheckedNodes, ' checked item',
-                    nCheckedNodes > 1 ? 's' : '',
-                    ' or only the ', nCheckedNodesInThisFolder,
-                    ' item', nCheckedNodesInThisFolder > 1 ? 's' : '',
+                    nSelectedNodes, ' selected item',
+                    nSelectedNodes > 1 ? 's' : '',
+                    ' or only the ', nSelectedNodesHere,
+                    ' item', nSelectedNodesHere > 1 ? 's' : '',
                     ' here?'].join(''),
-                    'Delete only here (' + nCheckedNodesInThisFolder+')',
-                    () => {
-                        console.log('yes action');
-                        this.deleteNodes(checkedNodesInThisFolder);
-                    },
-                    'Delete all (' + nCheckedNodes + ')',
+                    'Delete all (' + nSelectedNodes + ')',
                     () => {
                         console.log('no action');
-                        this.deleteNodes(Object.keys(this.checkedNodes));
+                        this.deleteNodes(Object.keys(this.selectedNodes));
+                    },
+                    'Delete only here (' + nSelectedNodesHere + ')',
+                    () => {
+                        console.log('yes action');
+                        this.deleteNodes(selectedNodesHere);
                     }
                 );
             }
             else {
-                // nothing checked in this folder, but stuff checked outside
-                this.deleteNodes(Object.keys(this.checkedNodes));
+                // nothing selected in this folder, but stuff selected outside
+                this.deleteNodes(Object.keys(this.selectedNodes));
             }
         }
         else {
-            // all checked nodes are in this folder
-            this.deleteNodes(checkedNodesInThisFolder);
+            // all selected nodes are in this folder
+            this.deleteNodes(selectedNodesHere);
         }
     }
 
@@ -224,7 +235,7 @@ export class LibraryPage {
                         for (let i in childNodes) {
                             let childNode: TreeNode = childNodes[i],
                                 childKey: number = childNode[DB_KEY_PATH];
-                            newFolderItems[childKey.toString()] = childNode;
+                            newFolderItems[childKey] = childNode;
                         } // for
 
                         this.folderNode = folderNode;
@@ -275,8 +286,8 @@ export class LibraryPage {
         }
     }
 
-    isChecked(node: TreeNode) {
-        return this.checkedNodes[node[DB_KEY_PATH].toString()];
+    isSelected(node: TreeNode) {
+        return this.selectedNodes[node[DB_KEY_PATH]];
     }
 
     onClickTotalSelected() {
@@ -291,20 +302,20 @@ export class LibraryPage {
         this.totalSelectedCounter = 0;
 
         let nodeKey: number = node[DB_KEY_PATH],
-            isChecked: boolean = this.checkedNodes[nodeKey.toString()];
+            isSelected: TreeNode = this.selectedNodes[nodeKey];
 
-        if (isChecked) {
+        if (isSelected) {
             // uncheck it
-            delete this.checkedNodes[nodeKey.toString()];
+            delete this.selectedNodes[nodeKey];
         }
         else {
-            // uot checked, check it
-            this.checkedNodes[nodeKey.toString()] = true;
+            // not selected, check it
+            this.selectedNodes[nodeKey] = node;
         }
 
-        // update state with new list of checked nodes
-        this.appState.updateProperty('checkedNodes',
-            this.checkedNodes).subscribe(
+        // update state with new list of selected nodes
+        this.appState.updateProperty('selectedNodes',
+            this.selectedNodes).subscribe(
             () => { },
             (error: any) => {
                 alert('in updateProperty: ' + error);
@@ -360,7 +371,7 @@ export class LibraryPage {
                             childNodeKey: number = childNode[DB_KEY_PATH];
                         console.log('childNode: ' + childNode + ', parentNode: ' + parentNode);
                         // update folder items dictionary of this page
-                        this.folderItems[childNodeKey.toString()] = childNode;
+                        this.folderItems[childNodeKey] = childNode;
                         this.folderNode = parentNode;
                     },
                     (error: any) => {
@@ -381,8 +392,8 @@ export class LibraryPage {
 
     selectAllOrNoneInFolder(all: boolean) {
         // go through all folderItems
-        // for each one, ask if it's in checkedNodes
-        // for this to work, we need to make checkedNodes a dictionary
+        // for each one, ask if it's in selectedNodes
+        // for this to work, we need to make selectedNodes a dictionary
         let changed: boolean = false,
             i: number,
             key: string,
@@ -394,23 +405,23 @@ export class LibraryPage {
             itemNode = this.folderItems[key];
             itemKey = itemNode[DB_KEY_PATH];
 
-            let isChecked: boolean = this.checkedNodes[itemKey.toString()];
+            let isSelected: TreeNode = this.selectedNodes[itemKey];
 
-            if (all && !isChecked) {
+            if (all && !isSelected) {
                 changed = true;
-                // not checked, check it
-                this.checkedNodes[itemKey.toString()] = true;
+                // not selected, check it
+                this.selectedNodes[itemKey] = itemNode;
             }
-            if (!all && isChecked) {
+            if (!all && isSelected) {
                 changed = true;
-                // checked, uncheck it
-                delete this.checkedNodes[itemKey.toString()];
+                // selected, uncheck it
+                delete this.selectedNodes[itemKey];
             }
         }
         if (changed) {
-            // update state with new list of checked nodes
-            this.appState.updateProperty('checkedNodes',
-                this.checkedNodes).subscribe(
+            // update state with new list of selected nodes
+            this.appState.updateProperty('selectedNodes',
+                this.selectedNodes).subscribe(
                 () => { },
                 (error: any) => {
                     alert('in updateProperty: ' + error);
@@ -429,7 +440,7 @@ export class LibraryPage {
 
     onClickSelectButton() {
         let folderName: string = this.folderPath.replace(/.*\//, '') || '/';
-        this.askAndDo(
+        this.alertAndDo(
             'Select which in<br> ' + folderName,
             'All',
             () => {

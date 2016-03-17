@@ -2,6 +2,14 @@
 
 // library.scss
 
+.toolbar-content {
+    // this fixes some line-wrappping issues in Android
+    // - the title and right badge were vertically placed
+    // not on the same vertical center (staggered) and
+    // this fixes them to be at the same vertical center
+    display: inline-flex;
+}
+
 // the path text <span> above the buttons
 span.library-page-path-message {
     background-color: map-get($colors, almost-dark);
@@ -17,7 +25,7 @@ span.library-page-path-message {
     span {
         color: map-get($colors, logo-orange);
     }
-} 
+}
 
 // appearance of buttonbars
 div.buttonbar4, div.buttonbar5 {
@@ -67,15 +75,15 @@ ion-alert {
 }
 
 // four button bar
-// set width to be a little less than 25% or you get 
-// weird side effects 
+// set width to be a little less than 25% or you get
+// weird side effects
 div.buttonbar4 button {
    width: 23%;
 }
 
 // five button bar
-// set width to be a little less than 20% or you get 
-// weird side effects 
+// set width to be a little less than 20% or you get
+// weird side effects
 div.buttonbar5 button {
    width: 18.2%;
 }

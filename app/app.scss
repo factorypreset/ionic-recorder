@@ -2,8 +2,8 @@
 
 // general scss for entire app
 
-// ".core" is the Ionic class Platform's platform.platform() result 
-// string whenever we're in a browser.  This string becomes the 
+// ".core" is the Ionic class Platform's platform.platform() result
+// string whenever we're in a browser.  This string becomes the
 // class of ion-content whenever we (a) inject Ionic's Platform
 // class into a component, (b) add a [class]="platform.platforms()"
 // to the HTML template's ion-content tag.
@@ -18,7 +18,7 @@ ion-content {
 
 // app left (navigation) menu
 ion-menu {
-    ion-content { 
+    ion-content {
         scroll-content, ion-list .item {
             background: map-get($colors, darkest-gray);
             cursor: pointer;
@@ -37,10 +37,10 @@ ion-menu {
             button.item.button-selected.activated, button.item.activated {
                 background: map-get($colors, dark-gray);
             }
-            
+
             // indicating page (cutton) currently selected
             button.item.button-selected {
-                background: map-get($colors, almost-dark);    
+                background: map-get($colors, almost-dark);
             }
         }
     }

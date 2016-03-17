@@ -10,7 +10,7 @@ interface State {
     lastViewedFolderKey: number;
     rootFolderKey: number;
     unfiledFolderKey: number;
-    checkedNodes: { [id: string]: boolean };
+    selectedNodes: { [id: string]: boolean };
 }
 
 // make sure APP_STATE_ITEM_NAME will never be entered by a user
@@ -25,7 +25,7 @@ const DEFAULT_STATE: State = {
     lastViewedFolderKey: DB_NO_KEY,
     rootFolderKey: DB_NO_KEY,
     unfiledFolderKey: DB_NO_KEY,
-    checkedNodes: {}
+    selectedNodes: {}
 };
 
 
@@ -47,7 +47,7 @@ export class AppState {
     constructor() {
         console.log('constructor():AppState');
 
-        // Create root folder   
+        // Create root folder
         this.localDB.readOrCreateFolderNode(ROOT_FOLDER_NAME, DB_NO_KEY)
             .subscribe(
             (rootFolderNode: TreeNode) => {

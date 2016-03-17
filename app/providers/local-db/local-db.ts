@@ -115,7 +115,7 @@ export class LocalDB {
         };
         // making dataKey === DB_NO_KEY is how we signal to makeTreeNode
         // that we're making a folder node - TODO: split this function into
-        // two: one to make a data node and one to make a folder node, 
+        // two: one to make a data node and one to make a folder node,
         // explicitly
         if (dataKey === DB_NO_KEY) {
             treeNode.childOrder = [];

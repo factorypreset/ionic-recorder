@@ -54,9 +54,9 @@ input[type=range]::-moz-focus-outer {
 }
 
 input[type=range] {
-    
+
     // All browsers
-    
+
     -webkit-appearance: none;
     margin: $thumb-height/2 0;
     width: $track-width;
@@ -78,7 +78,7 @@ input[type=range] {
         border-radius: $track-radius;
         border: $track-border-width solid $track-border-color;
     }
-    
+
     &::-webkit-slider-thumb {
         @include thumb();
         -webkit-appearance: none;
@@ -98,15 +98,15 @@ input[type=range] {
         border-radius: $track-radius;
         border: $track-border-width solid $track-border-color;
     }
-    
+
     &::-moz-range-thumb {
         @include thumb();
     }
 
     // Microsoft Explorer
-    
+
     &::-ms-track {
-        @include track(); 
+        @include track();
         background: transparent;
         border-color: transparent;
         border-width: $thumb-width 0;
@@ -119,22 +119,22 @@ input[type=range] {
         border-radius: $track-radius*2;
         @include shadow($track-shadow-size,$track-shadow-blur,$track-shadow-color);
     }
-    
+
     &::-ms-fill-upper {
         background: $track-color;
         border: $track-border-width solid $track-border-color;
         border-radius: $track-radius*2;
         @include shadow($track-shadow-size,$track-shadow-blur,$track-shadow-color);
     }
-    
+
     &::-ms-thumb {
         @include thumb();
     }
-    
+
     &:focus::-ms-fill-lower {
         background: $track-color;
     }
-    
+
     &:focus::-ms-fill-upper {
         background: lighten($track-color, $contrast);
     }
