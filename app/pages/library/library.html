@@ -7,9 +7,11 @@
     <ion-title *ngIf="folderPath === '/'">Library Home</ion-title>
     <ion-title *ngIf="folderPath !== '/'">Library</ion-title>
     <ion-buttons end *ngIf="nCheckedNodes()">
-        <ion-badge darkest-gray item-right>
-            Total selected: {{nCheckedNodes()}}
-        </ion-badge>
+        <button small (click)="onClickTotalSelected()">
+            <ion-badge darkest-gray item-right>
+                Total selected: {{nCheckedNodes()}}
+            </ion-badge>
+        </button>
     </ion-buttons>
 </ion-navbar>
 

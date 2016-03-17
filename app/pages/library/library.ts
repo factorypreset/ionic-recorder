@@ -20,6 +20,8 @@ export class LibraryPage {
     private localDB: LocalDB = LocalDB.Instance;
     private appState: AppState = AppState.Instance;
 
+    private totalSelectedCounter: number = 0;
+
     constructor(
         private navController: NavController,
         private platform: Platform) {
@@ -54,32 +56,133 @@ export class LibraryPage {
         ); // getProperty().subscbribe(
     }
 
-    folderItemsKeys() {
-        // console.log('folderItemsKeys() ...');
-        return Object.keys(this.folderItems);
+    onClickUpButton() {
+
+    }
+
+    onClickDownButton() {
+
+    }
+
+    askAndDo(
+        question: string,
+        yesButtonText: string,
+        yesAction: () => void,
+        noButtonText?: string,
+        noAction?: () => void) {
+        let alert = Alert.create();
+        alert.setTitle(question);
+        alert.addButton({
+            text: yesButtonText,
+            handler: data => {
+                yesAction();
+            }
+        });
+        if (noButtonText && noAction) {
+            alert.addButton({
+                text: noButtonText,
+                handler: data => {
+                    noAction();
+                }
+            });
+        }
+        alert.addButton('Cancel');
+        this.navController.present(alert).then();
+    }
+
+    unselectItemsNotInThisFolder() {
+        console.log('unselectItemsNotInThisFolder()');
+    }
+
+    onClickMoveButton() {
+
     }
 
     nCheckedNodes() {
         return Object.keys(this.checkedNodes).length;
     }
 
+    nCheckedNodesInThisFolder() {
+        let key: string, i: number, count: number = 0,
+            keys = Object.keys(this.checkedNodes);
+        for (i = 0; i < keys.length; i++) {
+            key = keys[i];
+            if (this.folderItems[key]) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    deleteNodes(nodeKeys: string[]) {
+        let len = nodeKeys.length;
+        if (!len) {
+            alert('wow no way!');
+        }
+        this.askAndDo(
+            'Permanently delete ' + len + ' selected items?',
+            'Ok', () => {
+                console.log('deleting ' + len + ' selected items ...');
+            });
+    }
+
+    deleteCheckedNodesInFolder() {
+        let key: string, i: number, nodeKeys: string[] = [],
+            keys = Object.keys(this.checkedNodes);
+        for (i = 0; i < keys.length; i++) {
+            key = keys[i];
+            if (this.folderItems[key]) {
+                nodeKeys.push(key);
+            }
+        }
+        this.deleteNodes(nodeKeys);
+    }
+
+    deleteAllCheckedNodes() {
+        this.deleteNodes(Object.keys(this.checkedNodes));
+    }
+
+    onClickTrashButton() {
+        let folderName: string = this.folderPath.replace(/.*\//, ''),
+            nCheckedNodes = this.nCheckedNodes(),
+            nCheckedNodesInThisFolder = this.nCheckedNodesInThisFolder(),
+            nCheckedNodesNotInThisFolder = nCheckedNodes -
+                nCheckedNodesInThisFolder;
+        if (nCheckedNodesNotInThisFolder) {
+            if (nCheckedNodesInThisFolder) {
+                this.askAndDo([
+                    'You have checked items in folders outside this one. ',
+                    'Do you want to delete all checked items ',
+                    'or only the ones here at ' +
+                    folderName, '?'].join(''),
+                    'Delete in ' + folderName,
+                    () => {
+                        console.log('yes action');
+                        this.deleteCheckedNodesInFolder();
+                    },
+                    'Delete all',
+                    () => {
+                        console.log('no action');
+                        this.deleteAllCheckedNodes();
+                    }
+                );
+            }
+            else {
+                // nothing checked in this folder, but stuff checked outside
+                this.deleteAllCheckedNodes();
+            }
+        }
+    }
+
+    onClickSharebutton() {
+
+    }
+
     upButtonDisabled() {
-        return this.folderNode.childOrder.length < 2 ||
-            this.nCheckedNodes() !== 1;
+        return false;
     }
 
     downButtonDisabled() {
-        return this.folderNode.childOrder.length < 2 ||
-            this.nCheckedNodes() !== 1;
-    }
-
-    itemsAreCheckedOutsideThisFolder() {
-        let key: string;
-        for (key in Object.keys(this.checkedNodes)) {
-            if (!this.folderItems[key]) {
-                return true;
-            }
-        }
         return false;
     }
 
@@ -99,8 +202,12 @@ export class LibraryPage {
             alert('switchFolder -- invalid key!');
             return;
         }
-        console.log('switchFolder(' + key + ', ' + updateState + ') -- ' +
-            this.nCheckedNodes());
+        if (this.folderNode && this.folderNode[DB_KEY_PATH] === key) {
+            // we're already in that folder
+            alert('why switch twice in a row to the same folder?');
+            return;
+        }
+        console.log('switchFolder(' + key + ', ' + updateState + ')');
 
         // for non-root folders, we set this.folderNode here
         this.localDB.readNode(key).subscribe(
@@ -173,8 +280,17 @@ export class LibraryPage {
         return this.checkedNodes[node[DB_KEY_PATH].toString()];
     }
 
+    onClickTotalSelected() {
+        console.log('onClickTotalSelected(), counter: ' +
+            this.totalSelectedCounter);
+        this.totalSelectedCounter++;
+    }
+
     onClickCheckbox(node: TreeNode) {
         console.log('onClickCheckbox()');
+        // reset the counter for flipping through selected nodes
+        this.totalSelectedCounter = 0;
+
         let nodeKey: number = node[DB_KEY_PATH],
             isChecked: boolean = this.checkedNodes[nodeKey.toString()];
 
@@ -345,48 +461,4 @@ export class LibraryPage {
 
         this.navController.present(alert).then();
     }
-
-    unselectItemsNotInThisFolder() {
-    }
-
-    askIfToUnselectItemsNotInThisFolder(message: string) {
-        let alert = Alert.create();
-        alert.setTitle(message);
-        alert.addButton('Cancel');
-        alert.addButton({
-            text: 'Ok',
-            handler: data => {
-                this.unselectItemsNotInThisFolder();
-                // go through checked nodes and if they are not in
-                // folder items, uncheck them
-            }
-        });
-    }
-
-    onClickTrashButton() {
-        let alert = Alert.create(),
-            len: number = this.nCheckedNodes();
-        alert.setTitle([
-            // TODO: improve this message to include a list of
-            // all folders you're about to delete, you cancel
-            // probably put an <ion-scroll> here.
-            'Permanently delete ',
-            len > 1 && len.toString() || '',
-            ' item',
-            len > 1 && 's' || '',
-            ' and all ',
-            len > 1 && 'their' || 'its',
-            ' data?'
-        ].join(''));
-        alert.addButton('Cancel');
-        alert.addButton({
-            text: 'Delete',
-            handler: data => {
-                console.log('deleting checked nodes ...');
-            }
-        });
-
-        this.navController.present(alert).then();
-    }
-
 }
