@@ -165,7 +165,7 @@ export function main(): void {
             });
 
         it('can read or create ' + UNFILED_FOLDER_NAME +
-                ' folder (at root) again',
+            ' folder (at root) again',
             (done) => {
                 setTimeout(() => {
                     localDB.readOrCreateFolderNode(
@@ -315,6 +315,22 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
+        it('can get child nodes of folder3 and verify them', (done) => {
+            setTimeout(() => {
+                localDB.readChildNodes(folder3[DB_KEY_PATH]).subscribe(
+                    (childNodes: TreeNode[]) => {
+                        expect(childNodes.length).toEqual(2);
+                        expect(childNodes).toContain(item4);
+                        expect(childNodes).toContain(folder5);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                );
+            }, MAX_DB_INIT_TIME);
+        });
+
         it('can create item6 - child of folder5', (done) => {
             setTimeout(() => {
                 localDB.createNode('Item 6', folder5[DB_KEY_PATH], 'i6data')
@@ -445,21 +461,22 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
-        it('can get child nodes of folder3 and verify them', (done) => {
-            setTimeout(() => {
-                localDB.readChildNodes(folder3[DB_KEY_PATH]).subscribe(
-                    (childNodes: TreeNode[]) => {
-                        expect(childNodes.length).toEqual(2);
-                        expect(childNodes).toContain(item4);
-                        expect(childNodes).toContain(folder5);
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
+        it('can get child nodes of folder3 and verify them but not folder5',
+            (done) => {
+                setTimeout(() => {
+                    localDB.readChildNodes(folder3[DB_KEY_PATH]).subscribe(
+                        (childNodes: TreeNode[]) => {
+                            expect(childNodes.length).toEqual(2);
+                            expect(childNodes).toContain(item4);
+                            expect(childNodes).not.toContain(folder5);
+                            done();
+                        },
+                        (error) => {
+                            fail(error);
+                        }
+                    );
+                }, MAX_DB_INIT_TIME);
+            });
 
         it('can delete folder5 folder recursively', (done) => {
             setTimeout(() => {

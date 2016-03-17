@@ -613,8 +613,9 @@ export class LocalDB {
         }
     }
 
+    // returns observable of parent node (updated with new child order)
     attachToParent(childNode: TreeNode) {
-        let source: Observable<boolean> = Observable.create((observer) => {
+        let source: Observable<TreeNode> = Observable.create((observer) => {
             // adds to front
             this.readNode(childNode.parentKey).subscribe(
                 (parentNode: TreeNode) => {
@@ -626,7 +627,7 @@ export class LocalDB {
                         parentNode.childOrder);
                     this.updateNode(parentNode).subscribe(
                         () => {
-                            observer.next(true);
+                            observer.next(parentNode);
                             observer.complete();
                         },
                         (error: any) => {
@@ -673,10 +674,11 @@ export class LocalDB {
     // because getStore() is!
     ///////////////////////////////////////////////////////////////////////////
 
-    // Returns an Observable<TreeNode> of the key of this data item
+    // Returns an Observable<Object> of 
+    // { childNode: <new node created>, parentNode: <updated parent node> }
     // verifies name is unique among siblings in parent
     createDataNode(name: string, parentKey: number, data: any) {
-        let source: Observable<TreeNode> = Observable.create((observer) => {
+        let source: Observable<Object> = Observable.create((observer) => {
             // non falsy data supplied, store it in the data table first
             this.getNodeByNameInParent(name, parentKey).subscribe(
                 (nodeInParent: TreeNode) => {
@@ -692,7 +694,7 @@ export class LocalDB {
                                     name,
                                     parentKey,
                                     dataNode[DB_KEY_PATH]).subscribe(
-                                    (treeNode: TreeNode) => {
+                                    (childNode: TreeNode) => {
                                         // now we need to update the parent
                                         // node child order by prepending.
                                         // first, we'll have to read the
@@ -701,10 +703,13 @@ export class LocalDB {
                                         // update on the parent.  only do this
                                         // if the parent exists, of course
                                         if (this.validateKey(parentKey)) {
-                                            this.attachToParent(treeNode)
+                                            this.attachToParent(childNode)
                                                 .subscribe(
-                                                () => {
-                                                    observer.next(treeNode);
+                                                (parentNode: TreeNode) => {
+                                                    observer.next({
+                                                        childNode: childNode,
+                                                        parentNode: parentNode
+                                                    });
                                                     observer.complete();
                                                 },
                                                 (error: any) => {
@@ -713,10 +718,13 @@ export class LocalDB {
                                                 );
                                         }
                                         else {
-                                            // parent is not a valid key, it's ok
-                                            // just return what you got without the
-                                            // parent update
-                                            observer.next(treeNode);
+                                            // parentKey not valid,
+                                            // just return what you got without
+                                            // parent update (root special case)
+                                            observer.next({
+                                                childNode: childNode,
+                                                parentNode: null
+                                            });
                                             observer.complete();
                                         }
                                     },
@@ -744,7 +752,8 @@ export class LocalDB {
         return source;
     }
 
-    // Returns an Observable<TreeNode> of the key of this folder item
+    // Returns an Observable<Object> of 
+    // { childNode: <new node created>, parentNode: <updated parent node> }
     // verifies name is unique among siblings in parent
     createFolderNode(name: string, parentKey: number) {
         let source: Observable<TreeNode> = Observable.create((observer) => {
@@ -756,7 +765,7 @@ export class LocalDB {
                     else {
                         this.createTreeStoreItem(name, parentKey, DB_NO_KEY)
                             .subscribe(
-                            (treeNode: TreeNode) => {
+                            (childNode: TreeNode) => {
                                 // now we need to update the parent
                                 // node child order by prepending.
                                 // first, we'll have to read the
@@ -765,10 +774,13 @@ export class LocalDB {
                                 // update on the parent.  only do this
                                 // if the parent exists, of course
                                 if (this.validateKey(parentKey)) {
-                                    this.attachToParent(treeNode)
+                                    this.attachToParent(childNode)
                                         .subscribe(
-                                        () => {
-                                            observer.next(treeNode);
+                                        (parentNode: TreeNode) => {
+                                            observer.next({
+                                                childNode: childNode,
+                                                parentNode: parentNode
+                                            });
                                             observer.complete();
                                         },
                                         (error: any) => {
@@ -777,11 +789,13 @@ export class LocalDB {
                                         );
                                 }
                                 else {
-                                    // parent is not a valid key, it's ok
-                                    // just return what you got without the
-                                    // parent update
-                                    alert('invalid parent key: ' + parentKey);
-                                    observer.next(treeNode);
+                                    // parentKey not valid,
+                                    // just return what you got without
+                                    // parent update (root special case)
+                                    observer.next({
+                                        childNode: childNode,
+                                        parentNode: null
+                                    });
                                     observer.complete();
                                 }
                             },

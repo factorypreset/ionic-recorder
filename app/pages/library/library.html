@@ -55,12 +55,10 @@
     <ion-list>
         <!-- see http://stackoverflow.com/questions/31490713/iterate-over-typescript-dictionary-in-angular-2
              for how to do below better -->
-        <ion-item clear *ngFor="#i of folderItemsKeys()">
+        <ion-item clear *ngFor="#i of getChildOrder()">
             <ion-label>
                 <button clear (click)="onClickListItem(folderItems[i])">
-                    <ion-icon *ngIf="folderItems[i].dataKey" name="document" medium-gray item-left>
-                    </ion-icon>
-                    <ion-icon *ngIf="!folderItems[i].dataKey" name="folder" medium-gray item-left>
+                    <ion-icon [name]="itemIconName(i)" medium-gray item-left>
                     </ion-icon>
                     {{folderItems[i].name}}
                 </button>

@@ -14,7 +14,6 @@ import {prependArray} from '../../providers/utils/utils';
 export class LibraryPage {
     private folderPath: string = '';
     private folderNode: TreeNode = null;
-    // folderItems is a (typed) dictionary
     private folderItems: { [id: string]: TreeNode; } = {};
     private checkedNodes: { [id: string]: boolean; } = {};
 
@@ -27,7 +26,55 @@ export class LibraryPage {
         console.log('constructor():LibraryPage');
     }
 
+    getChildOrder() {
+        let keys: string[];
+        if (!this.folderNode) {
+            keys = this.folderItemsKeys();
+        }
+        else {
+            keys = this.folderNode.childOrder.map(
+                (x: number) => x.toString());
+        }
+        // console.log('getChildOrder: ' + keys);
+        return keys;
+    }
+
+    nthChild(nth: number) {
+        console.log('nthChild ' + nth + ' - ' + this.folderNode);
+        let key: string = this.getChildOrder()[nth];
+        return this.folderItems[key];
+    }
+
+    // onPageWillEnter
+    // Ionic Life Cycle Hooks:
+    // https://webcake.co/page-lifecycle-hooks-in-ionic-2/
+    onPageWillEnter() {
+        // switch folders, via AppState
+        this.appState.getProperty('lastViewedFolderKey').subscribe(
+            (lastViewedFolderKey: number) => {
+                console.log('lib page entered, to: ' + lastViewedFolderKey);
+                // this is it!  here's where we enter the last viewed folder
+                this.switchFolder(lastViewedFolderKey, false);
+                this.appState.getProperty('checkedNodes').subscribe(
+                    (checkedNodes: { [id: string]: boolean }) => {
+                        this.checkedNodes = checkedNodes;
+                        if (!checkedNodes) {
+                            alert('no checked nodes! ' + checkedNodes);
+                        }
+                    },
+                    (error: any) => {
+                        alert('in getProperty: ' + error);
+                    }
+                ); // getProperty().subscribe(
+            },
+            (error: any) => {
+                alert('in getProperty: ' + error);
+            }
+        ); // getProperty().subscbribe(
+    }
+
     folderItemsKeys() {
+        // console.log('folderItemsKeys() ...');
         return Object.keys(this.folderItems);
     }
 
@@ -51,33 +98,6 @@ export class LibraryPage {
     cannotClickDown() {
         return this.folderItemsKeys().length < 2 ||
             this.nCheckedNodes() !== 1;
-    }
-
-    // onPageWillEnter
-    // Ionic Life Cycle Hooks:
-    // https://webcake.co/page-lifecycle-hooks-in-ionic-2/
-    onPageWillEnter() {
-        // switch folders, via AppState
-        this.appState.getProperty('lastViewedFolderKey').subscribe(
-            (key: number) => {
-                console.log('lib page entered, to: ' + key);
-                this.switchFolder(key, false);
-                this.appState.getProperty('checkedNodes').subscribe(
-                    (checkedNodes: { [id: string]: boolean }) => {
-                        this.checkedNodes = checkedNodes;
-                        if (!checkedNodes) {
-                            alert('no checked nodes! ' + checkedNodes);
-                        }
-                    },
-                    (error: any) => {
-                        alert('in getProperty: ' + error);
-                    }
-                ); // getProperty().subscribe(
-            },
-            (error: any) => {
-                alert('in getProperty: ' + error);
-            }
-        ); // getProperty().subscbribe(
     }
 
     // switch to folder whose key is 'key'
@@ -190,6 +210,16 @@ export class LibraryPage {
         }
     }
 
+    itemIconName(key: string) {
+        // console.log('itemIconName ' + key);
+        if (this.localDB.isDataNode(this.folderItems[key])) {
+            return 'document';
+        }
+        else {
+            return 'folder';
+        }
+    }
+
     onClickAddButton() {
         // note we consider the current folder (this.folderNode) the parent
         let parentKey: number =
@@ -207,10 +237,14 @@ export class LibraryPage {
                 console.log('got folderName back: ' + folderName);
                 // create a node for added folder childNode
                 this.localDB.createFolderNode(folderName, parentKey).subscribe(
-                    (childNode: TreeNode) => {
-                        let childNodeKey: number = childNode[DB_KEY_PATH];
+                    (obj: { childNode: TreeNode; parentNode: TreeNode }) => {
+                        let childNode = obj.childNode,
+                            parentNode = obj.parentNode,
+                            childNodeKey: number = childNode[DB_KEY_PATH];
+                        console.log('childNode: ' + childNode + ', parentNode: ' + parentNode);
                         // update folder items dictionary of this page
                         this.folderItems[childNodeKey.toString()] = childNode;
+                        this.folderNode = parentNode;
                     },
                     (error: any) => {
                         alert('in createFolderNode: ' + error);
