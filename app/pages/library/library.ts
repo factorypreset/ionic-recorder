@@ -120,13 +120,6 @@ export class LibraryPage {
                         for (let i in childNodes) {
                             let childNode: TreeNode = childNodes[i],
                                 childKey: number = childNode[DB_KEY_PATH];
-                            if ((key === DB_NO_KEY) &&
-                                // root folder special case filter - only show folders
-                                // because we may store non-folder items there (such as
-                                // app state) that aren't for display
-                                this.localDB.isDataNode(childNode)) {
-                                continue;
-                            }
                             newFolderItems[childKey.toString()] = childNode;
                         } // for
 
@@ -233,12 +226,10 @@ export class LibraryPage {
 
     onClickAddButton() {
         // note we consider the current folder (this.folderNode) the parent
-        let parentKey: number =
-            this.folderNode ? this.folderNode[DB_KEY_PATH] : DB_NO_KEY,
-            addFolderModal = Modal.create(AddFolderPage, {
-                parentPath: this.folderPath,
-                parentItems: this.folderItems
-            });
+        let addFolderModal = Modal.create(AddFolderPage, {
+            parentPath: this.folderPath,
+            parentItems: this.folderItems
+        });
 
         this.navController.present(addFolderModal);
 
@@ -247,7 +238,8 @@ export class LibraryPage {
                 // data is new folder's name returned from addFolderModal
                 console.log('got folderName back: ' + folderName);
                 // create a node for added folder childNode
-                this.localDB.createFolderNode(folderName, parentKey).subscribe(
+                this.localDB.createFolderNode(folderName,
+                    this.folderNode[DB_KEY_PATH]).subscribe(
                     (parentChild: ParentChild) => {
                         let childNode = parentChild.child,
                             parentNode = parentChild.parent,
@@ -260,7 +252,7 @@ export class LibraryPage {
                     (error: any) => {
                         alert('in createFolderNode: ' + error);
                     }
-                ); // createFolderNode().subscribe(
+                    ); // createFolderNode().subscribe(
             }
             else {
                 console.log('you canceled the add-folder');
