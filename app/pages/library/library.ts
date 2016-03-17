@@ -121,14 +121,14 @@ export class LibraryPage {
             alert('wow no way!');
         }
         this.askAndDo(
-            'Permanently delete ' + len + ' selected items?',
+            'Permanently delete ' + len + ' items?',
             'Ok', () => {
                 console.log('deleting ' + len + ' selected items ...');
             });
     }
 
     onClickTrashButton() {
-        let folderName: string = this.folderPath.replace(/.*\//, ''),
+        let folderName: string = this.folderPath.replace(/.*\//, '') || '/',
             nCheckedNodes = this.nCheckedNodes(),
             checkedNodesInThisFolder: string[] =
                 this.checkedNodesInThisFolder(),
@@ -140,16 +140,22 @@ export class LibraryPage {
         if (nCheckedNodesNotInThisFolder) {
             if (nCheckedNodesInThisFolder) {
                 this.askAndDo([
-                    'You have checked items in folders outside this one. ',
-                    'Do you want to delete all checked items ',
-                    'or only the ones here at ' +
-                    folderName, '?'].join(''),
-                    'Delete in ' + folderName,
+                    'You have ', nCheckedNodesNotInThisFolder,
+                    ' checked item',
+                    nCheckedNodesNotInThisFolder > 1 ? 's' : '',
+                    ' outside this folder. ',
+                    'Do you want to delete all ',
+                    nCheckedNodes, ' checked item',
+                    nCheckedNodes > 1 ? 's' : '',
+                    ' or only the ', nCheckedNodesInThisFolder,
+                    ' item', nCheckedNodesInThisFolder > 1 ? 's' : '',
+                    ' here?'].join(''),
+                    'Delete only here (' + nCheckedNodesInThisFolder+')',
                     () => {
                         console.log('yes action');
                         this.deleteNodes(checkedNodesInThisFolder);
                     },
-                    'Delete all',
+                    'Delete all (' + nCheckedNodes + ')',
                     () => {
                         console.log('no action');
                         this.deleteNodes(Object.keys(this.checkedNodes));
