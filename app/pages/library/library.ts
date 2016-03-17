@@ -265,14 +265,6 @@ export class LibraryPage {
     onClickInfoButton() {
     }
 
-    getFolderName() {
-        let folderName: string = this.folderNode.name;
-        if (folderName === ROOT_FOLDER_NAME) {
-            return 'Library Home';
-        }
-        return folderName;
-    }
-
     selectAllOrNoneInFolder(all: boolean) {
         // go through all folderItems
         // for each one, ask if it's in checkedNodes
@@ -318,8 +310,12 @@ export class LibraryPage {
     }
 
     onClickSelectButton() {
-        let alert = Alert.create();
-        alert.setTitle('Select in<br>' + this.getFolderName());
+        let folderName: string = this.folderPath.replace(/.*\//, ''),
+            alert = Alert.create();
+        if (folderName === '') {
+            folderName = '/';
+        }
+        alert.setTitle('Select in<br>' + folderName);
         alert.addInput({
             type: 'radio',
             label: 'All',
