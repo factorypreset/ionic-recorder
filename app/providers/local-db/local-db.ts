@@ -479,8 +479,8 @@ export class LocalDB {
      * END: TreeStore- / DataStore- specific methods
      */
 
-    // Returns an Observable<Object> of 
-    // { childNode: <new node created>, parentNode: <updated parent node> }
+    // Returns an Observable<ParentChild> of new child node created and
+    // its associated parent node, whose child order has been updated
     // verifies name is unique among siblings in parent
     createNode(name: string, parentKey: number, data?: any) {
         if (data) {
@@ -501,6 +501,7 @@ export class LocalDB {
             let nodes: TreeNode[] = [];
             this.getTreeStore('readonly').subscribe(
                 (store: IDBObjectStore) => {
+                    console.log('only ********* ' + name);
                     let index: IDBIndex = store.index('name'),
                         keyRange: IDBKeyRange = IDBKeyRange.only(name),
                         cursorRequest: IDBRequest = index.openCursor(keyRange);
@@ -860,7 +861,7 @@ export class LocalDB {
         return source;
     }
 
-    // Returns an Observable<ParentChild> of new child node created and
+    // Returns an Observable<Object> of new child node created and
     // its associated parent node, whose child order has been updated
     readOrCreateDataNode(
         name: string, parentKey: number, data: any) {
@@ -915,8 +916,9 @@ export class LocalDB {
         return source;
     }
 
+    // observable of a TreeNode
     readOrCreateFolderNode(name: string, parentKey: number) {
-        let source: Observable<ParentChild> =
+        let source: Observable<TreeNode> =
             Observable.create((observer) => {
                 this.getNodeByNameInParent(name, parentKey).subscribe(
                     (readTreeNode: TreeNode) => {

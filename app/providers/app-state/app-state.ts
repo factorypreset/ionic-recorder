@@ -8,7 +8,7 @@ from '../local-db/local-db';
 interface State {
     lastSelectedTab: number;
     lastViewedFolderKey: number;
-    unfiledFolderName: string;
+    rootFolderKey: number;
     unfiledFolderKey: number;
     checkedNodes: { [id: string]: boolean };
 }
@@ -16,13 +16,18 @@ interface State {
 // make sure APP_STATE_ITEM_NAME will never be entered by a user
 export const STATE_NODE_NAME: string =
     'Kwj7t9X2PTsPwLquD9qvZqaApMP8LGRjPFENUHnvrpmUE25rkrYHhzf9KBEradAU';
+
+export const ROOT_FOLDER_NAME: string = 'root';
+export const UNFILED_FOLDER_NAME: string = 'Unfiled';
+
 const DEFAULT_STATE: State = {
     lastSelectedTab: 0,
     lastViewedFolderKey: DB_NO_KEY,
-    unfiledFolderName: 'Unfiled',
+    rootFolderKey: DB_NO_KEY,
     unfiledFolderKey: DB_NO_KEY,
     checkedNodes: {}
 };
+
 
 @Injectable()
 export class AppState {
@@ -42,28 +47,47 @@ export class AppState {
     constructor() {
         console.log('constructor():AppState');
 
-        this.localDB.readOrCreateDataNode(
-            STATE_NODE_NAME, DB_NO_KEY, DEFAULT_STATE).subscribe(
-            (result: any) => {
-                this.treeNode = result.treeNode;
-                this.dataNode = result.dataNode;
-                // Create Unfiled folder for the auto-save in record.ts
+        // Create root folder   
+        this.localDB.readOrCreateFolderNode(ROOT_FOLDER_NAME, DB_NO_KEY)
+            .subscribe(
+            (rootFolderNode: TreeNode) => {
+                console.log('yeah 1');
+                let rootNodeKey: number = rootFolderNode[DB_KEY_PATH];
+                DEFAULT_STATE['rootFolderKey'] = rootNodeKey;
+                // Create Unfiled folder as child of root using root's key
                 this.localDB.readOrCreateFolderNode(
-                    DEFAULT_STATE.unfiledFolderName, DB_NO_KEY)
+                    UNFILED_FOLDER_NAME, rootNodeKey)
                     .subscribe(
                     (unfiledFolderNode: TreeNode) => {
-                        this.dataNode.data['unfiledFolderKey'] =
+                        console.log('yeah 2');
+                        DEFAULT_STATE['unfiledFolderKey'] =
                             unfiledFolderNode[DB_KEY_PATH];
+                        // create default state data node after it's
+                        // been updated with the correct keys for
+                        // both root and unfiled folders
+                        this.localDB.readOrCreateDataNode(
+                            STATE_NODE_NAME, DB_NO_KEY, DEFAULT_STATE)
+                            .subscribe(
+                            (result: any) => {
+                                console.log('yeah 3');
+                                this.treeNode = result.treeNode;
+                                this.dataNode = result.dataNode;
+
+                            },
+                            (error: any) => {
+                                throw new Error(error);
+                            }
+                            ); // readOrCreateDataNode().subscribe(
                     },
-                    (rcFolderError: any) => {
-                        throw new Error(rcFolderError);
+                    (error: any) => {
+                        throw new Error(error);
                     }
                     ); // readOrCreateFolderNode().su ...
             },
             (error: any) => {
                 throw new Error(error);
             }
-            ); // readOrCreateDataNode().subscribe(
+            ); // readOrCreateFolderNode().su ...
     }
 
     // Singleton pattern implementation
@@ -74,6 +98,48 @@ export class AppState {
         return this.instance;
     }
 
+    getLastViewedFolderKey() {
+        let source: Observable<number> = Observable.create((observer) => {
+            this.getProperty('lastViewedFolderKey').subscribe(
+                (lastViewedFolderKey: number) => {
+                    if (lastViewedFolderKey === DB_NO_KEY) {
+                        console.log('lastViewedFolder not yet set');
+                        // we have not yet set the lastViewedFolderKey
+                        // here we set it to the default, which is root folder
+                        this.getProperty('rootFolderKey').subscribe(
+                            (rootFolderKey: number) => {
+                                this.updateProperty(
+                                    'lastViewedFolder',
+                                    rootFolderKey)
+                                    .subscribe(
+                                    () => {
+                                        console.log('updated to: ' +
+                                            rootFolderKey);
+                                        observer.next(rootFolderKey);
+                                        observer.complete();
+                                    },
+                                    (error: any) => {
+                                        observer.error(error);
+                                    }
+                                    ); // updateProperty.subscribe(
+                            },
+                            (error: any) => {
+                                observer.error(error);
+                            }
+                        ); // getProperty().subscribe(
+                    }
+                    else {
+                        observer.next(lastViewedFolderKey);
+                        observer.complete();
+                    }
+                },
+                (error: any) => {
+                    observer.error(error);
+                }
+            ); // getProperty().subscribe(
+        });
+        return source;
+    }
     // this creates the following folders in a newly initialized app:
     // 1) root folder '/'
     // 2) unfiled folder 'Unfiled', under root

@@ -3,7 +3,7 @@
 import {Page, NavController, Platform, Modal, Alert} from 'ionic-angular';
 import {LocalDB, TreeNode, ParentChild, DB_NO_KEY, DB_KEY_PATH}
 from '../../providers/local-db/local-db';
-import {AppState} from '../../providers/app-state/app-state';
+import {AppState, ROOT_FOLDER_NAME} from '../../providers/app-state/app-state';
 import {AddFolderPage} from '../add-folder/add-folder';
 import {prependArray} from '../../providers/utils/utils';
 
@@ -50,7 +50,7 @@ export class LibraryPage {
     // https://webcake.co/page-lifecycle-hooks-in-ionic-2/
     onPageWillEnter() {
         // switch folders, via AppState
-        this.appState.getProperty('lastViewedFolderKey').subscribe(
+        this.appState.getLastViewedFolderKey().subscribe(
             (lastViewedFolderKey: number) => {
                 console.log('lib page entered, to: ' + lastViewedFolderKey);
                 // this is it!  here's where we enter the last viewed folder
@@ -90,20 +90,35 @@ export class LibraryPage {
         return this.checkedNodesKeys().length;
     }
 
-    cannotClickUp() {
+    upButtonDisabled() {
         return this.folderItemsKeys().length < 2 ||
             this.nCheckedNodes() !== 1;
     }
 
-    cannotClickDown() {
+    downButtonDisabled() {
         return this.folderItemsKeys().length < 2 ||
             this.nCheckedNodes() !== 1;
     }
+
+    moveButtonDisabled() {
+        return this.folderItemsKeys().length < 2 ||
+            this.nCheckedNodes() !== 1;
+    }
+
+    trashButtonDisabled() {
+        return this.folderItemsKeys().length < 2 ||
+            this.nCheckedNodes() !== 1;
+    }
+
 
     // switch to folder whose key is 'key'
     // if updateState is true, update the app state
     // property 'lastViewedFolderKey'
     switchFolder(key: number, updateState: boolean) {
+        if (!this.localDB.validateKey(key)) {
+            alert('switchFolder -- invalid key!');
+            return;
+        }
         console.log('switchFolder(' + key + ', ' + updateState + ') -- ' +
             this.nCheckedNodes());
         // we read all child nodes of the folder we're switching to in order
@@ -145,7 +160,15 @@ export class LibraryPage {
                 this.localDB.getNodePath(key).subscribe(
                     (path: string) => {
                         console.log('path === ' + path);
-                        this.folderPath = path;
+                        path = path.substr(
+                            1 + ROOT_FOLDER_NAME.length
+                        );
+                        if (path === '') {
+                            this.folderPath = '/';
+                        }
+                        else {
+                            this.folderPath = path;
+                        }
                     },
                     (error: any) => {
                         alert('in getNodePath: ' + error);
@@ -263,12 +286,11 @@ export class LibraryPage {
     }
 
     getFolderName() {
-        if (this.folderNode) {
-            return this.folderNode.name;
+        let folderName: string = this.folderNode.name;
+        if (folderName === ROOT_FOLDER_NAME) {
+            return 'Library Home';
         }
-        else {
-            return '/';
-        }
+        return folderName;
     }
 
     selectAllOrNoneInFolder(all: boolean) {
@@ -317,7 +339,7 @@ export class LibraryPage {
 
     onClickSelectButton() {
         let alert = Alert.create();
-        alert.setTitle('Select in folder<br>' + this.getFolderName());
+        alert.setTitle('Select in<br>' + this.getFolderName());
         alert.addInput({
             type: 'radio',
             label: 'All',
