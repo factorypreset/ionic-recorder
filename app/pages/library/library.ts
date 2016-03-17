@@ -31,7 +31,8 @@ export class LibraryPage {
     // onPageWillEnter
     // Ionic Life Cycle Hooks:
     // https://webcake.co/page-lifecycle-hooks-in-ionic-2/
-    onPageWillEnter() {
+    ngOnInit() {
+        console.warn('on page will enter --------------------');
         // switch folders, via AppState
         this.appState.getLastViewedFolderKey().subscribe(
             (lastViewedFolderKey: number) => {
