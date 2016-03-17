@@ -26,29 +26,11 @@ export class LibraryPage {
         console.log('constructor():LibraryPage');
     }
 
-    getChildOrder() {
-        let keys: string[];
-        if (!this.folderNode) {
-            keys = this.folderItemsKeys();
-        }
-        else {
-            keys = this.folderNode.childOrder.map(
-                (x: number) => x.toString());
-        }
-        // console.log('getChildOrder: ' + keys);
-        return keys;
-    }
-
-    nthChild(nth: number) {
-        console.log('nthChild ' + nth + ' - ' + this.folderNode);
-        let key: string = this.getChildOrder()[nth];
-        return this.folderItems[key];
-    }
-
     // onPageWillEnter
     // Ionic Life Cycle Hooks:
     // https://webcake.co/page-lifecycle-hooks-in-ionic-2/
     onPageWillEnter() {
+        console.log('ON PAGE WILL ENTER!!!!!!!!!!!!');
         // switch folders, via AppState
         this.appState.getLastViewedFolderKey().subscribe(
             (lastViewedFolderKey: number) => {
@@ -121,75 +103,78 @@ export class LibraryPage {
         }
         console.log('switchFolder(' + key + ', ' + updateState + ') -- ' +
             this.nCheckedNodes());
-        // we read all child nodes of the folder we're switching to in order
-        // to fill up this.folderItems
-        this.localDB.readChildNodes(key).subscribe(
-            (childNodes: TreeNode[]) => {
-                this.folderItems = {};
-                // we found all children of the node we're traversing to (key)
-                for (let i in childNodes) {
-                    let childNode: TreeNode = childNodes[i],
-                        childKey: number = childNode[DB_KEY_PATH];
-                    if ((key === DB_NO_KEY) &&
-                        // root folder special case filter - only show folders
-                        // because we may store non-folder items there (such as
-                        // app state) that aren't for display
-                        this.localDB.isDataNode(childNode)) {
-                        continue;
-                    }
-                    this.folderItems[childKey.toString()] = childNode;
-                }
-                console.log('found ' + this.folderItemsKeys() + ' items');
 
-                // for non-root folders, we set this.folderNode here
-                if (key !== DB_NO_KEY) {
-                    this.localDB.readNode(key).subscribe(
-                        (node: TreeNode) => {
-                            if (node[DB_KEY_PATH] !== key) {
-                                alert('in readNode: key mismatch');
+        // for non-root folders, we set this.folderNode here
+        this.localDB.readNode(key).subscribe(
+            (folderNode: TreeNode) => {
+                if (folderNode[DB_KEY_PATH] !== key) {
+                    alert('in readNode: key mismatch');
+                }
+                // we read all child nodes of the folder we're switching to in order
+                // to fill up this.folderItems
+                let newFolderItems: { [id: string]: TreeNode } = {};
+                this.localDB.readChildNodes(key).subscribe(
+                    (childNodes: TreeNode[]) => {
+                        this.folderItems = {};
+                        // we found all children of the node we're traversing to (key)
+                        for (let i in childNodes) {
+                            let childNode: TreeNode = childNodes[i],
+                                childKey: number = childNode[DB_KEY_PATH];
+                            if ((key === DB_NO_KEY) &&
+                                // root folder special case filter - only show folders
+                                // because we may store non-folder items there (such as
+                                // app state) that aren't for display
+                                this.localDB.isDataNode(childNode)) {
+                                continue;
                             }
-                            this.folderNode = node;
-                        },
-                        (error: any) => {
-                            alert('in readNode: ' + error);
-                        }
-                    ); // readNode().subscribe(
-                }
+                            newFolderItems[childKey.toString()] = childNode;
+                        } // for
 
-                // get the path
-                this.localDB.getNodePath(key).subscribe(
-                    (path: string) => {
-                        console.log('path === ' + path);
-                        path = path.substr(
-                            1 + ROOT_FOLDER_NAME.length
-                        );
-                        if (path === '') {
-                            this.folderPath = '/';
-                        }
-                        else {
-                            this.folderPath = path;
-                        }
+                        this.folderNode = folderNode;
+                        this.folderItems = newFolderItems;
+
+                        console.log('found ' + this.folderItemsKeys() + ' items');
                     },
                     (error: any) => {
-                        alert('in getNodePath: ' + error);
+                        alert('in readChildNodes: ' + error);
                     }
-                ); // getNodePath().subscribe(
-
-                // update last viewed folder state in DB
-                if (updateState) {
-                    this.appState.updateProperty('lastViewedFolderKey', key)
-                        .subscribe(
-                        () => { },
-                        (error: any) => {
-                            alert('in updateProperty: ' + error);
-                        }
-                        ); // updateProperty().subscribe
-                }
+                ); // readChildNodes().subscribe(
             },
             (error: any) => {
-                alert('in readChildNodes: ' + error);
+                alert('in readNode: ' + error);
             }
-        ); // readChildNodes().subscribe(
+        );
+
+        // get the path, in parallel
+        this.localDB.getNodePath(key).subscribe(
+            (path: string) => {
+                console.log('path === ' + path);
+                path = path.substr(
+                    1 + ROOT_FOLDER_NAME.length
+                );
+                if (path === '') {
+                    this.folderPath = '/';
+                }
+                else {
+                    this.folderPath = path;
+                }
+                console.log('FOLDER PATH: ' + this.folderPath);
+            },
+            (error: any) => {
+                alert('in getNodePath: ' + error);
+            }
+        ); // getNodePath().subscribe(
+
+        // update last viewed folder state in DB
+        if (updateState) {
+            this.appState.updateProperty('lastViewedFolderKey', key)
+                .subscribe(
+                () => { },
+                (error: any) => {
+                    alert('in updateProperty: ' + error);
+                }
+                ); // updateProperty().subscribe
+        }
     }
 
     isChecked(node: TreeNode) {
@@ -234,6 +219,9 @@ export class LibraryPage {
     }
 
     itemIconName(key: string) {
+        if (!this.folderItems || !this.folderItems[key]) {
+            return '';
+        }
         // console.log('itemIconName ' + key);
         if (this.localDB.isDataNode(this.folderItems[key])) {
             return 'document';

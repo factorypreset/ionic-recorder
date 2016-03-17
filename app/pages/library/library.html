@@ -51,10 +51,10 @@
 </div>
 
 <ion-content [class]="platform.platforms()" padding>
-    <ion-list>
+    <ion-list *ngIf="folderNode">
         <!-- see http://stackoverflow.com/questions/31490713/iterate-over-typescript-dictionary-in-angular-2
              for how to do below better -->
-        <ion-item clear *ngFor="#i of getChildOrder()">
+        <ion-item clear *ngFor="#i of folderNode.childOrder">
             <ion-label>
                 <button clear (click)="onClickListItem(folderItems[i])">
                     <ion-icon [name]="itemIconName(i)" medium-gray item-left>
