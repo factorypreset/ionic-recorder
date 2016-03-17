@@ -1,7 +1,7 @@
 // Copyright (C) 2015, 2016 Tracktunes Inc
 
 import {Page, NavController, Platform, Modal, Alert} from 'ionic-angular';
-import {LocalDB, TreeNode, DB_NO_KEY, DB_KEY_PATH}
+import {LocalDB, TreeNode, ParentChild, DB_NO_KEY, DB_KEY_PATH}
 from '../../providers/local-db/local-db';
 import {AppState} from '../../providers/app-state/app-state';
 import {AddFolderPage} from '../add-folder/add-folder';
@@ -237,9 +237,9 @@ export class LibraryPage {
                 console.log('got folderName back: ' + folderName);
                 // create a node for added folder childNode
                 this.localDB.createFolderNode(folderName, parentKey).subscribe(
-                    (obj: { childNode: TreeNode; parentNode: TreeNode }) => {
-                        let childNode = obj.childNode,
-                            parentNode = obj.parentNode,
+                    (parentChild: ParentChild) => {
+                        let childNode = parentChild.child,
+                            parentNode = parentChild.parent,
                             childNodeKey: number = childNode[DB_KEY_PATH];
                         console.log('childNode: ' + childNode + ', parentNode: ' + parentNode);
                         // update folder items dictionary of this page
