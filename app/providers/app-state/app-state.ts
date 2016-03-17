@@ -29,8 +29,15 @@ export class AppState {
     // 'instance' is used to implement this class as a Singleton
     private static instance: AppState = null;
     private localDB: LocalDB = LocalDB.Instance;
+
+    // treeNode contains the node in the tree where we store the
+    // data of default state, treeNode.dataKey points to dataNode
     private treeNode: TreeNode = null;
+
+    // dataNode contains the default state
     private dataNode: DataNode = null;
+
+    private state: State = null;
 
     constructor() {
         console.log('constructor():AppState');
@@ -65,6 +72,15 @@ export class AppState {
             this.instance = new AppState();
         }
         return this.instance;
+    }
+
+    // this creates the following folders in a newly initialized app:
+    // 1) root folder '/'
+    // 2) unfiled folder 'Unfiled', under root
+    // 3) favorites folder 'Favorites', under root
+    // 4) recent folder 'Recent',under root
+    private createInitialFolderStructure() {
+
     }
 
     waitForAppState() {

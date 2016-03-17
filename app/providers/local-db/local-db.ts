@@ -37,6 +37,11 @@ export interface TreeNode {
     childOrder?: number[];
 }
 
+export interface ParentChild {
+    parent: TreeNode;
+    child: TreeNode;
+    data?: DataNode;
+}
 
 @Injectable()
 export class LocalDB {
@@ -117,6 +122,18 @@ export class LocalDB {
         }
         return treeNode;
     };
+
+    makeParentChild(parentNode: TreeNode, childNode: TreeNode,
+        dataNode?: DataNode) {
+        let pc: ParentChild = {
+            parent: parentNode,
+            child: childNode
+        };
+        if (dataNode) {
+            pc.data = dataNode;
+        }
+        return pc;
+    }
 
     waitForDB() {
         // NOTE: MAX_DB_INIT_TIME / 10
@@ -462,7 +479,9 @@ export class LocalDB {
      * END: TreeStore- / DataStore- specific methods
      */
 
-    // Returns an observble<TreeNode> of key of created tree node
+    // Returns an Observable<Object> of 
+    // { childNode: <new node created>, parentNode: <updated parent node> }
+    // verifies name is unique among siblings in parent
     createNode(name: string, parentKey: number, data?: any) {
         if (data) {
             return this.createDataNode(name, parentKey, data);
@@ -674,11 +693,11 @@ export class LocalDB {
     // because getStore() is!
     ///////////////////////////////////////////////////////////////////////////
 
-    // Returns an Observable<Object> of 
-    // { childNode: <new node created>, parentNode: <updated parent node> }
+    // Returns an Observable<ParentChild> of new child node created and
+    // its associated parent node, whose child order has been updated
     // verifies name is unique among siblings in parent
     createDataNode(name: string, parentKey: number, data: any) {
-        let source: Observable<Object> = Observable.create((observer) => {
+        let source: Observable<ParentChild> = Observable.create((observer) => {
             // non falsy data supplied, store it in the data table first
             this.getNodeByNameInParent(name, parentKey).subscribe(
                 (nodeInParent: TreeNode) => {
@@ -706,10 +725,11 @@ export class LocalDB {
                                             this.attachToParent(childNode)
                                                 .subscribe(
                                                 (parentNode: TreeNode) => {
-                                                    observer.next({
-                                                        childNode: childNode,
-                                                        parentNode: parentNode
-                                                    });
+                                                    observer.next(
+                                                        this.makeParentChild(
+                                                            parentNode,
+                                                            childNode
+                                                        ));
                                                     observer.complete();
                                                 },
                                                 (error: any) => {
@@ -721,10 +741,11 @@ export class LocalDB {
                                             // parentKey not valid,
                                             // just return what you got without
                                             // parent update (root special case)
-                                            observer.next({
-                                                childNode: childNode,
-                                                parentNode: null
-                                            });
+                                            observer.next(
+                                                this.makeParentChild(
+                                                    null,
+                                                    childNode
+                                                ));
                                             observer.complete();
                                         }
                                     },
@@ -752,65 +773,68 @@ export class LocalDB {
         return source;
     }
 
-    // Returns an Observable<Object> of 
-    // { childNode: <new node created>, parentNode: <updated parent node> }
+    // Returns an Observable<ParentChild> of new child node created and
+    // its associated parent node, whose child order has been updated
     // verifies name is unique among siblings in parent
     createFolderNode(name: string, parentKey: number) {
-        let source: Observable<TreeNode> = Observable.create((observer) => {
-            this.getNodeByNameInParent(name, parentKey).subscribe(
-                (nodeInParent: TreeNode) => {
-                    if (nodeInParent) {
-                        observer.error('unique name violation 3');
-                    }
-                    else {
-                        this.createTreeStoreItem(name, parentKey, DB_NO_KEY)
-                            .subscribe(
-                            (childNode: TreeNode) => {
-                                // now we need to update the parent
-                                // node child order by prepending.
-                                // first, we'll have to read the
-                                // parent child order, then we'll
-                                // modify it, then we'll have to call
-                                // update on the parent.  only do this
-                                // if the parent exists, of course
-                                if (this.validateKey(parentKey)) {
-                                    this.attachToParent(childNode)
-                                        .subscribe(
-                                        (parentNode: TreeNode) => {
-                                            observer.next({
-                                                childNode: childNode,
-                                                parentNode: parentNode
-                                            });
-                                            observer.complete();
-                                        },
-                                        (error: any) => {
-                                            observer.error(error);
-                                        }
-                                        );
+        let source: Observable<ParentChild> =
+            Observable.create((observer) => {
+                this.getNodeByNameInParent(name, parentKey).subscribe(
+                    (nodeInParent: TreeNode) => {
+                        if (nodeInParent) {
+                            observer.error('unique name violation 3');
+                        }
+                        else {
+                            this.createTreeStoreItem(name, parentKey, DB_NO_KEY)
+                                .subscribe(
+                                (childNode: TreeNode) => {
+                                    // now we need to update the parent
+                                    // node child order by prepending.
+                                    // first, we'll have to read the
+                                    // parent child order, then we'll
+                                    // modify it, then we'll have to call
+                                    // update on the parent.  only do this
+                                    // if the parent exists, of course
+                                    if (this.validateKey(parentKey)) {
+                                        this.attachToParent(childNode)
+                                            .subscribe(
+                                            (parentNode: TreeNode) => {
+                                                observer.next(
+                                                    this.makeParentChild(
+                                                        parentNode,
+                                                        childNode
+                                                    ));
+                                                observer.complete();
+                                            },
+                                            (error: any) => {
+                                                observer.error(error);
+                                            }
+                                            );
+                                    }
+                                    else {
+                                        // parentKey not valid,
+                                        // just return what you got without
+                                        // parent update (root special case)
+                                        observer.next(
+                                            this.makeParentChild(
+                                                null,
+                                                childNode
+                                            ));
+                                        observer.complete();
+                                    }
+                                },
+                                (error) => {
+                                    observer.error(
+                                        'In createTreeStoreItem:' + error);
                                 }
-                                else {
-                                    // parentKey not valid,
-                                    // just return what you got without
-                                    // parent update (root special case)
-                                    observer.next({
-                                        childNode: childNode,
-                                        parentNode: null
-                                    });
-                                    observer.complete();
-                                }
-                            },
-                            (error) => {
-                                observer.error(
-                                    'In createTreeStoreItem:' + error);
-                            }
-                            ); // createTreeStoreItem().subscribe(
+                                ); // createTreeStoreItem().subscribe(
+                        }
+                    },
+                    (error) => {
+                        observer.error('in getNodeByNameInParent: ' + error);
                     }
-                },
-                (error) => {
-                    observer.error('in getNodeByNameInParent: ' + error);
-                }
-            ); // getNodeByNameInParent().subscribe(
-        });
+                ); // getNodeByNameInParent().subscribe(
+            });
         return source;
     }
 
@@ -836,6 +860,8 @@ export class LocalDB {
         return source;
     }
 
+    // Returns an Observable<ParentChild> of new child node created and
+    // its associated parent node, whose child order has been updated
     readOrCreateDataNode(
         name: string, parentKey: number, data: any) {
         let source: Observable<Object> =
@@ -854,8 +880,8 @@ export class LocalDB {
                                     });
                                     observer.complete();
                                 },
-                                (readDataError: any) => {
-                                    observer.error(readDataError);
+                                (error: any) => {
+                                    observer.error(error);
                                 } // readNodeData().subscribe(
                             );
                         } // if (node) {
@@ -864,25 +890,25 @@ export class LocalDB {
                             // no node in parent by name 'name', create it
                             this.createDataNode(
                                 name, parentKey, data).subscribe(
-                                (createdTreeNode: TreeNode) => {
+                                (parentChild: ParentChild) => {
                                     let dataNode: DataNode =
                                         this.makeDataNode(data);
                                     dataNode[DB_KEY_PATH] =
-                                        createdTreeNode.dataKey;
+                                        parentChild.child.dataKey;
                                     observer.next({
-                                        treeNode: createdTreeNode,
+                                        treeNode: parentChild.child,
                                         dataNode: dataNode
                                     });
                                     observer.complete();
                                 },
-                                (createError: any) => {
-                                    observer.error(createError);
+                                (error: any) => {
+                                    observer.error(error);
                                 }
                                 ); // .createDataNode().subscribe(
                         } // else {
                     },
-                    (readNodeError: any) => {
-                        observer.error(readNodeError);
+                    (error: any) => {
+                        observer.error(error);
                     }
                 ); // getNodeByNameInParent().subscribe(
             });
@@ -890,7 +916,7 @@ export class LocalDB {
     }
 
     readOrCreateFolderNode(name: string, parentKey: number) {
-        let source: Observable<TreeNode> =
+        let source: Observable<ParentChild> =
             Observable.create((observer) => {
                 this.getNodeByNameInParent(name, parentKey).subscribe(
                     (readTreeNode: TreeNode) => {
@@ -905,18 +931,18 @@ export class LocalDB {
                                 'folder node not in DB, creating it ...');
                             this.createFolderNode(
                                 name, parentKey).subscribe(
-                                (createdTreeNode: TreeNode) => {
-                                    observer.next(createdTreeNode);
+                                (parentChild: ParentChild) => {
+                                    observer.next(parentChild.child);
                                     observer.complete();
                                 },
-                                (createError: any) => {
-                                    observer.error(createError);
+                                (error: any) => {
+                                    observer.error(error);
                                 }
-                                ); // .createDataNode().subscribe(
+                                ); // createDataNode().subscribe(
                         } // if (readTreeNode) { .. else {
                     },
-                    (readNodeError: any) => {
-                        observer.error(readNodeError);
+                    (error: any) => {
+                        observer.error(error);
                     }
                 ); // getNodeByNameInParent().subscribe(
             });
@@ -987,13 +1013,13 @@ export class LocalDB {
                                     (childNode: TreeNode) => {
                                         this.deleteNode(childNode).subscribe(
                                             (success: boolean) => { },
-                                            (childError) => {
-                                                observer.error(childError);
+                                            (error) => {
+                                                observer.error(error);
                                             }
                                         ); // deleteNode().subscribe(
                                     },
-                                    (arraySourceError) => {
-                                        observer.error(arraySourceError);
+                                    (error) => {
+                                        observer.error(error);
                                     },
                                     () => {
                                         observer.next(true);
@@ -1002,13 +1028,13 @@ export class LocalDB {
                                 ); // fromArray.subscribe(
                             }
                         },
-                        (readChildNodesError) => {
-                            observer.error(readChildNodesError);
+                        (error) => {
+                            observer.error(error);
                         }
                     ); // readChildNodes().subscribe(
                 },
-                (deleteSelfError) => {
-                    observer.error(deleteSelfError);
+                (error) => {
+                    observer.error(error);
                 }
             ); // deleteTreeStoreItem().subscribe(
         });
@@ -1036,15 +1062,15 @@ export class LocalDB {
                                 observer.next(pathSoFar);
                                 observer.complete();
                             },
-                            (pathError: any) => {
-                                observer.error(pathError);
+                            (error: any) => {
+                                observer.error(error);
                             }
-                            );
+                            ); // getNodePath().subscribe(
                     },
-                    (readError: any) => {
-                        observer.error(readError);
+                    (error: any) => {
+                        observer.error(error);
                     }
-                );
+                ); // readNode().subscribe(
             }
         });
         return source;

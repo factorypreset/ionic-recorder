@@ -1,6 +1,6 @@
 // Copyright (C) 2015, 2016 Tracktunes Inc
 
-import {LocalDB, TreeNode, DataNode, DB_NAME, DB_NO_KEY, DB_KEY_PATH,
+import {LocalDB, TreeNode, DataNode, ParentChild, DB_NAME, DB_NO_KEY, DB_KEY_PATH,
 MAX_DB_INIT_TIME} from './local-db';
 
 const RANDOM_WORD_1: string =
@@ -193,7 +193,8 @@ export function main(): void {
                 setTimeout(() => {
                     localDB.createNode(
                         UNFILED_FOLDER_NAME, DB_NO_KEY).subscribe(
-                        (treeNode: TreeNode) => {
+                        (parentChild: ParentChild) => {
+                            let treeNode: TreeNode = parentChild.child;
                             fail('expected an error');
                         },
                         (error) => {
@@ -209,7 +210,8 @@ export function main(): void {
                 setTimeout(() => {
                     localDB.createNode('Folder 1',
                         unfiledFolder[DB_KEY_PATH]).subscribe(
-                        (treeNode: TreeNode) => {
+                        (parentChild: ParentChild) => {
+                            let treeNode: TreeNode = parentChild.child;
                             folder1 = treeNode;
                             expect(localDB.validateKey(
                                 treeNode[DB_KEY_PATH])).toBe(true);
@@ -231,7 +233,8 @@ export function main(): void {
             setTimeout(() => {
                 localDB.createNode('Item 2', folder1[DB_KEY_PATH], 'i2data')
                     .subscribe(
-                    (treeNode: TreeNode) => {
+                    (parentChild: ParentChild) => {
+                        let treeNode: TreeNode = parentChild.child;
                         item2 = treeNode;
                         expect(localDB.validateKey(
                             treeNode[DB_KEY_PATH])).toBe(true);
@@ -253,7 +256,8 @@ export function main(): void {
         it('can create folder3 - child of folder1', (done) => {
             setTimeout(() => {
                 localDB.createNode('Folder 3', folder1[DB_KEY_PATH]).subscribe(
-                    (treeNode: TreeNode) => {
+                    (parentChild: ParentChild) => {
+                        let treeNode: TreeNode = parentChild.child;
                         folder3 = treeNode;
                         expect(localDB.validateKey(
                             treeNode[DB_KEY_PATH])).toBe(true);
@@ -275,7 +279,8 @@ export function main(): void {
             setTimeout(() => {
                 localDB.createNode('Item 4', folder3[DB_KEY_PATH],
                     'i4data').subscribe(
-                    (treeNode: TreeNode) => {
+                    (parentChild: ParentChild) => {
+                        let treeNode: TreeNode = parentChild.child;
                         item4 = treeNode;
                         expect(localDB.validateKey(
                             treeNode[DB_KEY_PATH])).toBe(true);
@@ -297,7 +302,8 @@ export function main(): void {
         it('can create folder5 - child of folder3', (done) => {
             setTimeout(() => {
                 localDB.createNode('Folder 5', folder3[DB_KEY_PATH]).subscribe(
-                    (treeNode: TreeNode) => {
+                    (parentChild: ParentChild) => {
+                        let treeNode: TreeNode = parentChild.child;
                         folder5 = treeNode;
                         expect(localDB.validateKey(
                             treeNode[DB_KEY_PATH])).toBe(true);
@@ -335,7 +341,8 @@ export function main(): void {
             setTimeout(() => {
                 localDB.createNode('Item 6', folder5[DB_KEY_PATH], 'i6data')
                     .subscribe(
-                    (treeNode: TreeNode) => {
+                    (parentChild: ParentChild) => {
+                        let treeNode: TreeNode = parentChild.child;
                         item6 = treeNode;
                         expect(localDB.validateKey(
                             treeNode[DB_KEY_PATH])).toBe(true);
@@ -358,7 +365,8 @@ export function main(): void {
             setTimeout(() => {
                 localDB.createNode('Item 7', folder5[DB_KEY_PATH], 'i7data')
                     .subscribe(
-                    (treeNode: TreeNode) => {
+                    (parentChild: ParentChild) => {
+                        let treeNode: TreeNode = parentChild.child;
                         item7 = treeNode;
                         expect(localDB.validateKey(
                             treeNode[DB_KEY_PATH])).toBe(true);
@@ -382,7 +390,8 @@ export function main(): void {
                 setTimeout(() => {
                     localDB.createNode(UNFILED_FOLDER_NAME,
                         folder5[DB_KEY_PATH]).subscribe(
-                        (treeNode: TreeNode) => {
+                        (parentChild: ParentChild) => {
+                            let treeNode: TreeNode = parentChild.child;
                             expect(localDB.validateKey(
                                 treeNode[DB_KEY_PATH])).toBe(true);
                             expect(treeNode.parentKey).toEqual(
