@@ -1,5 +1,19 @@
 # TODO.md
 
+* NOT SURE IF TO DO THIS:
+  Do not allow an invalid parentKey anymore in local-db - validate the
+  parentKey in any high-level function that gets it in its args.  To make
+  this change happen, we need to have a default root node in library.ts.
+  There must be a root node in 'the tree'.  Instead of exporting DB_NO_KEY - which
+  now should not be exported at all after this change, export the root key
+  of the root node, which is created with readOrCreate() at the start.
+  - this will require changes in the spec of local-db
+  - this will require changes in app-state
+  - this will require changes in library
+* make sure ids everywhere are treated ok - keys in the db == ids - e.g. in
+  dictionaries where the key is a db id - javascript requires its dictionary
+  keys to be strings, but in the db they are ints. check this issue everywhere.
+  esp. in library.ts
 * We're doing childOrder - making it transparent and internal - it all happens 
   in local-db.ts automatically on node creation in parent
 * stop using toString() on keys by making sure all keys are strings from

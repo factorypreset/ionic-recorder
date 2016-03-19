@@ -598,56 +598,6 @@ export class LocalDB {
         return source;
     }
 
-    /* same as the newer implementation below, which relies on childOrder, this
-     * implementation relies on the parentKey index, the difference in speed and
-     * complexity is not huge but the method below is slightly faster, plus we
-     * are working towards getting rid of the parent index altogether.
-     *
-    // Returns an Observable<TreeNode[]> of all child nodes of parent node
-    // whose key is parentKey
-    readChildNodes(parentNode: TreeNode) {
-        let parentKey: string = parentNode[DB_KEY_PATH];
-        let source: Observable<TreeNode[]> = Observable.create((observer) => {
-            let childNodes: TreeNode[] = [];
-            this.getTreeStore('readonly').subscribe(
-                (store: IDBObjectStore) => {
-                    let index: IDBIndex = store.index('parentKey'),
-                        idRange: IDBKeyRange = IDBKeyRange.only(parentKey),
-                        cursorRequest: IDBRequest = index.openCursor(idRange);
-                    cursorRequest.onsuccess = (event: IDBEvent) => {
-                        let cursor: IDBCursorWithValue = cursorRequest.result;
-                        if (cursor) {
-                            childNodes.push(cursor.value);
-                            if (childNodes.length === parentNode.childOrder.length) {
-                                observer.next(childNodes);
-                                observer.complete();
-                                // you may save time by not calling
-                                // cursor.continue();
-                                // here but it may also be less safe
-                            }
-                            else {
-                                cursor.continue();
-                            }
-                        }
-                        else {
-                            // no cursor means we're done
-                            observer.next(childNodes);
-                            observer.complete();
-                        }
-                    };
-                    cursorRequest.onerror = (event: IDBErrorEvent) => {
-                        observer.error('in cursorRequest.onerror');
-                    };
-                },
-                (error) => {
-                    observer.error('in getTreeStore: ' + error);
-                }
-            ); // getTreeStore().subscribe(
-        });
-        return source;
-    }
-    */
-
     /**
      * @param {number[]} nodeKeys an array of node keys
      * @returns {Observable<TreeNode[]>} observable of an array of TreeNode
@@ -1106,9 +1056,12 @@ export class LocalDB {
         return source;
     }
 
+    // TODO: reimplement this with expand, after you've added a root
+    // node.
     getNodePath(key: number, path: string = '') {
         console.log('getNodePath(' + key + ', ' + path + ')');
         let source: Observable<string> = Observable.create((observer) => {
+
         });
         return source;
     }
