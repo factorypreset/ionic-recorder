@@ -523,7 +523,11 @@ export function main(): void {
                 setTimeout(() => {
                     localDB.readChildNodes(folder3).subscribe(
                         (childNodes: TreeNode[]) => {
-                            localDB.getSubtreeNodes(folder3).subscribe();
+                            localDB.getSubtreeNodes(folder3).subscribe(
+                                (node: TreeNode) => {
+                                    console.log('getSubtreeNodes - got ' + node.name);
+                                }
+                            );
                             expect(childNodes.length).toEqual(2);
                             expect(childNodes).toContain(item4);
                             expect(childNodes).toContain(folder5);
