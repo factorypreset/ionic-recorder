@@ -30,7 +30,7 @@ export function main(): void {
         tracktunesApp: TracktunesApp =
             new TracktunesApp(ionicApp, platform);
 
-    describe('TracktunesApp', () => {
+    xdescribe('TracktunesApp', () => {
 
         beforeEach((done: Function) => {
             done();

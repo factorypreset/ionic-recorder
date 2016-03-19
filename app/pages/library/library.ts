@@ -134,6 +134,20 @@ export class LibraryPage {
             'Permanently delete ' + len + ' items' + (len > 1 ? 's?' : '?'),
             'Ok', () => {
                 console.log('deleting ' + len + ' selected items ...');
+                let i: string, node: TreeNode;
+                for (i in nodeKeys) {
+                    node = this.selectedNodes[i];
+                    this.localDB.deleteNode(node).subscribe(
+                        () => {
+                            delete this.selectedNodes[i];
+                            delete this.folderItems[i];
+                        },
+                        (error: any) => {
+                            alert('failed deleting node ' + i);
+                        }
+                    ); // deleteNode().subscribe(
+                } // for
+                console.log('SUCCESS DELETING ALL');
             });
     }
 
@@ -228,7 +242,7 @@ export class LibraryPage {
                 // we read all child nodes of the folder we're switching to in order
                 // to fill up this.folderItems
                 let newFolderItems: { [id: string]: TreeNode } = {};
-                this.localDB.readChildNodes(key).subscribe(
+                this.localDB.readChildNodes(folderNode).subscribe(
                     (childNodes: TreeNode[]) => {
                         this.folderItems = {};
                         // we found all children of the node we're traversing to (key)

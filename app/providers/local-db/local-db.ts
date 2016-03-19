@@ -4,6 +4,9 @@ import {Injectable} from 'angular2/core';
 import {Observable} from 'rxjs/Rx';
 import {copyFromObject, prependArray} from '../utils/utils';
 
+// TODO:
+// 1) replace readChildNodes with childOrder usage instead (faster)
+// 2) make sure all ids are strings (do this later)
 
 // non-exported module globals
 
@@ -49,6 +52,9 @@ export class LocalDB {
     private static instance: LocalDB = null;
     private db: IDBDatabase = null;
 
+    /**
+     * @constructor
+     */
     constructor() {
         console.log('constructor():LocalDB');
         if (!indexedDB) {
@@ -77,6 +83,7 @@ export class LocalDB {
     // DB_NO_KEY.  Returns true if key is a  whole number
     // greater than zero.
     validateKey(key: number): boolean {
+        // console.log('validateKey(' + key + ')');
         return (
             key &&
             !isNaN(key) &&
@@ -242,13 +249,13 @@ export class LocalDB {
     getTreeStore(mode: string) {
         return this.getStore(DB_TREE_STORE_NAME, mode);
     }
-    // Returns an Observable<bool> of the success in clearing
+    // Returns an Observable<void> that emits after clearing
     clearStore(storeName: string) {
-        let source: Observable<boolean> = Observable.create((observer) => {
+        let source: Observable<void> = Observable.create((observer) => {
             this.getStore(storeName, 'readwrite').subscribe(
                 (store: IDBObjectStore) => {
                     store.clear();
-                    observer.next(true);
+                    observer.next();
                     observer.complete();
                 },
                 (error) => {
@@ -309,6 +316,7 @@ export class LocalDB {
                         getRequest.onsuccess = (event: IDBEvent) => {
                             let mismatchOccured: boolean = false;
                             if (getRequest.result) {
+                                // getRequest.result is node we got from db
                                 // test for key mismatch or tag on the key
                                 if (getRequest.result.hasOwnProperty[
                                     DB_KEY_PATH]) {
@@ -319,11 +327,14 @@ export class LocalDB {
                                 else {
                                     getRequest[DB_KEY_PATH] = key;
                                 }
-                            }
+                            } // if getRequest.result
                             if (mismatchOccured) {
                                 observer.error('key mismatch');
                             }
                             else {
+                                // we return success even if not found
+                                // but in that case return a falsy value
+                                // otherwise return node on success
                                 observer.next(getRequest.result);
                                 observer.complete();
                             }
@@ -342,9 +353,9 @@ export class LocalDB {
         return source;
     }
 
-    // Returns an Observable<boolean> of success in updating item
+    // Returns an Observable<void> that emits after updating item
     updateStoreItem(storeName: string, key: number, newItem: any) {
-        let source: Observable<boolean> = Observable.create((observer) => {
+        let source: Observable<void> = Observable.create((observer) => {
             if (!this.validateKey(key)) {
                 observer.error('invalid key');
             }
@@ -372,7 +383,7 @@ export class LocalDB {
                                             observer.error('bad key in put');
                                         }
                                         else {
-                                            observer.next(true);
+                                            observer.next();
                                             observer.complete();
                                         }
                                     };
@@ -397,15 +408,16 @@ export class LocalDB {
         return source;
     }
 
-    // Returns an Observable<boolean> of success in deleting item
+    // Returns an Observable<void> that emits upon success in
+    // deleting item, or upon an error.
     deleteStoreItem(storeName: string, key: number) {
-        let source: Observable<boolean> = Observable.create((observer) => {
+        let source: Observable<void> = Observable.create((observer) => {
             this.getStore(storeName, 'readwrite').subscribe(
                 (store: IDBObjectStore) => {
                     let deleteRequest: IDBRequest = store.delete(key);
 
                     deleteRequest.onsuccess = (event: IDBEvent) => {
-                        observer.next(true);
+                        observer.next();
                         observer.complete();
                     };
 
@@ -465,12 +477,12 @@ export class LocalDB {
         return source;
     }
 
-    // Returns an Observable<boolean> of success in deleting item
+    // Returns an Observable<void> of success in deleting item
     deleteDataStoreItem(key: number) {
         return this.deleteStoreItem(DB_DATA_STORE_NAME, key);
     }
 
-    // Returns an Observable<boolean> of success in deleting item
+    // Returns an Observable<void> of success in deleting item
     deleteTreeStoreItem(key: number) {
         return this.deleteStoreItem(DB_TREE_STORE_NAME, key);
     }
@@ -533,27 +545,26 @@ export class LocalDB {
     // not exist the TreeNode object returned is null.
     getNodeByNameInParent(name: string, parentKey: number) {
         let source: Observable<TreeNode> = Observable.create((observer) => {
-            this.readNodesByName(name).subscribe(
-                (nodes: TreeNode[]) => {
-                    let nodeFound: TreeNode = null,
-                        nFound: number = 0;
-                    for (let i in nodes) {
-                        if (nodes[i].parentKey === parentKey) {
-                            nodeFound = nodes[i];
-                            nFound++;
-                            if (nFound > 1) {
-                                break;
-                            }
+            this.readNodesByName(name).subscribe((nodes: TreeNode[]) => {
+                let nodeFound: TreeNode = null,
+                    nFound: number = 0;
+                for (let i in nodes) {
+                    if (nodes[i].parentKey === parentKey) {
+                        nodeFound = nodes[i];
+                        nFound++;
+                        if (nFound > 1) {
+                            break;
                         }
                     }
-                    if (nFound > 1) {
-                        observer.error('unique name violation 1');
-                    }
-                    else {
-                        observer.next(nodeFound);
-                        observer.complete();
-                    }
-                },
+                }
+                if (nFound > 1) {
+                    observer.error('unique name violation 1');
+                }
+                else {
+                    observer.next(nodeFound);
+                    observer.complete();
+                }
+            },
                 (error) => {
                     observer.error('in readNodesByname: ' + error);
                 }
@@ -587,25 +598,39 @@ export class LocalDB {
         return source;
     }
 
+    /* same as the newer implementation below, which relies on childOrder, this
+     * implementation relies on the parentKey index, the difference in speed and
+     * complexity is not huge but the method below is slightly faster, plus we
+     * are working towards getting rid of the parent index altogether.
+     *
     // Returns an Observable<TreeNode[]> of all child nodes of parent node
     // whose key is parentKey
-    readChildNodes(parentKey: number) {
+    readChildNodes(parentNode: TreeNode) {
+        let parentKey: string = parentNode[DB_KEY_PATH];
         let source: Observable<TreeNode[]> = Observable.create((observer) => {
             let childNodes: TreeNode[] = [];
             this.getTreeStore('readonly').subscribe(
                 (store: IDBObjectStore) => {
                     let index: IDBIndex = store.index('parentKey'),
-                        idRange: IDBKeyRange =
-                            IDBKeyRange.only(parentKey),
+                        idRange: IDBKeyRange = IDBKeyRange.only(parentKey),
                         cursorRequest: IDBRequest = index.openCursor(idRange);
-
                     cursorRequest.onsuccess = (event: IDBEvent) => {
                         let cursor: IDBCursorWithValue = cursorRequest.result;
                         if (cursor) {
                             childNodes.push(cursor.value);
-                            cursor.continue();
+                            if (childNodes.length === parentNode.childOrder.length) {
+                                observer.next(childNodes);
+                                observer.complete();
+                                // you may save time by not calling
+                                // cursor.continue();
+                                // here but it may also be less safe
+                            }
+                            else {
+                                cursor.continue();
+                            }
                         }
                         else {
+                            // no cursor means we're done
                             observer.next(childNodes);
                             observer.complete();
                         }
@@ -621,44 +646,116 @@ export class LocalDB {
         });
         return source;
     }
+    */
 
-    // Returns an Observable<boolean> of success in deleting treeNode
-    deleteNode(treeNode: TreeNode) {
-        if (this.isFolderNode(treeNode)) {
-            return this.deleteFolderNode(treeNode);
-        }
-        else {
-            return this.deleteDataNode(treeNode);
-        }
+    readNodesById(nodes: number[]) {
+        let source: Observable<TreeNode[]> = Observable.create((observer) => {
+            let childNodes: TreeNode[] = [];
+            // asynchronously read childOrder array  nodes, emits TreeNode[]
+            Observable.fromArray(nodes)
+                .flatMap(x => this.readNode(x)).subscribe(
+                (node: TreeNode) => {
+                    childNodes.push(node);
+                },
+                (error: any) => {
+                    observer.error(error);
+                },
+                () => {
+                    observer.next(childNodes);
+                    observer.complete();
+                }
+                );
+        });
+        return source;
+    }
+
+    readChildNodes(parentNode: TreeNode) {
+        return this.readNodesById(parentNode.childOrder);
     }
 
     // returns observable of parent node (updated with new child order)
     attachToParent(childNode: TreeNode) {
         let source: Observable<TreeNode> = Observable.create((observer) => {
-            // adds to front
-            this.readNode(childNode.parentKey).subscribe(
-                (parentNode: TreeNode) => {
-                    let childKey: number = childNode[DB_KEY_PATH];
-                    // push newly created nodes to the front of
-                    // the parent childOrder list
-                    parentNode.childOrder = prependArray(
-                        childNode[DB_KEY_PATH],
-                        parentNode.childOrder);
-                    this.updateNode(parentNode).subscribe(
-                        () => {
-                            observer.next(parentNode);
-                            observer.complete();
-                        },
-                        (error: any) => {
-                            observer.error(error);
-                        }
-                    ); // updateNode().subscribe(
-                },
-                (error: any) => {
-                    observer.error(error);
-                }
-            ); // readNode().subscribe(
+            if (this.validateKey(childNode.parentKey)) {
+                // you have to read the existing child order first,
+                // in order to add to the front of it
+                this.readNode(childNode.parentKey).subscribe(
+                    (parentNode: TreeNode) => {
+                        // push newly created nodes to the front of
+                        // the parent childOrder list
+                        parentNode.childOrder = prependArray(
+                            childNode[DB_KEY_PATH],
+                            parentNode.childOrder);
+                        // now you update the node with new childOrder
+                        this.updateNode(parentNode).subscribe(
+                            () => {
+                                observer.next(parentNode);
+                                observer.complete();
+                            },
+                            (error: any) => {
+                                observer.error(error);
+                            }
+                        ); // updateNode().subscribe(
+                    },
+                    (error: any) => {
+                        observer.error(error);
+                    }
+                ); // readNode().subscribe(
+            }
+            else {
+                // parent key is invalid, return null
+                observer.next(null);
+                observer.complete();
+            }
         });
+        return source;
+    }
+
+    // TODO: (1) have functions such as detachFromParent take-in ids, not whole nodes
+    // (2) don't use readChildNodes, use childOrder instead
+
+    // same as above, but removes childNode key from parent's childOrder
+    // returns observable of parent node (updated with new child order)
+    detachFromParent(childNode: TreeNode) {
+        let source: Observable<TreeNode> = Observable.create((observer) => {
+            if (this.validateKey(childNode.parentKey)) {
+                // you have to read the existing child order first,
+                // in order to add to the front of it
+                this.readNode(childNode.parentKey).subscribe(
+                    (parentNode: TreeNode) => {
+                        let childKey: number = childNode[DB_KEY_PATH],
+                            i = parentNode.childOrder.indexOf(childKey);
+                        if (i === -1) {
+                            observer.error('could not find id in childOrder');
+                        }
+                        else {
+                            parentNode.childOrder.splice(i, 1);
+                            // now you update the node with new childOrder
+                            this.updateNode(parentNode).subscribe(
+                                () => {
+                                    observer.next(parentNode);
+                                    observer.complete();
+                                },
+                                (error: any) => {
+                                    observer.error(error);
+                                }
+                            ); // updateNode().subscribe(
+                        }
+                    },
+                    (error: any) => {
+                        observer.error(error);
+                    }
+                ); // readNode().subscribe(
+            }
+            else {
+                // parent key is invalid, return null,
+                // do not detach because there is nothing to
+                // detach from
+                observer.next(null);
+                observer.complete();
+            }
+        });
+
         return source;
     }
 
@@ -699,8 +796,8 @@ export class LocalDB {
     createDataNode(name: string, parentKey: number, data: any) {
         let source: Observable<ParentChild> = Observable.create((observer) => {
             // non falsy data supplied, store it in the data table first
-            this.getNodeByNameInParent(name, parentKey).subscribe(
-                (nodeInParent: TreeNode) => {
+            this.getNodeByNameInParent(name, parentKey)
+                .subscribe((nodeInParent: TreeNode) => {
                     if (!nodeInParent) {
                         // data node does not yet exist in parent, create it
                         this.createDataStoreItem(data).subscribe(
@@ -721,43 +818,30 @@ export class LocalDB {
                                         // modify it, then we'll have to call
                                         // update on the parent.  only do this
                                         // if the parent exists, of course
-                                        if (this.validateKey(parentKey)) {
-                                            this.attachToParent(childNode)
-                                                .subscribe(
-                                                (parentNode: TreeNode) => {
-                                                    observer.next(
-                                                        this.makeParentChild(
-                                                            parentNode,
-                                                            childNode
-                                                        ));
-                                                    observer.complete();
-                                                },
-                                                (error: any) => {
-                                                    observer.error(error);
-                                                }
-                                                );
-                                        }
-                                        else {
-                                            // parentKey not valid,
-                                            // just return what you got without
-                                            // parent update (root special case)
-                                            observer.next(
-                                                this.makeParentChild(
-                                                    null,
-                                                    childNode
-                                                ));
-                                            observer.complete();
-                                        }
+                                        this.attachToParent(childNode)
+                                            .subscribe(
+                                            (parentNode: TreeNode) => {
+                                                observer.next(
+                                                    this.makeParentChild(
+                                                        parentNode,
+                                                        childNode
+                                                    ));
+                                                observer.complete();
+                                            },
+                                            (error: any) => {
+                                                observer.error(error);
+                                            }
+                                            ); // attachToParent.subscribe(
                                     },
                                     (error: any) => {
                                         observer.error(
-                                            'In createTreeStoreItem:' + error);
+                                            'in createTreeStoreItem:' + error);
                                     }
                                     ); // createTreeStoreItem().subscribe(
                             },
                             (error: any) => {
                                 observer.error(
-                                    'In createDataStoreItem:' + error);
+                                    'in createDataStoreItem:' + error);
                             }
                         ); // createDataStoreItem().subscribe(
                     } // if (!nodeInParent)
@@ -768,7 +852,7 @@ export class LocalDB {
                 (error) => {
                     observer.error('in getNodeByNameInParent: ' + error);
                 }
-            ); // getNodeByNameInParent().subscribe(
+                ); // getNodeByNameInParent().subscribe(
         });
         return source;
     }
@@ -795,40 +879,26 @@ export class LocalDB {
                                     // modify it, then we'll have to call
                                     // update on the parent.  only do this
                                     // if the parent exists, of course
-                                    if (this.validateKey(parentKey)) {
-                                        this.attachToParent(childNode)
-                                            .subscribe(
-                                            (parentNode: TreeNode) => {
-                                                observer.next(
-                                                    this.makeParentChild(
-                                                        parentNode,
-                                                        childNode
-                                                    ));
-                                                observer.complete();
-                                            },
-                                            (error: any) => {
-                                                observer.error(error);
-                                            }
-                                            );
-                                    }
-                                    else {
-                                        // parentKey not valid,
-                                        // just return what you got without
-                                        // parent update (root special case)
-                                        observer.next(
-                                            this.makeParentChild(
-                                                null,
-                                                childNode
-                                            ));
-                                        observer.complete();
-                                    }
+                                    this.attachToParent(childNode).subscribe(
+                                        (parentNode: TreeNode) => {
+                                            observer.next(
+                                                this.makeParentChild(
+                                                    parentNode,
+                                                    childNode
+                                                ));
+                                            observer.complete();
+                                        },
+                                        (error: any) => {
+                                            observer.error(error);
+                                        }
+                                    ); // attachToParent().subscribe(
                                 },
                                 (error) => {
                                     observer.error(
-                                        'In createTreeStoreItem:' + error);
+                                        'in createTreeStoreItem:' + error);
                                 }
                                 ); // createTreeStoreItem().subscribe(
-                        }
+                        } // if (nodeInParent) { .. } else { .. }
                     },
                     (error) => {
                         observer.error('in getNodeByNameInParent: ' + error);
@@ -842,6 +912,7 @@ export class LocalDB {
     // returned If a node with key 'key' is not in the tree, null
     // TreeNode object is returned
     readNode(key: number) {
+        console.log('READNODE ' + key);
         let source: Observable<TreeNode> = Observable.create((observer) => {
             this.readStoreItem(DB_TREE_STORE_NAME, key).subscribe(
                 (treeNode: TreeNode) => {
@@ -950,7 +1021,7 @@ export class LocalDB {
         return source;
     }
 
-    // Returns an Observable<boolean> of success in updating tree store item
+    // Returns an Observable<void> that emits after updating tree store item
     // Input is a tree node that has been updated already with new
     // field values, it must have the key property set to the right
     // key of the node in the tree store to update
@@ -959,7 +1030,7 @@ export class LocalDB {
             treeNode[DB_KEY_PATH], treeNode);
     }
 
-    // Returns an Observable<boolean> of success in updating data store item
+    // Returns an Observable<void> that emits after updating data store item
     // only updates the data that treeNode points to, not the
     // treeNode itself
     updateNodeData(treeNode: TreeNode, newData: any) {
@@ -970,111 +1041,112 @@ export class LocalDB {
         );
     }
 
-    // Returns an Observable<boolean> of success in deleting items
+    // Returns an Observable<void> that emits after deleting items
+    // in both tree store and data store associated with data node
+    // TODO(?): convert this to key input
     deleteDataNode(treeNode: TreeNode) {
-        let source: Observable<boolean> = Observable.create((observer) => {
-            this.deleteDataStoreItem(treeNode.dataKey).subscribe(
-                (success1: boolean) => {
-                    this.deleteTreeStoreItem(treeNode[DB_KEY_PATH]).subscribe(
-                        (success2: boolean) => {
-                            observer.next(success1 && success2);
+        console.log('====> deleteDataNode(' + treeNode + ')');
+        let source: Observable<void> = Observable.create((observer) => {
+            this.deleteDataStoreItem(treeNode.dataKey)
+                .subscribe(() => {
+                    this.deleteTreeStoreItem(treeNode[DB_KEY_PATH])
+                        .subscribe(() => {
+                            observer.next();
                             observer.complete();
                         },
                         (error) => {
                             observer.error(error);
                         }
-                    ); // deleteTreeStoreItem().subscribe(
+                        ); // deleteTreeStoreItem().subscribe(
                 },
                 (error) => {
                     observer.error(error);
                 }
-            ); // deleteDataStoreItem().subscribe(
+                ); // deleteDataStoreItem().subscribe(
         });
         return source;
     }
 
-    // Returns an Observable<boolean> of success in deleting treeNode
-    // Recursively deletes tree node all the way down the tree
-    // (in depth-first order)
-    deleteFolderNode(treeNode: TreeNode) {
-        let source: Observable<boolean> = Observable.create((observer) => {
-            this.deleteTreeStoreItem(treeNode[DB_KEY_PATH]).subscribe(
-                (success: boolean) => {
-                    this.readChildNodes(treeNode[DB_KEY_PATH]).subscribe(
-                        (childNodes: TreeNode[]) => {
-                            if (childNodes.length === 0) {
-                                // observer is done if there are no children
-                                observer.next(true);
-                                observer.complete();
-                            }
-                            else {
-                                // there are children, observer is done after
-                                // we've deleted them all
-                                Observable.fromArray(childNodes).subscribe(
-                                    (childNode: TreeNode) => {
-                                        this.deleteNode(childNode).subscribe(
-                                            (success: boolean) => { },
-                                            (error) => {
-                                                observer.error(error);
-                                            }
-                                        ); // deleteNode().subscribe(
-                                    },
-                                    (error) => {
-                                        observer.error(error);
-                                    },
-                                    () => {
-                                        observer.next(true);
-                                        observer.complete();
-                                    }
-                                ); // fromArray.subscribe(
-                            }
+    deleteFolderNode(treeNode: TreeNode, detach: boolean = true) {
+        console.log('====> deleteFolderNode(' + treeNode + ')');
+        let source: Observable<void> = Observable.create((observer) => {
+        });
+        return source;
+    }
+
+    // Returns an Observable<TreeNode> emits the parent of
+    // treeNode, with its newly updated childOrder array,
+    // after deleting treeNode.  That's only if detach was
+    // true.  If detach is false,
+    // TODO: convert this to key or get rid of this function altogether
+    deleteNode(treeNode: TreeNode, detach: boolean = true) {
+        console.log('====> deleteNode(' + treeNode + ')');
+        let source: Observable<TreeNode> = Observable.create((observer) => {
+            let dispatcher: Observable<void> = this.isDataNode(treeNode) ?
+                this.deleteDataNode(treeNode) :
+                this.deleteFolderNode(treeNode);
+
+            dispatcher.subscribe(() => {
+                if (detach) {
+                    this.detachFromParent(treeNode).subscribe(
+                        (parentNode: TreeNode) => {
+                            observer.next(parentNode);
+                            observer.complete();
                         },
-                        (error) => {
+                        (error: any) => {
                             observer.error(error);
                         }
-                    ); // readChildNodes().subscribe(
-                },
-                (error) => {
+                    ); // detachFromParent().subscribe(
+                }
+                else {
+                    // do not detach, emit null
+                    // for the parent node
+                    observer.next(null);
+                    observer.complete();
+                }
+            },
+                (error: any) => {
                     observer.error(error);
                 }
-            ); // deleteTreeStoreItem().subscribe(
+            );
         });
         return source;
     }
 
-    // computes the path of a folder node, returns it as a string observable
     getNodePath(key: number, path: string = '') {
         console.log('getNodePath(' + key + ', ' + path + ')');
         let source: Observable<string> = Observable.create((observer) => {
-            if (key === DB_NO_KEY) {
-                console.log('completing with path: /' + path);
-                observer.next('/' + path);
-                observer.complete();
-            }
-            else {
-                this.readNode(key).subscribe(
-                    (node: TreeNode) => {
-                        this.getNodePath(
-                            node.parentKey,
-                            path ? node.name + '/' + path : node.name
-                        ).subscribe(
-                            (pathSoFar: string) => {
-                                console.log('pathSoFar: ' + pathSoFar);
-                                observer.next(pathSoFar);
-                                observer.complete();
-                            },
-                            (error: any) => {
-                                observer.error(error);
-                            }
-                            ); // getNodePath().subscribe(
-                    },
-                    (error: any) => {
-                        observer.error(error);
-                    }
-                ); // readNode().subscribe(
-            }
         });
         return source;
+    }
+
+    // returns a stream Observable<TreeNode> that emits a new
+    // TreeNode that's got
+    // the key of one of the nodeKeys keys
+    ls(nodeKeys: number[]): Observable<TreeNode> {
+        console.log('LS: ' + nodeKeys);
+        return <Observable<TreeNode>>Observable.fromArray(nodeKeys)
+            .flatMap((key: number) => this.readNode(key));
+    }
+
+    // returns boolean
+    isLeaf(node: TreeNode) {
+        console.log('isLeaf(' + node.name + '): ' +
+            (this.isDataNode(node) || !node.childOrder.length));
+        // returns true or false depending on if it's a leaf node.
+        // a leaf node is either a data node or an empty folder node
+        return this.isDataNode(node) || !node.childOrder.length;
+    }
+
+    // traverses a tree recursively, based on
+    // https://www.reddit.com/r/javascript/comments/3abv2k/ ...
+    //      ... /how_can_i_do_a_recursive_readdir_with_rxjs_or_any/
+    getSubtreeNodes(node: TreeNode) {
+        return this.ls(node.childOrder)
+            .expand<TreeNode>((childNode: TreeNode) =>
+                this.isLeaf(childNode) ?
+                    <Observable<TreeNode>>Observable.empty() :
+                    this.ls(childNode.childOrder));
     }
 
 }

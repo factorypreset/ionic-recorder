@@ -31,6 +31,7 @@ export function main(): void {
         db: IDBDatabase = null,
         randomWord1: TreeNode,
         unfiledFolder: TreeNode,
+        unfiledFolder2: TreeNode,
         folder1: TreeNode,
         folder3: TreeNode,
         folder5: TreeNode,
@@ -53,7 +54,7 @@ export function main(): void {
 
     jasmine.DEFAULT_TIMEOUT_INTERVAL = MAX_DB_INIT_TIME * 10;
 
-    describe('When localDB initialized', () => {
+    xdescribe('When localDB initialized', () => {
         it('localDB is not falsy', (done) => {
             setTimeout(() => {
                 expect(localDB).not.toBeFalsy();
@@ -69,7 +70,7 @@ export function main(): void {
         });
     });
 
-    describe('When two LocalDB instances are initialized', () => {
+    xdescribe('When two LocalDB instances are initialized', () => {
         it('should be equal (singleton test)', (done) => {
             setTimeout(() => {
                 localDB2 = LocalDB.Instance;
@@ -79,7 +80,7 @@ export function main(): void {
         });
     });
 
-    describe('When DB is available', () => {
+    describe('When DB is available -- CREATING A TREE', () => {
         it('db is not falsy', (done) => {
             setTimeout(() => {
                 expect(db).not.toBeFalsy();
@@ -130,8 +131,7 @@ export function main(): void {
         it('can delete RANDOM_WORD_1 item in root', (done) => {
             setTimeout(() => {
                 localDB.deleteNode(randomWord1).subscribe(
-                    (success: boolean) => {
-                        expect(success).toBe(true);
+                    () => {
                         done();
                     },
                     (error) => {
@@ -220,6 +220,13 @@ export function main(): void {
                             expect(treeNode.dataKey).toBeFalsy();
                             expect(treeNode.name).toEqual('Folder 1');
                             expect(treeNode.timestamp).not.toBeFalsy();
+
+                            unfiledFolder = parentChild.parent;
+
+                            expect(unfiledFolder.childOrder).toEqual([
+                                folder1[DB_KEY_PATH]
+                            ]);
+
                             done();
                         },
                         (error) => {
@@ -244,6 +251,13 @@ export function main(): void {
                             .toBe(true);
                         expect(treeNode.name).toEqual('Item 2');
                         expect(treeNode.timestamp).not.toBeFalsy();
+
+                        folder1 = parentChild.parent;
+
+                        expect(folder1.childOrder).toEqual([
+                            item2[DB_KEY_PATH]
+                        ]);
+
                         done();
                     },
                     (error) => {
@@ -266,6 +280,13 @@ export function main(): void {
                         expect(treeNode.dataKey).toBeFalsy();
                         expect(treeNode.name).toEqual('Folder 3');
                         expect(treeNode.timestamp).not.toBeFalsy();
+
+                        folder1 = parentChild.parent;
+
+                        expect(folder1.childOrder).toEqual([
+                            folder3[DB_KEY_PATH],
+                            item2[DB_KEY_PATH]
+                        ]);
                         done();
                     },
                     (error) => {
@@ -290,6 +311,14 @@ export function main(): void {
                             .toBe(true);
                         expect(treeNode.name).toEqual('Item 4');
                         expect(treeNode.timestamp).not.toBeFalsy();
+
+                        folder3 = parentChild.parent;
+
+                        expect(folder3.childOrder).toEqual([
+                            // folder1 is the only one in the childOrder
+                            item4[DB_KEY_PATH]
+                        ]);
+
                         done();
                     },
                     (error) => {
@@ -312,22 +341,14 @@ export function main(): void {
                         expect(treeNode.dataKey).toBeFalsy();
                         expect(treeNode.name).toEqual('Folder 5');
                         expect(treeNode.timestamp).not.toBeFalsy();
-                        done();
-                    },
-                    (error) => {
-                        fail(error);
-                    }
-                );
-            }, MAX_DB_INIT_TIME);
-        });
 
-        it('can get child nodes of folder3 and verify them', (done) => {
-            setTimeout(() => {
-                localDB.readChildNodes(folder3[DB_KEY_PATH]).subscribe(
-                    (childNodes: TreeNode[]) => {
-                        expect(childNodes.length).toEqual(2);
-                        expect(childNodes).toContain(item4);
-                        expect(childNodes).toContain(folder5);
+                        folder3 = parentChild.parent;
+
+                        expect(folder3.childOrder).toEqual([
+                            // folder1 is the only one in the childOrder
+                            folder5[DB_KEY_PATH],
+                            item4[DB_KEY_PATH]
+                        ]);
                         done();
                     },
                     (error) => {
@@ -352,6 +373,14 @@ export function main(): void {
                             .toBe(true);
                         expect(treeNode.name).toEqual('Item 6');
                         expect(treeNode.timestamp).not.toBeFalsy();
+
+                        folder5 = parentChild.parent;
+
+                        expect(folder5.childOrder).toEqual([
+                            // folder1 is the only one in the childOrder
+                            item6[DB_KEY_PATH]
+                        ]);
+
                         done();
                     },
                     (error) => {
@@ -376,6 +405,15 @@ export function main(): void {
                             .toBe(true);
                         expect(treeNode.name).toEqual('Item 7');
                         expect(treeNode.timestamp).not.toBeFalsy();
+
+                        folder5 = parentChild.parent;
+
+                        expect(folder5.childOrder).toEqual([
+                            // folder1 is the only one in the childOrder
+                            item7[DB_KEY_PATH],
+                            item6[DB_KEY_PATH]
+                        ]);
+
                         done();
                     },
                     (error) => {
@@ -391,6 +429,7 @@ export function main(): void {
                     localDB.createNode(UNFILED_FOLDER_NAME,
                         folder5[DB_KEY_PATH]).subscribe(
                         (parentChild: ParentChild) => {
+                            unfiledFolder2 = parentChild.child;
                             let treeNode: TreeNode = parentChild.child;
                             expect(localDB.validateKey(
                                 treeNode[DB_KEY_PATH])).toBe(true);
@@ -399,6 +438,16 @@ export function main(): void {
                             expect(treeNode.dataKey).toBeFalsy();
                             expect(treeNode.name).toEqual(UNFILED_FOLDER_NAME);
                             expect(treeNode.timestamp).not.toBeFalsy();
+
+                            folder5 = parentChild.parent;
+
+                            expect(folder5.childOrder).toEqual([
+                                // folder1 is the only one in the childOrder
+                                unfiledFolder2[DB_KEY_PATH],
+                                item7[DB_KEY_PATH],
+                                item6[DB_KEY_PATH]
+                            ]);
+
                             done();
                         },
                         (error) => {
@@ -445,8 +494,7 @@ export function main(): void {
         it('can update item2 data to "i2newData"', (done) => {
             setTimeout(() => {
                 localDB.updateNodeData(item2, 'i2newData').subscribe(
-                    (success: boolean) => {
-                        expect(success).toBe(true);
+                    () => {
                         done();
                     },
                     (error) => {
@@ -470,14 +518,15 @@ export function main(): void {
             }, MAX_DB_INIT_TIME);
         });
 
-        it('can get child nodes of folder3 and verify them but not folder5',
+        it('can get child nodes of folder3 and verify them',
             (done) => {
                 setTimeout(() => {
-                    localDB.readChildNodes(folder3[DB_KEY_PATH]).subscribe(
+                    localDB.readChildNodes(folder3).subscribe(
                         (childNodes: TreeNode[]) => {
+                            localDB.getSubtreeNodes(folder3).subscribe();
                             expect(childNodes.length).toEqual(2);
                             expect(childNodes).toContain(item4);
-                            expect(childNodes).not.toContain(folder5);
+                            expect(childNodes).toContain(folder5);
                             done();
                         },
                         (error) => {
@@ -487,9 +536,53 @@ export function main(): void {
                 }, MAX_DB_INIT_TIME);
             });
 
+        /*
+        it('can get folder5 subtree nodes', (done) => {
+            setTimeout(() => {
+                localDB.getSubtreeNodes(folder5[DB_KEY_PATH])
+                    .subscribe(
+                    (nodes: number[]) => {
+                        expect(nodes.length).toBe(4);
+                        expect(nodes).toContain(folder5[DB_KEY_PATH]);
+                        expect(nodes).toContain(item6[DB_KEY_PATH]);
+                        expect(nodes).toContain(item7[DB_KEY_PATH]);
+                        expect(nodes).toContain(unfiledFolder2[DB_KEY_PATH]);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                    );
+            }, MAX_DB_INIT_TIME);
+        });
+
+        it('can get unfiledFolder subtree nodes', (done) => {
+            setTimeout(() => {
+                localDB.getSubtreeNodes(unfiledFolder[DB_KEY_PATH])
+                    .subscribe(
+                    (nodes: number[]) => {
+                        expect(nodes.length).toBe(9);
+                        expect(nodes).toContain(unfiledFolder[DB_KEY_PATH]);
+                        expect(nodes).toContain(folder1[DB_KEY_PATH]);
+                        expect(nodes).toContain(item2[DB_KEY_PATH]);
+                        expect(nodes).toContain(folder3[DB_KEY_PATH]);
+                        expect(nodes).toContain(item4[DB_KEY_PATH]);
+                        expect(nodes).toContain(folder5[DB_KEY_PATH]);
+                        expect(nodes).toContain(item6[DB_KEY_PATH]);
+                        expect(nodes).toContain(item7[DB_KEY_PATH]);
+                        expect(nodes).toContain(unfiledFolder2[DB_KEY_PATH]);
+                        done();
+                    },
+                    (error) => {
+                        fail(error);
+                    }
+                    );
+            }, MAX_DB_INIT_TIME);
+        });
+
         it('can delete folder5 folder recursively', (done) => {
             setTimeout(() => {
-                localDB.deleteNode(folder5).subscribe(
+                localDB.deleteNode(folder5, false).subscribe(
                     (success: boolean) => {
                         expect(success).toBe(true);
                         done();
@@ -500,6 +593,23 @@ export function main(): void {
                 );
             }, MAX_DB_INIT_TIME);
         });
+
+        it('can get child nodes of folder3 and verify them but not folder5',
+            (done) => {
+                setTimeout(() => {
+                    localDB.readChildNodes(folder3).subscribe(
+                        (childNodes: TreeNode[]) => {
+                            expect(childNodes.length).toEqual(1);
+                            expect(childNodes).toContain(item4);
+                            expect(childNodes).not.toContain(folder5);
+                            done();
+                        },
+                        (error) => {
+                            fail(error);
+                        }
+                    );
+                }, MAX_DB_INIT_TIME);
+            });
 
         it('cannot now read folder5', (done) => {
             setTimeout(() => {
@@ -547,7 +657,7 @@ export function main(): void {
             ' folder (at root) recursively',
             (done) => {
                 setTimeout(() => {
-                    localDB.deleteNode(unfiledFolder).subscribe(
+                    localDB.deleteNode(unfiledFolder, false).subscribe(
                         (success: boolean) => {
                             expect(success).toBe(true);
                             done();
@@ -558,6 +668,8 @@ export function main(): void {
                     );
                 }, MAX_DB_INIT_TIME);
             });
+
+        /*
         it('cannot now read ' + UNFILED_FOLDER_NAME +
             ' folder (at root)', (done) => {
                 setTimeout(() => {
@@ -614,6 +726,6 @@ export function main(): void {
                 );
             }, MAX_DB_INIT_TIME);
         });
-
-    });
+        */
+    }); // describe
 }
