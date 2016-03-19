@@ -648,12 +648,17 @@ export class LocalDB {
     }
     */
 
-    readNodesById(nodes: number[]) {
+    /**
+     * @param {number[]} nodeKeys an array of node keys
+     * @returns {Observable<TreeNode[]>} observable of an array of TreeNode
+     * objects whose ids are in nodeKeys
+     *
+     */
+    readNodesById(nodeKeys: number[]) {
         let source: Observable<TreeNode[]> = Observable.create((observer) => {
             let childNodes: TreeNode[] = [];
             // asynchronously read childOrder array  nodes, emits TreeNode[]
-            Observable.fromArray(nodes)
-                .flatMap(x => this.readNode(x)).subscribe(
+            this.ls(nodeKeys).subscribe(
                 (node: TreeNode) => {
                     childNodes.push(node);
                 },
@@ -664,7 +669,7 @@ export class LocalDB {
                     observer.next(childNodes);
                     observer.complete();
                 }
-                );
+            );
         });
         return source;
     }
@@ -749,8 +754,6 @@ export class LocalDB {
             }
             else {
                 // parent key is invalid, return null,
-                // do not detach because there is nothing to
-                // detach from
                 observer.next(null);
                 observer.complete();
             }
@@ -1044,17 +1047,17 @@ export class LocalDB {
     // Returns an Observable<void> that emits after deleting items
     // in both tree store and data store associated with data node
     // TODO(?): convert this to key input
-    deleteDataNode(treeNode: TreeNode) {
-        console.log('====> deleteDataNode(' + treeNode + ')');
+    deleteDataNode(dataNode: TreeNode) {
+        console.log('====> deleteDataNode(' + dataNode.name + ')');
         let source: Observable<void> = Observable.create((observer) => {
-            this.deleteDataStoreItem(treeNode.dataKey)
+            this.deleteDataStoreItem(dataNode.dataKey)
                 .subscribe(() => {
-                    this.deleteTreeStoreItem(treeNode[DB_KEY_PATH])
+                    this.deleteTreeStoreItem(dataNode[DB_KEY_PATH])
                         .subscribe(() => {
                             observer.next();
                             observer.complete();
                         },
-                        (error) => {
+                        (error: any) => {
                             observer.error(error);
                         }
                         ); // deleteTreeStoreItem().subscribe(
@@ -1067,48 +1070,38 @@ export class LocalDB {
         return source;
     }
 
-    deleteFolderNode(treeNode: TreeNode, detach: boolean = true) {
-        console.log('====> deleteFolderNode(' + treeNode + ')');
+    deleteFolderNode(folderNode: TreeNode) {
+        console.log('====> deleteFolderNode(' + folderNode.name + ')');
         let source: Observable<void> = Observable.create((observer) => {
+            this.deleteTreeStoreItem(folderNode[DB_KEY_PATH])
+                .subscribe(() => {
+                    observer.next();
+                    observer.complete();
+                },
+                (error: any) => {
+                    observer.error(error);
+                }
+                );
         });
         return source;
     }
 
-    // Returns an Observable<TreeNode> emits the parent of
-    // treeNode, with its newly updated childOrder array,
-    // after deleting treeNode.  That's only if detach was
-    // true.  If detach is false,
-    // TODO: convert this to key or get rid of this function altogether
-    deleteNode(treeNode: TreeNode, detach: boolean = true) {
-        console.log('====> deleteNode(' + treeNode + ')');
-        let source: Observable<TreeNode> = Observable.create((observer) => {
-            let dispatcher: Observable<void> = this.isDataNode(treeNode) ?
-                this.deleteDataNode(treeNode) :
-                this.deleteFolderNode(treeNode);
-
-            dispatcher.subscribe(() => {
-                if (detach) {
-                    this.detachFromParent(treeNode).subscribe(
-                        (parentNode: TreeNode) => {
-                            observer.next(parentNode);
-                            observer.complete();
-                        },
-                        (error: any) => {
-                            observer.error(error);
-                        }
-                    ); // detachFromParent().subscribe(
-                }
-                else {
-                    // do not detach, emit null
-                    // for the parent node
-                    observer.next(null);
-                    observer.complete();
-                }
-            },
-                (error: any) => {
-                    observer.error(error);
-                }
-            );
+    // low level deletes a single node non-recursively
+    deleteNode(node: TreeNode) {
+        if (this.isDataNode(node)) {
+            return this.deleteDataNode(node);
+        }
+        else {
+            return this.deleteFolderNode(node);
+        }
+    }
+    // Returns an Observable that emits upon deletion. if it's a folder
+    // node we're deleting it will delete all its content recursively.
+    // it will detach appropriately too.
+    deleteNodes(nodes: TreeNode[]) {
+        console.log('====> deleteNodes(' +
+            nodes.map(x => x.name).join(', ') + ')');
+        let source: Observable<void> = Observable.create((observer) => {
         });
         return source;
     }
