@@ -1045,13 +1045,70 @@ export class LocalDB {
             return this.deleteFolderNode(node);
         }
     }
+
     // Returns an Observable that emits upon deletion. if it's a folder
     // node we're deleting it will delete all its content recursively.
     // it will detach appropriately too.
-    deleteNodes(nodes: TreeNode[]) {
+    
+    // deleteNodes
+    // 1) counts how many need detachment
+    // 2) subscribes, with counts as termination conditions - one
+    // count is for deletion of the nodes themselves (length of 
+    // supplied argument keys list) another count is the detachments
+    // that we need to perform - once all counts have been completed,
+    // and this is something you check in the inner function of every
+    // subscription, you're done.
+    
+    // expandForDeleteNodes
+    getKeyDictForDeleteNodes(nodes: TreeNode[]) {
         console.log('====> deleteNodes(' +
             nodes.map(x => x.name).join(', ') + ')');
         let source: Observable<void> = Observable.create((observer) => {
+            // add nodes supplied argument nodes into the keyDict
+            // if a node is a folder node, we get its subtree and
+            // add those to the keydict as well, we're done when
+            // all folder nodes have been included in keyDict, this
+            // means we need two loops - the first one counts how 
+            // many folders we have, the second one subscribes to
+            // the observables with a termination condition based
+            // on how many folders have been processed 
+            let keyDict = {},
+                len: number = nodes.length,
+                i: number, j: number,
+                nFolders: number = 0,
+                nFoldersProcessed: number = 0,
+                node: TreeNode;
+            for (i = 0; i < len; i++) {
+                node = nodes[i];
+                if (this.isFolderNode(node)) {
+                    nFolders++;
+                }
+                keyDict[node[DB_KEY_PATH]] = node;
+            }
+            // second loop - subscribe and add
+            for (i = 0; i < len; i++) {
+                node = nodes[i];
+                if (this.isFolderNode(node)) {
+                    this.getSubtreeNodesArray(node).subscribe(
+                        (subtreeNodes: TreeNode[]) => {
+                            for (j = 0; j < subtreeNodes.length; j++) {
+                                node = subtreeNodes[j];
+                                keyDict[node[DB_KEY_PATH]] = node;
+                            }
+                            nFoldersProcessed++;
+                            if (nFoldersProcessed === nFolders) {
+                                observer.next(keyDict);
+                                observer.complete();
+                            }
+                        },
+                        (error: any) => {
+                            observer.error(error);
+                        }
+                    );
+                }
+            }
+
+
         });
         return source;
     }
@@ -1075,6 +1132,14 @@ export class LocalDB {
             .flatMap((key: number) => this.readNode(key));
     }
 
+    // returns a stream Observable<TreeNode> that emits a new
+    // TreeNode that's got
+    // the key of one of the nodeKeys keys
+    lsNode(node: TreeNode): Observable<TreeNode> {
+        console.log('LS NODE: ' + node.childOrder);
+        return this.ls(node.childOrder);
+    }
+
     // returns boolean
     isLeaf(node: TreeNode) {
         console.log('isLeaf(' + node.name + '): ' +
@@ -1088,11 +1153,31 @@ export class LocalDB {
     // https://www.reddit.com/r/javascript/comments/3abv2k/ ...
     //      ... /how_can_i_do_a_recursive_readdir_with_rxjs_or_any/
     getSubtreeNodes(node: TreeNode) {
-        return this.ls(node.childOrder)
+        return this.lsNode(node)
             .expand<TreeNode>((childNode: TreeNode) =>
                 this.isLeaf(childNode) ?
                     <Observable<TreeNode>>Observable.empty() :
-                    this.ls(childNode.childOrder));
+                    this.lsNode(childNode));
     }
 
+    // enumerates the entire getSubtreeNodes() sequence, returns an
+    // array of treenodes
+    getSubtreeNodesArray(node: TreeNode) {
+        let source: Observable<TreeNode[]> = Observable.create((observer) => {
+            let nodes: TreeNode[] = [];
+            this.getSubtreeNodes(node).subscribe(
+                (subtreeNode: TreeNode) => {
+                    nodes.push(subtreeNode);
+                },
+                (error: any) => {
+                    observer.error(error);
+                },
+                () => {
+                    observer.next(nodes);
+                    observer.complete();
+                }
+            );
+        });
+        return source;
+    }
 }
