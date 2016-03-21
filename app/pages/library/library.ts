@@ -196,8 +196,7 @@ export class LibraryPage {
     }
 
     onClickDeleteButton() {
-        let folderName: string = this.folderNode.path.replace(/.*\//, '') || '/',
-            nSelectedNodes = Object.keys(this.selectedNodes).length,
+        let nSelectedNodes = Object.keys(this.selectedNodes).length,
             selectedNodesHere: { [id: string]: TreeNode; } =
                 this.selectedNodesHere(),
             nSelectedNodesHere = Object.keys(selectedNodesHere).length,
@@ -279,24 +278,21 @@ export class LibraryPage {
                 if (folderNode[DB_KEY_PATH] !== key) {
                     alert('in readNode: key mismatch');
                 }
-                // we read all child nodes of the folder we're switching to in order
-                // to fill up this.folderItems
+                // we read all child nodes of the folder we're
+                // switching to in order to fill up this.folderItems
                 let newFolderItems: { [id: string]: TreeNode } = {};
                 this.localDB.readChildNodes(folderNode).subscribe(
                     (childNodes: TreeNode[]) => {
                         this.folderItems = {};
-                        // we found all children of the node we're traversing to (key)
+                        // we found all children of the node we're
+                        // traversing to (key)
                         for (let i in childNodes) {
                             let childNode: TreeNode = childNodes[i],
                                 childKey: number = childNode[DB_KEY_PATH];
                             newFolderItems[childKey] = childNode;
                         } // for
-
                         this.folderNode = folderNode;
                         this.folderItems = newFolderItems;
-
-                        console.log('found ' + this.folderNode.childOrder.length +
-                            ' items');
                     },
                     (error: any) => {
                         alert('in readChildNodes: ' + error);
@@ -392,7 +388,7 @@ export class LibraryPage {
 
         this.navController.present(addFolderModal);
 
-        addFolderModal.onDismiss(folderName => {
+        addFolderModal.onDismiss((folderName: string) => {
             if (folderName) {
                 // data is new folder's name returned from addFolderModal
                 console.log('got folderName back: ' + folderName);
@@ -474,9 +470,8 @@ export class LibraryPage {
     }
 
     onClickSelectButton() {
-        let folderName: string = this.folderNode.path.replace(/.*\//, '') || '/';
         this.alertAndDo(
-            'Select which, in<br> ' + folderName,
+            'Select which, in<br> ' + this.folderNode.name,
             'All',
             () => {
                 this.selectAllInFolder();
