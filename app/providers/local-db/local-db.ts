@@ -787,6 +787,12 @@ export class LocalDB {
                 parentsDetachers: { [id: string]: TreeNode[] } = {};
             for (i = 0; i < nNodes; i++) {
                 childNode = nodes[i];
+                if (!this.validateKey(childNode.parentKey)) {
+                    // this child has no parent so skip it.  an example of a
+                    // child that has no parents is a folder created at the
+                    // root level
+                    continue;
+                }
                 if (!parentsDetachers[childNode.parentKey]) {
                     parentsDetachers[childNode.parentKey] = [childNode];
                 }
@@ -802,23 +808,32 @@ export class LocalDB {
             let parentKeys: string[] = Object.keys(parentsDetachers),
                 nParents: number = parentKeys.length,
                 nParentsProcessed: number = 0;
-            for (i = 0; i < nParents; i++) {
-                // INV: parentsDetachers[parentKeys[i]] is always
-                // going to be a non empty array
-                this.detachNodesFromParent(parentsDetachers[parentKeys[i]])
-                    .subscribe(
-                    () => {
-                        nParentsProcessed++;
-                        if (nParentsProcessed === nParents) {
-                            observer.next();
-                            observer.complete();
+
+            // it is possible, with the filtering (of child nodes at root)
+            // done above, that there is no parent to detach from ...
+            if (nParents) {
+                for (i = 0; i < nParents; i++) {
+                    // INV: parentsDetachers[parentKeys[i]] is always
+                    // going to be a non empty array
+                    this.detachNodesFromParent(parentsDetachers[parentKeys[i]])
+                        .subscribe(
+                        () => {
+                            nParentsProcessed++;
+                            if (nParentsProcessed === nParents) {
+                                observer.next();
+                                observer.complete();
+                            }
+                        },
+                        (error: any) => {
+                            observer.error(error);
                         }
-                    },
-                    (error: any) => {
-                        observer.error(error);
-                    }
-                    );
-            } // for
+                        );
+                } // for
+            }
+            else {
+                observer.next();
+                observer.complete();
+            }
         });
 
         return source;
@@ -1199,6 +1214,8 @@ export class LocalDB {
             for (i = 0; i < nNodes; i++) {
                 node = keyDict[keys[i]];
                 if (this.isFolderNode(node)) {
+                    // TODO: we can make things slightly more efficient here
+                    // by not calling anything if folder is empty
                     this.getSubtreeNodesArray(node).subscribe(
                         (subtreeNodes: TreeNode[]) => {
                             for (j = 0; j < subtreeNodes.length; j++) {
@@ -1251,7 +1268,7 @@ export class LocalDB {
                         (error: any) => {
                             observer.error(error);
                         }
-                    )
+                    ); // detachNodesFromParents().subscribe(
                 }
             );
         });

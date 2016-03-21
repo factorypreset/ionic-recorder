@@ -476,7 +476,7 @@ export class LibraryPage {
     onClickSelectButton() {
         let folderName: string = this.folderNode.path.replace(/.*\//, '') || '/';
         this.alertAndDo(
-            'Select which in<br> ' + folderName,
+            'Select which, in<br> ' + folderName,
             'All',
             () => {
                 this.selectAllInFolder();
