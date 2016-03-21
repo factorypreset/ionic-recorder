@@ -57,9 +57,8 @@ export class LibraryPage {
     }
 
     getPath() {
-        let path: string = [
-            this.folderNode.path,
-            this.folderNode.name].join('/'),
+        let path: string = this.folderNode.path +
+            '/' + this.folderNode.name,
             rootPath: string = '/' + ROOT_FOLDER_NAME;
         if (path === rootPath) {
             return '/';

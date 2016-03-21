@@ -647,18 +647,14 @@ export class LocalDB {
                             () => {
                                 // update childNode's path
                                 if (this.isFolderNode(childNode)) {
-                                    childNode.path = [
-                                        parentNode.path,
-                                        parentNode.name
-                                    ].join('/');
+                                    childNode.path = parentNode.path + '/' +
+                                        parentNode.name;
                                     this.updateNode(childNode).subscribe(
                                         () => {
                                             console.log('SET CHILDNODE PATH' +
                                                 'OF ' + childNode.name +
-                                                ' TO: ' + [
-                                                    parentNode.path,
-                                                    parentNode.name
-                                                ].join('/'));
+                                                ' TO: ' + parentNode.path +
+                                                '/' + parentNode.name);
                                             observer.next(parentNode);
                                             observer.complete();
                                         },
@@ -1282,7 +1278,8 @@ export class LocalDB {
                     observer.error(error);
                 },
                 () => {
-                    console.log('-----> GOT NODES: ' + nodes.map(x => x.name).join(', '));
+                    console.log('-----> GOT NODES: ' +
+                        nodes.map(x => x.name).join(', '));
                     observer.next(nodes);
                     observer.complete();
                 }
