@@ -16,7 +16,7 @@ export function main(): void {
 
     jasmine.DEFAULT_TIMEOUT_INTERVAL = MAX_DB_INIT_TIME * 2;
 
-    xdescribe('When appState initialized', () => {
+    describe('When appState initialized', () => {
         it('appState is not falsy', (done) => {
             setTimeout(() => {
                 expect(appState).not.toBeFalsy();
@@ -25,7 +25,7 @@ export function main(): void {
         });
     });
 
-    xdescribe('When appState initialized again', () => {
+    describe('When appState initialized again', () => {
         it('appState is not falsy', (done) => {
             setTimeout(() => {
                 expect(appState).not.toBeFalsy();

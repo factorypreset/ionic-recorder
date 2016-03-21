@@ -12,7 +12,6 @@ import {prependArray} from '../../providers/utils/utils';
     templateUrl: 'build/pages/library/library.html'
 })
 export class LibraryPage {
-    private folderPath: string = '';
     private folderNode: TreeNode = null;
     private folderItems: { [id: string]: TreeNode; } = {};
     private selectedNodes: { [id: string]: TreeNode; } = {};
@@ -32,11 +31,11 @@ export class LibraryPage {
     // Ionic Life Cycle Hooks:
     // https://webcake.co/page-lifecycle-hooks-in-ionic-2/
     ngOnInit() {
-        console.warn('on page will enter --------------------');
+        console.warn('ngOnInit() --------------------');
         // switch folders, via AppState
         this.appState.getLastViewedFolderKey().subscribe(
             (lastViewedFolderKey: number) => {
-                console.log('lib page entered, to: ' + lastViewedFolderKey);
+                console.log('lastViewedFolderKey: ' + lastViewedFolderKey);
                 // this is it!  here's where we enter the last viewed folder
                 this.switchFolder(lastViewedFolderKey, false);
                 this.appState.getProperty('selectedNodes').subscribe(
@@ -55,6 +54,23 @@ export class LibraryPage {
                 alert('in getProperty: ' + error);
             }
         ); // getProperty().subscbribe(
+    }
+
+    getPath() {
+        let path: string = [
+            this.folderNode.path,
+            this.folderNode.name].join('/'),
+            rootPath: string = '/' + ROOT_FOLDER_NAME;
+        if (path === rootPath) {
+            return '/';
+        }
+        else {
+            return path.slice(rootPath.length);
+        }
+    }
+
+    parentButtonDisabled() {
+        return !this.folderNode || this.folderNode.path === '';
     }
 
     onClickUpButton() {
@@ -113,63 +129,89 @@ export class LibraryPage {
         return Object.keys(this.selectedNodes).length;
     }
 
-    selectedNodesHere() {
-        let key: string, i: number, nodeKeys: string[] = [],
+    selectedNodesHere(): { [id: string]: TreeNode; } {
+        let key: string,
+            i: number,
+            nodeHere: TreeNode,
+            keyDict: { [id: string]: TreeNode; } = {},
             keys = Object.keys(this.selectedNodes);
         for (i = 0; i < keys.length; i++) {
             key = keys[i];
-            if (this.folderItems[key]) {
-                nodeKeys.push(key);
+            nodeHere = this.folderItems[key];
+            if (nodeHere) {
+                keyDict[key] = nodeHere;
             }
         }
-        return nodeKeys;
+        return keyDict;
     }
 
-    deleteNodes(nodeKeys: string[]) {
-        let len = nodeKeys.length;
-        if (!len) {
+    deleteNodes(keyDict: { [id: string]: TreeNode; }) {
+        let nNodes = Object.keys(keyDict).length;
+        if (!nNodes) {
             alert('wow no way!');
         }
         this.alertAndDo(
-            'Permanently delete ' + len + ' items' + (len > 1 ? 's?' : '?'),
+            'Permanently delete ' + nNodes + ' item' +
+            (nNodes > 1 ? 's?' : '?'),
             'Ok', () => {
-                console.log('deleting ' + len + ' selected items ...');
-                let i: string, node: TreeNode;
-                for (i in nodeKeys) {
-                    node = this.selectedNodes[i];
-                    this.localDB.deleteNode(node).subscribe(
-                        () => {
-                            delete this.selectedNodes[i];
-                            delete this.folderItems[i];
-                        },
-                        (error: any) => {
-                            alert('failed deleting node ' + i);
+                console.log('deleting ' + nNodes + ' selected items ...');
+                this.localDB.deleteNodes(keyDict).subscribe(
+                    () => {
+                        let i: number,
+                            bSelectionChanged = false,
+                            key: string,
+                            keys: string[] = Object.keys(keyDict),
+                            nNodes: number = keys.length;
+                        for (i = 0; i < nNodes; i++) {
+                            key = keys[i];
+                            // remove from this.folderNode.childOrder
+                            this.folderNode.childOrder =
+                                this.folderNode.childOrder.filter(
+                                    (childKey: number) => {
+                                        return childKey.toString() !== key;
+                                    });
+                            // remove from this.folderItems
+                            if (this.folderItems[key]) {
+                                delete this.folderItems[key];
+                            }
+                            // remove from this.selectedNodes
+                            if (this.selectedNodes[key]) {
+                                delete this.selectedNodes[key];
+                                // remember that we've changed selection
+                                bSelectionChanged = true;
+                            }
+                        } // for
+                        if (bSelectionChanged) {
+                            this.appState.updateProperty('selectedNodes',
+                                this.selectedNodes).subscribe(
+                                () => {
+                                    console.log('SUCCESS DELETING ALL');
+                                }
+                                );
                         }
-                    ); // deleteNode().subscribe(
-                } // for
-                console.log('SUCCESS DELETING ALL');
+                        else {
+                            console.log('SUCCESS DELETING ALL');
+                        }
+                    }
+                );
             });
     }
 
-    onClickTrashButton() {
-        let folderName: string = this.folderPath.replace(/.*\//, '') || '/',
-            selectedNodes = Object.keys(this.selectedNodes),
-            nSelectedNodes = selectedNodes.length,
-            selectedNodesHere: string[] =
+    onClickDeleteButton() {
+        let folderName: string = this.folderNode.path.replace(/.*\//, '') || '/',
+            nSelectedNodes = Object.keys(this.selectedNodes).length,
+            selectedNodesHere: { [id: string]: TreeNode; } =
                 this.selectedNodesHere(),
-            nSelectedNodesHere = selectedNodesHere.length,
-            nSelectedNodesNotHere = nSelectedNodes -
-                nSelectedNodesHere;
-        console.log('nchec ' + nSelectedNodes + ', in ' +
-            nSelectedNodesHere);
+            nSelectedNodesHere = Object.keys(selectedNodesHere).length,
+            nSelectedNodesNotHere = nSelectedNodes - nSelectedNodesHere;
+        console.log('nchec ' + nSelectedNodes + ', in ' + nSelectedNodesHere);
         if (nSelectedNodesNotHere) {
             if (nSelectedNodesHere) {
                 this.alertAndDo([
                     'You have ', nSelectedNodesNotHere,
                     ' selected item',
                     nSelectedNodesNotHere > 1 ? 's' : '',
-                    ' outside this folder. ',
-                    'Do you want to delete all ',
+                    ' outside this folder. Do you want to delete all ',
                     nSelectedNodes, ' selected item',
                     nSelectedNodes > 1 ? 's' : '',
                     ' or only the ', nSelectedNodesHere,
@@ -178,7 +220,7 @@ export class LibraryPage {
                     'Delete all (' + nSelectedNodes + ')',
                     () => {
                         console.log('no action');
-                        this.deleteNodes(Object.keys(this.selectedNodes));
+                        this.deleteNodes(this.selectedNodes);
                     },
                     'Delete only here (' + nSelectedNodesHere + ')',
                     () => {
@@ -189,7 +231,7 @@ export class LibraryPage {
             }
             else {
                 // nothing selected in this folder, but stuff selected outside
-                this.deleteNodes(Object.keys(this.selectedNodes));
+                this.deleteNodes(this.selectedNodes);
             }
         }
         else {
@@ -214,7 +256,7 @@ export class LibraryPage {
         return false;
     }
 
-    trashButtonDisabled() {
+    deleteButtonDisabled() {
         return false;
     }
 
@@ -267,26 +309,6 @@ export class LibraryPage {
                 alert('in readNode: ' + error);
             }
         );
-
-        // get the path, in parallel
-        this.localDB.getNodePath(key).subscribe(
-            (path: string) => {
-                console.log('path === ' + path);
-                path = path.substr(
-                    1 + ROOT_FOLDER_NAME.length
-                );
-                if (path === '') {
-                    this.folderPath = '/';
-                }
-                else {
-                    this.folderPath = path;
-                }
-                console.log('FOLDER PATH: ' + this.folderPath);
-            },
-            (error: any) => {
-                alert('in getNodePath: ' + error);
-            }
-        ); // getNodePath().subscribe(
 
         // update last viewed folder state in DB
         if (updateState) {
@@ -366,7 +388,7 @@ export class LibraryPage {
     onClickAddButton() {
         // note we consider the current folder (this.folderNode) the parent
         let addFolderModal = Modal.create(AddFolderPage, {
-            parentPath: this.folderPath,
+            parentPath: this.folderNode.path,
             parentItems: this.folderItems
         });
 
@@ -453,7 +475,7 @@ export class LibraryPage {
     }
 
     onClickSelectButton() {
-        let folderName: string = this.folderPath.replace(/.*\//, '') || '/';
+        let folderName: string = this.folderNode.path.replace(/.*\//, '') || '/';
         this.alertAndDo(
             'Select which in<br> ' + folderName,
             'All',

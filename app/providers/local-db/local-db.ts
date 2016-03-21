@@ -38,6 +38,7 @@ export interface TreeNode {
     dataKey: number;
     timestamp: number;
     childOrder?: number[];
+    path?: string;
 }
 
 export interface ParentChild {
@@ -120,11 +121,9 @@ export class LocalDB {
             dataKey: dataKey,
             timestamp: Date.now()
         };
-        // making dataKey === DB_NO_KEY is how we signal to makeTreeNode
-        // that we're making a folder node - TODO: split this function into
-        // two: one to make a data node and one to make a folder node,
-        // explicitly
-        if (dataKey === DB_NO_KEY) {
+        // making dataKey any invalid key is how we signal to makeTreeNode
+        // that we're making a folder node
+        if (this.isFolderNode(treeNode)) {
             treeNode.childOrder = [];
         }
         return treeNode;
@@ -630,12 +629,14 @@ export class LocalDB {
 
     // returns observable of parent node (updated with new child order)
     attachToParent(childNode: TreeNode) {
+        console.log('ATTACH TO PARENT: ' + childNode.name);
         let source: Observable<TreeNode> = Observable.create((observer) => {
             if (this.validateKey(childNode.parentKey)) {
                 // you have to read the existing child order first,
                 // in order to add to the front of it
                 this.readNode(childNode.parentKey).subscribe(
                     (parentNode: TreeNode) => {
+                        console.log('READNODE GOT ::: ' + parentNode);
                         // push newly created nodes to the front of
                         // the parent childOrder list
                         parentNode.childOrder = prependArray(
@@ -644,8 +645,33 @@ export class LocalDB {
                         // now you update the node with new childOrder
                         this.updateNode(parentNode).subscribe(
                             () => {
-                                observer.next(parentNode);
-                                observer.complete();
+                                // update childNode's path
+                                if (this.isFolderNode(childNode)) {
+                                    childNode.path = [
+                                        parentNode.path,
+                                        parentNode.name
+                                    ].join('/');
+                                    this.updateNode(childNode).subscribe(
+                                        () => {
+                                            console.log('SET CHILDNODE PATH' +
+                                                'OF ' + childNode.name +
+                                                ' TO: ' + [
+                                                    parentNode.path,
+                                                    parentNode.name
+                                                ].join('/'));
+                                            observer.next(parentNode);
+                                            observer.complete();
+                                        },
+                                        (error: any) => {
+                                            observer.error(error);
+                                        }
+                                    ); // updateNode(childNode).subscribe(
+                                }
+                                else {
+                                    // non-folder node, not updating path
+                                    observer.next(parentNode);
+                                    observer.complete();
+                                }
                             },
                             (error: any) => {
                                 observer.error(error);
@@ -659,8 +685,31 @@ export class LocalDB {
             }
             else {
                 // parent key is invalid, return null
-                observer.next(null);
-                observer.complete();
+                // invalid parent key is how we signal this
+                // function that we're creating an item/folder
+                // at the forest floor - we're not inside any
+                // folder.  this means the path is '/', set it
+                // for folders, because they require a path, we
+                // automatically track it for folders ...
+                // update childNode's path
+                if (this.isFolderNode(childNode)) {
+                    childNode.path = '';
+                    this.updateNode(childNode).subscribe(
+                        () => {
+                            console.log('SET CHILDNODE PATH TO EMPTY STRING');
+                            observer.next(null);
+                            observer.complete();
+                        },
+                        (error: any) => {
+                            observer.error(error);
+                        }
+                    ); // updateNode(childNode).subscribe(
+                }
+                else {
+                    // non-folder node, not updating path
+                    observer.next(null);
+                    observer.complete();
+                }
             }
         });
         return source;
@@ -731,7 +780,6 @@ export class LocalDB {
     //    sed 's/.*ocalDB\.//' | sed 's/(.*//'|sort -u|grep -v Instance|nl
     //   1	createDataNode
     //   2	createFolderNode
-    //   3	getNodePath
     //   4	isFolderNode
     //   5	readChildNodes
     //   6	readNode
@@ -1049,45 +1097,44 @@ export class LocalDB {
     // Returns an Observable that emits upon deletion. if it's a folder
     // node we're deleting it will delete all its content recursively.
     // it will detach appropriately too.
-    
+
     // deleteNodes
     // 1) counts how many need detachment
     // 2) subscribes, with counts as termination conditions - one
-    // count is for deletion of the nodes themselves (length of 
+    // count is for deletion of the nodes themselves (length of
     // supplied argument keys list) another count is the detachments
     // that we need to perform - once all counts have been completed,
     // and this is something you check in the inner function of every
     // subscription, you're done.
-    
+
     // expandForDeleteNodes
-    getKeyDictForDeleteNodes(nodes: TreeNode[]) {
-        console.log('====> deleteNodes(' +
-            nodes.map(x => x.name).join(', ') + ')');
-        let source: Observable<void> = Observable.create((observer) => {
+    expandKeyDict(keyDict: { [id: string]: TreeNode; }) {
+        console.log('=> expand(' + Object.keys(keyDict).join(', ') + ')');
+        let source: Observable<Object> = Observable.create((observer) => {
             // add nodes supplied argument nodes into the keyDict
             // if a node is a folder node, we get its subtree and
             // add those to the keydict as well, we're done when
             // all folder nodes have been included in keyDict, this
-            // means we need two loops - the first one counts how 
+            // means we need two loops - the first one counts how
             // many folders we have, the second one subscribes to
             // the observables with a termination condition based
-            // on how many folders have been processed 
-            let keyDict = {},
-                len: number = nodes.length,
+            // on how many folders have been processed
+            let keys = Object.keys(keyDict),
+                nNodes: number = keys.length,
                 i: number, j: number,
                 nFolders: number = 0,
                 nFoldersProcessed: number = 0,
                 node: TreeNode;
-            for (i = 0; i < len; i++) {
-                node = nodes[i];
+            // count nFolders
+            for (i = 0; i < nNodes; i++) {
+                node = keyDict[keys[i]];
                 if (this.isFolderNode(node)) {
                     nFolders++;
                 }
-                keyDict[node[DB_KEY_PATH]] = node;
             }
             // second loop - subscribe and add
-            for (i = 0; i < len; i++) {
-                node = nodes[i];
+            for (i = 0; i < nNodes; i++) {
+                node = keyDict[keys[i]];
                 if (this.isFolderNode(node)) {
                     this.getSubtreeNodesArray(node).subscribe(
                         (subtreeNodes: TreeNode[]) => {
@@ -1108,17 +1155,78 @@ export class LocalDB {
                 }
             }
 
-
         });
         return source;
     }
 
-    // TODO: reimplement this with expand, after you've added a root
-    // node.
-    getNodePath(key: number, path: string = '') {
-        console.log('getNodePath(' + key + ', ' + path + ')');
-        let source: Observable<string> = Observable.create((observer) => {
+    detachForDeleteNodes(keyDict: { [id: string]: TreeNode; }) {
+        let source: Observable<Object> = Observable.create((observer) => {
+            this.expandKeyDict(keyDict).subscribe(
+                (expandedKeyDict: Object) => {
+                    let i: number,
+                        keys: string[] = Object.keys(expandedKeyDict),
+                        nNodes: number = keys.length,
+                        node: TreeNode,
+                        toDetach: TreeNode[] = [],
+                        nToDetach: number,
+                        nDetached: number = 0;
+                    // fill up toDetach and toNotDetach
+                    for (i = 0; i < nNodes; i++) {
+                        node = expandedKeyDict[keys[i]];
+                        if (!expandedKeyDict[node.parentKey]) {
+                            toDetach.push(node);
+                        }
+                    }
+                    // detach
+                    nToDetach = toDetach.length;
+                    for (i = 0; i < nToDetach; i++) {
+                        node = expandedKeyDict[keys[i]];
+                        this.detachFromParent(node).subscribe(
+                            () => {
+                                nDetached++;
+                                if (nDetached === nToDetach) {
+                                    observer.next(expandedKeyDict);
+                                    observer.complete();
+                                }
+                            },
+                            (error: any) => {
+                                observer.error(error);
+                            }
+                        );
+                    }
+                }
+            );
+        });
+        return source;
+    }
 
+    deleteNodes(keyDict: { [id: string]: TreeNode; }) {
+        let source: Observable<void> = Observable.create((observer) => {
+            this.detachForDeleteNodes(keyDict).subscribe(
+                (keyDict: Object) => {
+                    let i: number,
+                        keys: string[] = Object.keys(keyDict),
+                        nNodes: number = keys.length,
+                        node: TreeNode,
+                        nDeleted: number = 0;
+                    // delete
+                    for (i = 0; i < nNodes; i++) {
+                        node = keyDict[keys[i]];
+                        this.deleteNode(node).subscribe(
+                            () => {
+                                nDeleted++;
+                                if (nDeleted === nNodes) {
+                                    observer.next();
+                                    observer.complete();
+                                }
+                            },
+                            (error: any) => {
+                                observer.error(error);
+                            }
+                        );
+                    }
+                }
+            );
         });
         return source;
     }
@@ -1163,6 +1271,7 @@ export class LocalDB {
     // enumerates the entire getSubtreeNodes() sequence, returns an
     // array of treenodes
     getSubtreeNodesArray(node: TreeNode) {
+        console.log('getSubtreeNodesArray: ' + node.name);
         let source: Observable<TreeNode[]> = Observable.create((observer) => {
             let nodes: TreeNode[] = [];
             this.getSubtreeNodes(node).subscribe(
@@ -1173,6 +1282,7 @@ export class LocalDB {
                     observer.error(error);
                 },
                 () => {
+                    console.log('-----> GOT NODES: ' + nodes.map(x => x.name).join(', '));
                     observer.next(nodes);
                     observer.complete();
                 }

@@ -14,8 +14,8 @@
     </ion-buttons>
 </ion-navbar>
 
-<span class="library-page-path-message">
-    At: &nbsp; <span>{{folderPath}}</span>
+<span *ngIf="folderNode" class="library-page-path-message">
+    At: &nbsp; <span>{{getPath()}}</span>
 </span>
 
 <div class="buttonbar4">
@@ -27,7 +27,7 @@
             <br>
         </ion-col>
     </button>
-    <button almost-dark (click)="onClickParentButton()" [disabled]="folderPath === '/'" ion-row center>
+    <button almost-dark (click)="onClickParentButton()" [disabled]="parentButtonDisabled()" ion-row center>
         <ion-col>
             <ion-icon name="arrow-up"></ion-icon>
             <ion-icon name="folder-outline"></ion-icon>
@@ -94,10 +94,10 @@
             <br>
         </ion-col>
     </button>
-    <button almost-dark (click)="onClickTrashButton()" [disabled]="trashButtonDisabled()" ion-row center>
+    <button almost-dark (click)="onClickDeleteButton()" [disabled]="deleteButtonDisabled()" ion-row center>
         <ion-col>
             <ion-icon name="trash"></ion-icon>
-            <br> Trash
+            <br> Delete
             <br>
         </ion-col>
     </button>

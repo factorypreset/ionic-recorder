@@ -105,6 +105,7 @@ export class AppState {
                         // here we set it to the default, which is root folder
                         this.getProperty('rootFolderKey').subscribe(
                             (rootFolderKey: number) => {
+                                // set the lastViewedFolder to be root folder
                                 this.updateProperty(
                                     'lastViewedFolder',
                                     rootFolderKey)
