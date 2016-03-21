@@ -313,6 +313,8 @@ export class LocalDB {
                         let getRequest: IDBRequest = store.get(key);
 
                         getRequest.onsuccess = (event: IDBEvent) => {
+                            console.log('-> *** <- readStoreItem(' +
+                                key + '): SUCCESS!');
                             let mismatchOccured: boolean = false;
                             if (getRequest.result) {
                                 // getRequest.result is node we got from db
@@ -711,47 +713,112 @@ export class LocalDB {
         return source;
     }
 
-    // TODO: (1) have functions such as detachFromParent take-in ids, not whole nodes
-    // (2) don't use readChildNodes, use childOrder instead
-
-    // same as above, but removes childNode key from parent's childOrder
-    // returns observable of parent node (updated with new child order)
-    detachFromParent(childNode: TreeNode) {
+    detachNodesFromParent(childNodes: TreeNode[]) {
+        console.log('detachNodesFromParent(' +
+            childNodes.map(x => x.name).join(', ') + ')');
         let source: Observable<TreeNode> = Observable.create((observer) => {
-            if (this.validateKey(childNode.parentKey)) {
-                // you have to read the existing child order first,
-                // in order to add to the front of it
-                this.readNode(childNode.parentKey).subscribe(
-                    (parentNode: TreeNode) => {
-                        let childKey: number = childNode[DB_KEY_PATH],
-                            i = parentNode.childOrder.indexOf(childKey);
-                        if (i === -1) {
-                            observer.error('could not find id in childOrder');
-                        }
-                        else {
-                            parentNode.childOrder.splice(i, 1);
-                            // now you update the node with new childOrder
-                            this.updateNode(parentNode).subscribe(
-                                () => {
-                                    observer.next(parentNode);
-                                    observer.complete();
-                                },
-                                (error: any) => {
-                                    observer.error(error);
+            let nNodes: number = childNodes.length;
+            if (nNodes === 0) {
+                // verify that some nodes were supplied
+                observer.error('called detach with empty list');
+            }
+            else {
+                // verify all nodes have the same parent
+                let parentKey: number = childNodes[0].parentKey;
+                if (childNodes.filter(x => x.parentKey === parentKey).length
+                    !== nNodes) {
+                    observer.error('not all children have same parent');
+                }
+                else {
+                    this.readNode(parentKey).subscribe(
+                        (parentNode: TreeNode) => {
+                            let i: number,
+                                childOrder: number[] = parentNode.childOrder,
+                                childIndex: number = -1,
+                                childKey: number,
+                                errorFound: boolean;
+                            for (i = 0; i < nNodes; i++) {
+                                childKey = childNodes[i][DB_KEY_PATH];
+                                childIndex = childOrder.indexOf(childKey);
+                                if (childIndex === -1) {
+                                    errorFound = true;
+                                    break;
                                 }
-                            ); // updateNode().subscribe(
+                                else {
+                                    // shorten parent's childOrder
+                                    childOrder.splice(childIndex, 1);
+                                }
+                            }
+                            if (errorFound) {
+                                observer.error('child not in parent!');
+                            }
+                            else {
+                                parentNode.childOrder = childOrder;
+                                // now you update the node with new childOrder
+                                this.updateNode(parentNode).subscribe(
+                                    () => {
+                                        observer.next(parentNode);
+                                        observer.complete();
+                                    },
+                                    (error: any) => {
+                                        observer.error(error);
+                                    }
+                                ); // updateNode().subscribe(
+                            }
+                        },
+                        (error: any) => {
+                            observer.error(error);
+                        }
+                    ); // readNode().subscribe(
+                }
+            }
+        });
+        return source;
+    }
+
+    detachNodesFromParents(nodes: TreeNode[]) {
+        console.log('detachNodesFromParents(' +
+            nodes.map(x => x.name).join(', ') + ')');
+        let source: Observable<void> = Observable.create((observer) => {
+            // 1) group parents
+            let i: number,
+                childNode: TreeNode,
+                nNodes: number = nodes.length,
+                parentsDetachers: { [id: string]: TreeNode[] } = {};
+            for (i = 0; i < nNodes; i++) {
+                childNode = nodes[i];
+                if (!parentsDetachers[childNode.parentKey]) {
+                    parentsDetachers[childNode.parentKey] = [childNode];
+                }
+                else {
+                    parentsDetachers[childNode.parentKey].push(childNode);
+                }
+            }
+            // 2) go through parents, fix'em up (childOrder fix)
+            // read parents one by one, fix them one by one,
+            // update them one by one - there is no reason to do
+            // things in batch here because there is nothing that can
+            // be done more efficiently in batch here anyway
+            let parentKeys: string[] = Object.keys(parentsDetachers),
+                nParents: number = parentKeys.length,
+                nParentsProcessed: number = 0;
+            for (i = 0; i < nParents; i++) {
+                // INV: parentsDetachers[parentKeys[i]] is always
+                // going to be a non empty array
+                this.detachNodesFromParent(parentsDetachers[parentKeys[i]])
+                    .subscribe(
+                    () => {
+                        nParentsProcessed++;
+                        if (nParentsProcessed === nParents) {
+                            observer.next();
+                            observer.complete();
                         }
                     },
                     (error: any) => {
                         observer.error(error);
                     }
-                ); // readNode().subscribe(
-            }
-            else {
-                // parent key is invalid, return null,
-                observer.next(null);
-                observer.complete();
-            }
+                    );
+            } // for
         });
 
         return source;
@@ -1163,33 +1230,28 @@ export class LocalDB {
                         keys: string[] = Object.keys(expandedKeyDict),
                         nNodes: number = keys.length,
                         node: TreeNode,
-                        toDetach: TreeNode[] = [],
-                        nToDetach: number,
-                        nDetached: number = 0;
+                        toDetach: TreeNode[] = [];
                     // fill up toDetach and toNotDetach
                     for (i = 0; i < nNodes; i++) {
                         node = expandedKeyDict[keys[i]];
+                        // check if any parent of any node in our
+                        // delete list is *not* in the list
                         if (!expandedKeyDict[node.parentKey]) {
+                            // if a parent is not in the list it
+                            // needs to be updated (detached)
                             toDetach.push(node);
                         }
                     }
                     // detach
-                    nToDetach = toDetach.length;
-                    for (i = 0; i < nToDetach; i++) {
-                        node = expandedKeyDict[keys[i]];
-                        this.detachFromParent(node).subscribe(
-                            () => {
-                                nDetached++;
-                                if (nDetached === nToDetach) {
-                                    observer.next(expandedKeyDict);
-                                    observer.complete();
-                                }
-                            },
-                            (error: any) => {
-                                observer.error(error);
-                            }
-                        );
-                    }
+                    this.detachNodesFromParents(toDetach).subscribe(
+                        () => {
+                            observer.next(expandedKeyDict);
+                            observer.complete();
+                        },
+                        (error: any) => {
+                            observer.error(error);
+                        }
+                    )
                 }
             );
         });
@@ -1256,7 +1318,7 @@ export class LocalDB {
     // traverses a tree recursively, based on
     // https://www.reddit.com/r/javascript/comments/3abv2k/ ...
     //      ... /how_can_i_do_a_recursive_readdir_with_rxjs_or_any/
-    getSubtreeNodes(node: TreeNode) {
+    getSubtreeNodes(node: TreeNode): Observable<TreeNode> {
         return this.lsNode(node)
             .expand<TreeNode>((childNode: TreeNode) =>
                 this.isLeaf(childNode) ?
@@ -1266,7 +1328,7 @@ export class LocalDB {
 
     // enumerates the entire getSubtreeNodes() sequence, returns an
     // array of treenodes
-    getSubtreeNodesArray(node: TreeNode) {
+    getSubtreeNodesArray(node: TreeNode): Observable<TreeNode[]> {
         console.log('getSubtreeNodesArray: ' + node.name);
         let source: Observable<TreeNode[]> = Observable.create((observer) => {
             let nodes: TreeNode[] = [];

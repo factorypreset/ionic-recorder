@@ -57,8 +57,7 @@ export class LibraryPage {
     }
 
     getPath() {
-        let path: string = this.folderNode.path +
-            '/' + this.folderNode.name,
+        let path: string = this.folderNode.path + '/' + this.folderNode.name,
             rootPath: string = '/' + ROOT_FOLDER_NAME;
         if (path === rootPath) {
             return '/';
@@ -387,7 +386,7 @@ export class LibraryPage {
     onClickAddButton() {
         // note we consider the current folder (this.folderNode) the parent
         let addFolderModal = Modal.create(AddFolderPage, {
-            parentPath: this.folderNode.path,
+            parentPath: this.getPath(),
             parentItems: this.folderItems
         });
 

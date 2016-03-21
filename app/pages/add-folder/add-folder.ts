@@ -17,6 +17,14 @@ export class AddFolderPage {
     private parentPath: string;
     private form: ControlGroup;
 
+    /**
+     * The Add-Folder modal
+     * @param {NavParams} contains data passed from the caller (under
+     * navParams.data.parentItems).
+     * @param {viewController} used to dismiss this modal with data to
+     * return to the caller.
+     * @param {FormBuilder} used to build the form of this modal.
+     */
     constructor(
         private navParams: NavParams,
         private viewController: ViewController,
