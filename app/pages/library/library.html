@@ -56,22 +56,16 @@
 <ion-content [class]="platform.platforms()" padding>
     <ion-list *ngIf="folderNode">
         <ion-item clear *ngFor="#i of folderNode.childOrder">
-            <ion-label>
-                <button clear (click)="onClickListItem(folderItems[i])">
+            <ion-label (click)="onClickListItem(folderItems[i])>
                     <ion-icon [name]="itemIconName(i)" medium-gray>
                     </ion-icon>
                     {{folderItems[i].name}}
-                </button>
             </ion-label>
             <ion-checkbox [ngModel]="isSelected(folderItems[i])" (click)="onClickCheckbox(folderItems[i])" medium-gray item-left>
             </ion-checkbox>
             <button clear item-right>
-                test1 <!--ion-icon name="edit"></ion-icon-->
+                <ion-icon name="play"></ion-icon>
             </button>
-            <button clear item-right>
-                test2 <!--ion-icon name="edit"></ion-icon-->
-            </button>
-
         </ion-item>
         <ion-item class="library-empty-folder-message" *ngIf="!folderNode.childOrder.length">
             <h2>This folder is empty</h2>

@@ -21,8 +21,11 @@ export class LibraryPage {
 
     private totalSelectedCounter: number = 0;
 
-    constructor(
-        private navController: NavController,
+    /**
+     * @constructor
+     * @param
+     */
+    constructor(private navController: NavController,
         private platform: Platform) {
         console.log('constructor():LibraryPage');
     }
@@ -79,6 +82,13 @@ export class LibraryPage {
 
     }
 
+    /**
+     * @param {string} question
+     * @param {string} button1Text
+     * @param {()=>void} action1
+     * @param {string} button2Text
+     * @param {()=>void} action2
+     */
     alertAndDo(
         question: string,
         button1Text: string,
@@ -178,7 +188,7 @@ export class LibraryPage {
                                 // remember that we've changed selection
                                 bSelectionChanged = true;
                             }
-                        } // for
+                        } // for (i = 0; i < nNodes; i++) {
                         if (bSelectionChanged) {
                             this.appState.updateProperty('selectedNodes',
                                 this.selectedNodes).subscribe(
