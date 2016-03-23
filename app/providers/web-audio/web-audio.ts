@@ -10,15 +10,17 @@ export class WebAudio {
     private analyserBuffer: Uint8Array;
     private analyserBufferLength: number;
     private sourceNode: MediaElementAudioSourceNode;
-    private blobs: Blob[];
+    private blobChunks: Blob[];
     onStop: (blob: Blob) => void;
 
     constructor() {
-        this.blobs = [];
+        this.blobChunks = [];
         this.initAudio();
     }
 
     initAudio() {
+        // this.audioContext = new OfflineAudioContext(1, 1024, 44100);
+        // OfflineAudioContext unfortunately doesn't work with MediaRecorder
         this.audioContext = new AudioContext();
         if (!this.audioContext) {
             throw Error('AudioContext not available!');
@@ -48,20 +50,29 @@ export class WebAudio {
         this.mediaRecorder = new MediaRecorder(stream);
 
         this.mediaRecorder.ondataavailable = (event: BlobEvent) => {
-            console.log('ondataavailable()');
-            this.blobs.push(event.data);
+            // console.log('ondataavailable()');
+            this.blobChunks.push(event.data);
         };
 
         this.mediaRecorder.onstop = (event: Event) => {
-            console.log('mediaRecorder.onStop()');
-            if (this.blobs.length !== 1) {
-                throw Error('More than 1 blobs!');
-            }
+            console.log('mediaRecorder.onStop() Got ' + this.blobChunks.length + 'chunks');
             if (!this.onStop) {
                 throw Error('WebAudio:onStop() not set!');
             }
-            this.onStop(this.blobs[0]);
-            this.blobs = [];
+
+            if (this.blobChunks.length > 1) {
+                // finalBlob = Blob(this.blobChunks, {
+                //     neither Chrome nor Firefox implement Blob.type yet, it seems
+                //     need to check if ogg is supported in webkit/chrome
+                //     type: this.blobChunks[0].type || 'audio/ogg'
+                // });
+                this.onStop(new Blob(this.blobChunks));
+            }
+            else {
+                this.onStop(this.blobChunks[0]);
+            }
+
+            this.blobChunks = [];
         };
     }
 
