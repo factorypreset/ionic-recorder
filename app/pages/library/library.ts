@@ -154,7 +154,8 @@ export class LibraryPage {
     }
 
     deleteNodes(keyDict: { [id: string]: TreeNode; }) {
-        let nNodes = Object.keys(keyDict).length;
+        let keys: string[] = Object.keys(keyDict),
+            nNodes: number = keys.length;
         if (!nNodes) {
             alert('wow no way!');
         }
@@ -167,9 +168,8 @@ export class LibraryPage {
                     () => {
                         let i: number,
                             bSelectionChanged = false,
-                            key: string,
-                            keys: string[] = Object.keys(keyDict),
-                            nNodes: number = keys.length;
+                            key: string;
+
                         for (i = 0; i < nNodes; i++) {
                             key = keys[i];
                             // remove from this.folderNode.childOrder
@@ -380,7 +380,6 @@ export class LibraryPage {
         if (!this.folderItems || !this.folderItems[key]) {
             return '';
         }
-        // console.log('itemIconName ' + key);
         if (this.localDB.isDataNode(this.folderItems[key])) {
             return 'document';
         }

@@ -45,8 +45,8 @@ export class WebAudio {
         if (!MediaRecorder) {
             alert('MediaRecorder not available!');
             throw Error('MediaRecorder not available!');
-
         }
+
         this.mediaRecorder = new MediaRecorder(stream);
 
         this.mediaRecorder.ondataavailable = (event: BlobEvent) => {

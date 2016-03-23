@@ -54,12 +54,12 @@
 </div>
 
 <ion-content [class]="platform.platforms()" padding>
-    <ion-list *ngIf="folderNode">
+    <ion-list *ngIf="folderNode" class="file-folder-list">
         <ion-item clear *ngFor="#i of folderNode.childOrder">
             <ion-label (click)="onClickListItem(folderItems[i])>
-                    <ion-icon [name]="itemIconName(i)" medium-gray>
-                    </ion-icon>
-                    {{folderItems[i].name}}
+                <ion-icon [name]="itemIconName(i)" medium-gray>
+                </ion-icon>
+                {{folderItems[i].name}}
             </ion-label>
             <ion-checkbox [ngModel]="isSelected(folderItems[i])" (click)="onClickCheckbox(folderItems[i])" medium-gray item-left>
             </ion-checkbox>

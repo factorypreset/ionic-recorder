@@ -93,3 +93,8 @@ ion-content ion-list ion-item.library-empty-folder-message {
     text-align: center;
     color: map-get($colors, logo-orange);
 }
+
+ion-content ion-list.file-folder-list ion-label ion-item button span.button-inner {
+        text-transform: none;
+    }
+}
