@@ -41,12 +41,12 @@ If all tests passed, you can type
         cd ionic-recorder
         npm start
 and a web browser window will pop up with the app running in it after it has been compiled from sources.
-* To start coding, just open the root project with VSCode.
+* To start coding, just open the root project with VSCode - the code is in the subdirectory 'app'.
 
 ## Version
-The current version name is [here](https://github.com/tracktunes/ionic-recorder/blob/master/VERSION).
+The current version is maintained [in the VERSION file at the project's home directory](https://github.com/tracktunes/ionic-recorder/blob/master/VERSION).
 
-It corresponds to a git tag by the same name.
+It corresponds to a git tag by the same name, with a 'v' prefix added in the git tag name.
 
 ## License
 
