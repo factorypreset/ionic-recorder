@@ -41,40 +41,10 @@ done
 
 cd $APP_NAME
 
-./bin/fix_package.json.sh
+# install npm packages
+./bin/install-packages.sh
 
-npm install --save-dev \
-     awesome-typescript-loader \
-     chalk \
-     del \
-     es6-module-loader \
-     gulp \
-     gulp-inline-ng2-template \
-     gulp-load-plugins \
-     gulp-tap \
-     gulp-tslint \
-     gulp-typescript \
-     gulp-watch \
-     ionic-app-lib \
-     ionic-gulp-fonts-copy \
-     ionic-gulp-html-copy \
-     ionic-gulp-sass-build \
-     ionic-gulp-webpack-build \
-     jasmine-core \
-     karma \
-     karma-chrome-launcher \
-     karma-coverage \
-     karma-jasmine \
-     karma-mocha-reporter \
-     karma-phantomjs-launcher \
-     phantomjs-prebuilt \
-     run-sequence \
-     strip-sourcemap-loader \
-     systemjs \
-     traceur \
-     ts-node \
-     tslint \
-     typescript
+./bin/fix_package.json.sh
 
 /bin/rm -fr tslint.json
 ./bin/tslint --init
@@ -84,24 +54,8 @@ npm install --save-dev \
 # pinky stress from reduced left-shift key clicks the single quote saves us). 
 perl -pi -e 's/\"double\"/\"single\"/' tslint.json
 
-/bin/rm -fr typings/*
-
-for typing in \
-    local=github:$GITHUB_PATH/typings/main/ambient/local/local.d.ts \
-    ionic-app-lib=github:$GITHUB_PATH/typings/main/ambient/ionic-app-lib/ionic-app-lib.d.ts \
-    waa=github:$GITHUB_PATH/typings/main/ambient/waa/waa.d.ts \
-    MediaStream=github:$GITHUB_PATH/typings/main/ambient/MediaStream/MediaStream.d.ts
-do
-    ./bin/typings install --ambient --save $typing
-done
-
-for typing in \
-    bluebird chalk del es6-shim express glob gulp gulp-load-plugins \
-    gulp-typescript gulp-util jasmine karma log4js mime minimatch \
-    node orchestrator q run-sequence serve-static through2 vinyl
-do
-    ./bin/typings install --ambient --no-insight --save-dev $typing
-done
+# recreate all typings definitions
+./bin/recreate-typings.sh
 
 # run the main gulp test task, which runs other tasks in order
 # NOTE: seems like we can't run these tasks in order from the
