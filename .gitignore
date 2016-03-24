@@ -8,3 +8,4 @@ plugins/
 coverage
 hooks/
 ionic-recorder/
+typescript

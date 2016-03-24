@@ -7,8 +7,7 @@
 
 # NOTE: make sure you have latest ionic cli installed
 
-npm install --save-dev \   
-awesome-typescript-loader \
+npm install --save-dev awesome-typescript-loader \
     chalk \
     del \
     es6-module-loader \
