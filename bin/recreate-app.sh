@@ -23,11 +23,19 @@ git clone https://github.com/$GITHUB_PATH
 cd ..
 
 for copy in \
-    .gitignore \
+    CONTRIBUTING.md \
+    typings.json \
+    package.json \
     LICENSE \
+    webpack.config.js \
+    config.xml \
+    tslint.json \
     README.md \
+    gulpfile.js \
+    tsconfig.json \
+    .gitignore \
     TODO.md \
-    ionic.project \
+    ionic.config.json \
     www/favicon.ico \
     www/img \
     app \
