@@ -24,24 +24,12 @@ cd ..
 
 for copy in \
     CONTRIBUTING.md \
-    typings.json \
-    package.json \
     LICENSE \
-    webpack.config.js \
-    config.xml \
-    tslint.json \
-    README.md \
-    gulpfile.js \
-    tsconfig.json \
-    .gitignore \
-    TODO.md \
-    ionic.config.json \
     www/favicon.ico \
     www/img \
     app \
     bin \
-    test \
-    typings
+    test
 do
     /bin/rm -fr $APP_NAME/$copy
     cp -fr tmp/$APP_NAME/$copy $APP_NAME/$copy
@@ -49,6 +37,8 @@ done
 /bin/rm -fr tmp
 
 cd $APP_NAME
+
+cp package.json package.json.ORIG
 
 # now that we've modified package.json, change it
 ./bin/fix_package.json.sh

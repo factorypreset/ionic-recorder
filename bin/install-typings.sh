@@ -5,6 +5,7 @@
 # Originally based on package.json at:
 #     https://github.com/lathonez/clicker/blob/master/package.json
 
+mkdir -p typings
 /bin/rm -fr typings/*
 
 APP_NAME="ionic-recorder"
