@@ -38,4 +38,4 @@ awesome-typescript-loader \
     ts-node \
     tslint \
     typescript \
-    typings
+    typings \

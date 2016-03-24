@@ -49,10 +49,9 @@ done
 /bin/rm -fr tmp
 
 cd $APP_NAME
-ls
-exit 0
+
 # install npm packages
-# ./bin/install-packages.sh
+./bin/install-packages.sh
 
 # now that we've modified package.json, change it
 ./bin/fix_package.json.sh
