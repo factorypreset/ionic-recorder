@@ -13,6 +13,7 @@ TMPFILE=.tmp$RANDOM
 head -n $NLINES_MINUS2 package.json > $TMPFILE
 
 cat << EOF >> $TMPFILE
+  },
   "description": "ionic-recorder: Ionic2 / WebAudio hybrid app",
   "license": "GPL-2.0",
   "repository": {

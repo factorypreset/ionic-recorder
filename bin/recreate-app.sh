@@ -50,11 +50,11 @@ done
 
 cd $APP_NAME
 
-# install npm packages
-./bin/install-npm-packages.sh
-
 # now that we've modified package.json, change it
 ./bin/fix_package.json.sh
+
+# install npm packages
+./bin/install-npm-packages.sh
 
 /bin/rm -fr tslint.json
 ./bin/tslint --init
