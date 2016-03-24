@@ -23,7 +23,7 @@ npm install --save-dev \
      ionic-gulp-fonts-copy \
      ionic-gulp-html-copy \
      ionic-gulp-sass-build \
-     ionic-gulp-webpack-build \
+     ionic-gulp-webpack \
      jasmine-core \
      karma \
      karma-chrome-launcher \
