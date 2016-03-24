@@ -1,8 +1,5 @@
 // Karma configuration
-// based on this article: 
-//     http://lathonez.github.io/2016/ionic-2-unit-testing/
-// and this github repository:
-//     https://github.com/lathonez/clicker
+// Generated on Wed Jul 15 2015 09:44:02 GMT+0200 (Romance Daylight Time)
 
 module.exports = function(config) {
   'use strict';
@@ -84,8 +81,7 @@ module.exports = function(config) {
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
     browsers: [
-      'Chrome', 
-      // 'PhantomJS'
+      'PhantomJS',
     ],
 
     customLaunchers: {
@@ -94,10 +90,6 @@ module.exports = function(config) {
         flags: ['--no-sandbox']
       }
     },
-
-    // Continuous Integration mode
-    // if true, Karma captures browsers, runs the tests and exits
-    singleRun: false
   });
 
   if (process.env.APPVEYOR) {

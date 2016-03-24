@@ -7,6 +7,9 @@
 
 /bin/rm -fr typings/*
 
+APP_NAME="ionic-recorder"
+GITHUB_PATH="tracktunes/$APP_NAME"
+
 for typing in \
     local=github:$GITHUB_PATH/typings/main/ambient/local/local.d.ts \
     waa=github:$GITHUB_PATH/typings/main/ambient/waa/waa.d.ts \
