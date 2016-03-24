@@ -5,15 +5,14 @@
 # Originally based on package.json at:
 #     https://github.com/lathonez/clicker/blob/master/package.json
 
-
+NLINES_CUT=4
 NLINES="`wc -l package.json | awk '{print $1}'`"
-NLINES_MINUS2="`echo $NLINES - 2 | bc`"
+NLINES_NEW="`echo $NLINES - $NLINES_CUT | bc`"
 TMPFILE=.tmp$RANDOM
 
-head -n $NLINES_MINUS2 package.json > $TMPFILE
+head -n $NLINES_NEW package.json > $TMPFILE
 
 cat << EOF >> $TMPFILE
-  },
   "description": "ionic-recorder: Ionic2 / WebAudio hybrid app",
   "license": "GPL-2.0",
   "repository": {

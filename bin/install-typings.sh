@@ -12,9 +12,9 @@ APP_NAME="ionic-recorder"
 GITHUB_PATH="tracktunes/$APP_NAME"
 
 for typing in \
-    local=github:$GITHUB_PATH/typings/main/ambient/local/local.d.ts \
-    waa=github:$GITHUB_PATH/typings/main/ambient/waa/waa.d.ts \
-    MediaStream=github:$GITHUB_PATH/typings/main/ambient/MediaStream/MediaStream.d.ts
+    local=github:$GITHUB_PATH/typings/main/ambient/local/index.d.ts \
+    waa=github:$GITHUB_PATH/typings/main/ambient/waa/index.d.ts \
+    MediaStream=github:$GITHUB_PATH/typings/main/ambient/MediaStream/index.d.ts
 do
     ./bin/typings install --ambient --save $typing
 done
