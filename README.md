@@ -25,25 +25,21 @@ to build
 ## Installation and getting started
 * In a shell, do
 
-    git clone https://github.com/tracktunes/ionic-recorder
-    cd ionic-recorder
-    script
-
+        git clone https://github.com/tracktunes/ionic-recorder
+        cd ionic-recorder
+        script
 * Now type the following into the new script shell:
 
         date; ./bin/recreate_app.sh; date; exit
-
 * Now wait a good 10 minutes ...
 * Now check the output of the file `typescript` at the end of this long process.
 
-    cat typescript
-
+        cat typescript
 * Note that a new 'ionic-recorder' directory is created inside the existing one.
 If all tests passed, you can type
 
-    cd ionic-recorder
-    npm start
-
+        cd ionic-recorder
+        npm start
 and a web browser window will pop up with the app running in it after it has been compiled from sources.
 
 To start coding, just open the root project with VSCode.
