@@ -27,7 +27,10 @@ sed -i 's/scheduler:/scheduler?:/' ${FILE}
 # fix the warning for promise.d.ts
 PROMISEFILE="node_modules/angular2/src/facade/promise.d.ts"
 FIRST_LINE="declare var Promise: PromiseConstructor;"
+
+cp $PROMISEFILE "${PROMISEFILE}.ORIG"
+
 TMPFILE=.tmp$RANDOM
 echo  $FIRST_LINE > $TMPFILE
-cat $PROMISEFILE > $TMPFILE
+cat $PROMISEFILE >> $TMPFILE
 mv $TMPFILE $PROMISEFILE

@@ -25,7 +25,7 @@ cat << EOF >> $TMPFILE
     "karma": "gulp --gulpfile test/gulpfile.ts --cwd ./ test.karma.debug",
     "postinstall": "typings install",
     "start": "ionic serve --browser chromium-browser",
-    "test": "find ./app -type f | xargs sed -i 's/[ \t]*$//' ; gulp --gulpfile test/gulpfile.ts --cwd ./ test"
+    "test": "find ./app -type f | xargs sed -i 's/[ \t]*$//' ; gulp --gulpfile test/gulpfile.ts --cwd ./ test",
     "test.watch": "gulp --gulpfile test/gulpfile.ts --cwd ./ test.watch.build",
     "webdriver-update": "webdriver-manager update"
   }
