@@ -45,18 +45,20 @@ cd $APP_NAME
 # install npm packages
 ./bin/install-packages.sh
 
+# now that we've modified package.json, change it
 ./bin/fix_package.json.sh
 
 /bin/rm -fr tslint.json
 ./bin/tslint --init
+
 # next line assumes first occurrence of the string "double" in tslint.json
 # is indeed in the "quotemark" section of tsling.json.  this next line makes
 # sure we continue to comfortably work with only single quotes (reduces left
 # pinky stress from reduced left-shift key clicks the single quote saves us). 
 perl -pi -e 's/\"double\"/\"single\"/' tslint.json
 
-# recreate all typings definitions
-./bin/recreate-typings.sh
+# install typings definitions
+./bin/install-typings.sh
 
 # run the main gulp test task, which runs other tasks in order
 # NOTE: seems like we can't run these tasks in order from the

@@ -19,7 +19,6 @@ awesome-typescript-loader \
     gulp-tslint \
     gulp-typescript \
     gulp-watch \
-    ionic-app-lib \
     ionic-gulp-fonts-copy \
     ionic-gulp-html-copy \
     ionic-gulp-sass-build \
