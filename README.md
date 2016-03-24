@@ -31,7 +31,7 @@ to build
 
 * Now type the following into the new script shell:
 
-    date; ./bin/recreate_app.sh; date; exit
+        date; ./bin/recreate_app.sh; date; exit
 
 * Now wait a good 10 minutes ...
 * Now check the output of the file `typescript` at the end of this long process.
