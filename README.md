@@ -22,25 +22,22 @@ to build
   [MediaRecorder](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder_API).
   and a late version of IndexedDB that supports the `onupgradeended` event.
   
-## Installation
+## Installation and getting started
 In a shell, do
 
     git clone https://github.com/tracktunes/ionic-recorder
     cd ionic-recorder
-    npm install
-    npm install -g cordova ionic@beta
-    ionic serve
+    ./bin/recreate_app.sh
 
-To get rid of Typescript compiler warning, add the line 
+Now check the output of the file `typescript` at the end of this long process.
 
-    declare var Promise: PromiseConstructor;
+If all tests passed, you can type
 
-to the top of
-  
-    node_modules/angular2/src/facade/promise.d.ts
+    npm start
 
-and then ionic serve will run with no warnings (see
-[this issue](https://github.com/angular/angular/issues/6468))
+and a web browser window will pop up with the app running in it after it has been compiled from sources.
+
+To start coding, just open the root project with VSCode.
 
 ## Version
 The current version name is [here](https://github.com/tracktunes/ionic-recorder/blob/master/VERSION).
