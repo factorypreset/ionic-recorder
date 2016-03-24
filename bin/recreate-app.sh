@@ -35,15 +35,16 @@ for copy in \
     test \
     typings
 do
-    rm -fr $APP_NAME/$copy
+    /bin/rm -fr $APP_NAME/$copy
     cp -fr tmp/$APP_NAME/$copy $APP_NAME/$copy
 done
 /bin/rm -fr tmp
 
 cd $APP_NAME
-
+ls
+exit 0
 # install npm packages
-./bin/install-packages.sh
+# ./bin/install-packages.sh
 
 # now that we've modified package.json, change it
 ./bin/fix_package.json.sh
