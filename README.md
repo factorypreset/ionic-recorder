@@ -43,7 +43,7 @@ and then ionic serve will run with no warnings (see
 [this issue](https://github.com/angular/angular/issues/6468))
 
 ## Version
-The current version name is here: [https://github.com/tracktunes/ionic-recorder/VERSION](https://github.com/tracktunes/ionic-recorder/VERSION).
+The current version name is [here](https://github.com/tracktunes/ionic-recorder/blob/master/VERSION).
 
 It corresponds to a git tag by the same name.
 
