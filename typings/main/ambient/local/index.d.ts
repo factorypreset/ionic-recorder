@@ -41,3 +41,7 @@ interface DBItem {
 interface RangeInputEventTarget extends EventTarget {
     value: number;
 }
+
+// fix the complaint about what should be 1st line of
+// node_modules/angular2/src/facade/promise.d.ts
+declare var Promise: PromiseConstructor;
