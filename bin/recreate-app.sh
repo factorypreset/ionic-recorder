@@ -32,7 +32,8 @@ for copy in \
     www/img \
     app \
     bin \
-    test
+    test \
+    typings
 do
     rm -fr $APP_NAME/$copy
     cp -fr tmp/$APP_NAME/$copy $APP_NAME/$copy
