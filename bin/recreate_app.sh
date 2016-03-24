@@ -44,7 +44,7 @@ cp package.json package.json.ORIG
 ./bin/fix_package.json.sh
 
 # install npm packages
-./bin/install-npm-packages.sh
+./bin/install_npm_packages.sh
 
 /bin/rm -fr tslint.json
 ./bin/tslint --init
@@ -56,7 +56,9 @@ cp package.json package.json.ORIG
 perl -pi -e 's/\"double\"/\"single\"/' tslint.json
 
 # install typings definitions
-./bin/install-typings.sh
+./bin/install_typings.sh
+
+./bin/fix_typings.sh
 
 # run the main gulp test task, which runs other tasks in order
 # NOTE: seems like we can't run these tasks in order from the
