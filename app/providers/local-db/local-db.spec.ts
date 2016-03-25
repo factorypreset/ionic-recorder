@@ -3,11 +3,13 @@
 import {LocalDB, TreeNode, DataNode, ParentChild, DB_NAME, DB_NO_KEY,
 DB_KEY_PATH, MAX_DB_INIT_TIME} from './local-db';
 
+
 const RANDOM_WORD_1: string =
     '1Wh9Xs5ytKuvEjdBhuLUVjED4dp5UPZd3QZFTLuejYNbuLvBVeP9Qq5xaBPAY7RE';
 const RANDOM_WORD_2: string =
     '2Wh9Xs5ytKuvEjdBhuLUVjED4dp5UPZd3QZFTLuejYNbuLvBVeP9Qq5xaBPAY7RE';
 const UNFILED_FOLDER_NAME: string = '__unfiled__';
+
 
 let request: IDBOpenDBRequest = indexedDB.deleteDatabase(DB_NAME);
 
@@ -22,6 +24,7 @@ request.onerror = function() {
 request.onblocked = function() {
     console.log('deleteDatabase: BLOCKED');
 };
+
 
 export function main(): void {
     'use strict';
