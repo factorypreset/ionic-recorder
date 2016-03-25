@@ -60,6 +60,9 @@ perl -pi -e 's/\"double\"/\"single\"/' tslint.json
 
 ./bin/fix_typings.sh
 
+# install the app
+npm install
+
 # run the main gulp test task, which runs other tasks in order
 # NOTE: seems like we can't run these tasks in order from the
 # command line but we have to group them under this general task 'test'
