@@ -23,7 +23,11 @@ to build
   and a late version of IndexedDB that supports the `onupgradeended` event.
   
 ## Installation and getting started
-* In a shell, do
+* First, you need some global npm packages, in a shell, type
+ 
+        npm install -g ionic@beta
+        npm install -g cordova
+* In a shell, type
 
         git clone https://github.com/tracktunes/ionic-recorder
         cd ionic-recorder
